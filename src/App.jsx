@@ -1,10 +1,17 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+} from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import MyTrips from "./pages/MyTrips";
+import Vehicles from "./pages/Vehicles";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -37,6 +44,8 @@ function App() {
           {/* 2. Navbar & Footer NATHI Pages (Auth) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/my-trips" element={<MyTrips />} />
+          <Route path="/vehicles" element={<Vehicles />} />
         </Routes>
       </AuthProvider>
     </Router>
