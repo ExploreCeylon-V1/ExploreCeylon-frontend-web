@@ -12,6 +12,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import MyTrips from "./pages/MyTrips";
 import Vehicles from "./pages/Vehicles";
+import HotelsPage from "./pages/HotelsPage";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -36,7 +37,7 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             {/* Anith pages meke pahalin add karanna */}
-            {/* <Route path="/hotels" element={<HotelsPage />} /> */}
+            <Route path="/hotels" element={<HotelsPage />} />
             {/* <Route path="/vehicles" element={<VehiclesPage />} /> */}
             {/* <Route path="/destinations" element={<DestinationsPage />} /> */}
           </Route>
