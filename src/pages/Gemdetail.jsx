@@ -247,7 +247,7 @@ const GemDetail = () => {
 
             {/* Sidebar */}
             <div className="lg:col-span-1 flex flex-col gap-5">
-              <AddToTripCard gem={gem} />
+              <AddToTripCard item={gem} itemType="GEM" />
 
               <div className="bg-white rounded-xl p-5 sm:p-6">
                 <h2 className="font-bold text-gray-800 mb-4">Gem Info</h2>
@@ -284,7 +284,7 @@ const GemDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {showGallery && (
         <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
 
