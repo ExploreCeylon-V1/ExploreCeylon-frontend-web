@@ -3,10 +3,16 @@ import tripsService from '../services/Tripsservice';
 
 /**
  * AddToTripCard
- * Lets a logged-in traveler add a gem to one of their trips' days.
- * Uses real endpoints: GET /trips/my, GET /trips/{id}, POST .../items
+ * Lets a logged-in traveler add an item (gem, destination, etc.) to one
+ * of their trips' days. Uses real endpoints: GET /trips/my, GET /trips/{id},
+ * POST .../items
+ *
+ * @param {Object} item - the gem or destination object being added
+ * @param {string} itemType - TripDayItem.ItemType value, e.g. 'GEM' | 'ACTIVITY'
+ * @param {string} title - display title for the trip item (defaults to item.title or item.name)
+ * @param {string} heading - card heading text, e.g. "Add to Your Trip" or "Plan a Visit to X"
  */
-const AddToTripCard = ({ gem }) => {
+const AddToTripCard = ({ item, itemType = 'GEM', title, heading = 'Add to Your Trip' }) => {
   const [trips, setTrips] = useState([]);
   const [selectedTripId, setSelectedTripId] = useState('');
   const [selectedTrip, setSelectedTrip] = useState(null);
@@ -68,12 +74,12 @@ const AddToTripCard = ({ gem }) => {
       setFeedback(null);
 
       await tripsService.addItemToDay(selectedTripId, selectedDayId, {
-        type: 'GEM',
-        referenceId: String(gem.id),
-        title: gem.title,
+        type: itemType,
+        referenceId: String(item.id),
+        title: title || item.title || item.name,
         cost: 0,
         currency: 'LKR',
-        notes: gem.district,
+        notes: item.district,
       });
 
       setFeedback({ type: 'success', message: 'Added to your trip!' });
@@ -97,7 +103,7 @@ const AddToTripCard = ({ gem }) => {
           <a href="/login" className="text-[#2D6A4F] font-semibold underline">
             log in
           </a>{' '}
-          to add this gem to a trip.
+          to add this to a trip.
         </p>
       </div>
     );
@@ -105,7 +111,7 @@ const AddToTripCard = ({ gem }) => {
 
   return (
     <div className="bg-white rounded-xl p-5 sm:p-6">
-      <h2 className="font-bold text-gray-800 mb-4">Add to Your Trip</h2>
+      <h2 className="font-bold text-gray-800 mb-4">{heading}</h2>
 
       {loadingTrips && (
         <p className="text-sm text-gray-500">Loading your trips...</p>
