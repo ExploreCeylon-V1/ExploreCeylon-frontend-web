@@ -13,9 +13,13 @@ import RegisterPage from "./pages/RegisterPage";
 import MyTrips from "./pages/MyTrips";
 import Vehicles from "./pages/Vehicles";
 import HotelsPage from "./pages/HotelsPage";
+import HiddenGems from "./pages/Hiddengems";
+import GemDetail from './pages/Gemdetail';
+import SubmitGem from './pages/Submitgem';
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
+
 function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-100">
@@ -47,6 +51,9 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/my-trips" element={<MyTrips />} />
           <Route path="/vehicles" element={<Vehicles />} />
+          <Route path="/hidden-gems" element={<HiddenGems />} />
+          <Route path="/hidden-gems/:id" element={<GemDetail />} />
+          <Route path="/hidden-gems/submit" element={<SubmitGem />} />
         </Routes>
       </AuthProvider>
     </Router>
