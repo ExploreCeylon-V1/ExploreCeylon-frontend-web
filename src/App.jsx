@@ -16,6 +16,9 @@ import HotelsPage from "./pages/HotelsPage";
 import HiddenGems from "./pages/Hiddengems";
 import GemDetail from './pages/Gemdetail';
 import SubmitGem from './pages/Submitgem';
+import DestinationsPage from "./pages/Destinations";
+import DestinationDetail from './pages/DestinationDetail';
+
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -54,6 +57,8 @@ function App() {
           <Route path="/hidden-gems" element={<HiddenGems />} />
           <Route path="/hidden-gems/:id" element={<GemDetail />} />
           <Route path="/hidden-gems/submit" element={<SubmitGem />} />
+          <Route path="/destinations" element={<DestinationsPage />} />
+          <Route path="/destinations/:id" element={<DestinationDetail />} />
         </Routes>
       </AuthProvider>
     </Router>
