@@ -14,10 +14,10 @@ import MyTrips from "./pages/MyTrips";
 import Vehicles from "./pages/Vehicles";
 import HotelsPage from "./pages/HotelsPage";
 import HiddenGems from "./pages/Hiddengems";
-import GemDetail from './pages/Gemdetail';
-import SubmitGem from './pages/Submitgem';
+import GemDetail from "./pages/Gemdetail";
+import SubmitGem from "./pages/Submitgem";
 import DestinationsPage from "./pages/Destinations";
-import DestinationDetail from './pages/DestinationDetail';
+import DestinationDetail from "./pages/DestinationDetail";
 
 
 // MainLayout eken thama Navbar saha Footer render karanne.
