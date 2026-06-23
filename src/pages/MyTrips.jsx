@@ -46,14 +46,12 @@ export default function TripsPage() {
           }
         }
 
-        // 🔍 හරියටම වැදගත් token එක අහු වුණාද කියා බලාගන්න
         console.log("Extracted Actual JWT Token:", token);
 
         const response = await fetch("/api/v1/trips/my", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            // 2. සැබෑ token එක Authorization header එකට pass කරනවා
             Authorization: token ? `Bearer ${token}` : "",
           },
         });
