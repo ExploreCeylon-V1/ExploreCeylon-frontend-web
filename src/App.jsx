@@ -11,7 +11,18 @@ import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import MyTrips from "./pages/MyTrips";
+<<<<<<< Updated upstream
 import Vehicles from "./pages/Vehicles";
+=======
+//import Vehicles from "./pages/Vehicles";
+import HotelsPage from "./pages/HotelsPage";
+import HiddenGems from "./pages/Hiddengems";
+import GemDetail from "./pages/Gemdetail";
+import SubmitGem from "./pages/Submitgem";
+import DestinationsPage from "./pages/Destinations";
+import DestinationDetail from "./pages/DestinationDetail";
+import VehicleListing from "./pages/vehicles/VehicleListing";
+>>>>>>> Stashed changes
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -45,7 +56,16 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/my-trips" element={<MyTrips />} />
+<<<<<<< Updated upstream
           <Route path="/vehicles" element={<Vehicles />} />
+=======
+          <Route path="/hidden-gems" element={<HiddenGems />} />
+          <Route path="/hidden-gems/:id" element={<GemDetail />} />
+          <Route path="/hidden-gems/submit" element={<SubmitGem />} />
+          <Route path="/destinations" element={<DestinationsPage />} />
+          <Route path="/destinations/:id" element={<DestinationDetail />} />
+          <Route path="/vehicles" element={<VehicleListing />} />
+>>>>>>> Stashed changes
         </Routes>
       </AuthProvider>
     </Router>
