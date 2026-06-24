@@ -3,6 +3,8 @@ import VehicleCard from "../../components/vehicles/VehicleCard";
 import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import VehicleBookingDrawer from "../../components/vehicles/VehicleBookingDrawer";
 import { vehicleService } from "../../services/vehicleService";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -146,7 +148,8 @@ export default function VehicleListing() {
   };
 
   return (
-    <>
+    <div>
+      <Navbar />
       <div className="min-h-screen font-sans bg-gray-100">
         {/* Hero */}
         <div className="py-10 bg-green-800">
@@ -370,6 +373,8 @@ export default function VehicleListing() {
           alert(`Booking confirmed! Booking ID: ${booking.id}`);
         }}
       />
-    </>
+
+      <Footer />
+    </div>
   );
 }
