@@ -18,6 +18,7 @@ import SubmitGem from "./pages/Submitgem";
 import DestinationsPage from "./pages/Destinations";
 import DestinationDetail from "./pages/DestinationDetail";
 import VehicleListing from "./pages/vehicles/VehicleListing";
+import CreateTrip from "./pages/CreateTrip";
 
 
 // MainLayout eken thama Navbar saha Footer render karanne.
@@ -45,6 +46,7 @@ function App() {
             <Route path="/" element={<Home />} />
             {/* Anith pages meke pahalin add karanna */}
             <Route path="/hotels" element={<HotelsPage />} />
+            <Route path="/create-trip" element={<CreateTrip />} />
             {/* <Route path="/vehicles" element={<VehiclesPage />} /> */}
             {/* <Route path="/destinations" element={<DestinationsPage />} /> */}
           </Route>
