@@ -24,10 +24,10 @@ export default function Home() {
         </div>
 
         {/* Main Content Container */}
-        <div className="flex flex-col items-center max-w-3xl mx-auto mt-12 space-y-6">
+        <div className="flex flex-col items-center max-w-4xl mx-auto mt-12 space-y-6">
           
           {/* Main Heading */}
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl drop-shadow-md">
+          <h1 className="text-5xl font-bold leading-tight tracking-tight text-white md:text-8xl drop-shadow-md">
             Discover Sri Lanka
           </h1>
           
