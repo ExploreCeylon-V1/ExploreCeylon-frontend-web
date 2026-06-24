@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import destinationsService from '../services/destinationsService';
-import hiddenGemsService from '../services/Hiddengemsservice';
+import hiddenGemsService from '../services/hiddenGemsService';
 import guidesService from '../services/guidesService';
 import { getDestinationCategoryMeta } from '../components/destinationCategories';
 import { getCategoryMeta } from '../components/gemCategories';
@@ -9,6 +9,7 @@ import { ALL_MONTHS_ABBR, getActiveMonthSet, formatBestMonths } from '../utils/f
 import { parseTravelTimeFrom, parseActivities, parseNearbyGemTitles } from '../utils/destinationParsers';
 import AddToTripCard from '../components/AddToTripCard';
 import GuideMiniCard from '../components/GuideMiniCard';
+import DestinationReviews from '../components/DestinationReviews';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -376,6 +377,12 @@ const DestinationDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* Reviews */}
+              <DestinationReviews
+                destinationId={destination.id}
+                onReviewAdded={fetchDestination}
+              />
             </div>
 
             {/* Sidebar */}
