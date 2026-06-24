@@ -1,86 +1,75 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+// 🚨 වැදගත්: useState සහ useEffect මෙතනට අලුතින් එකතු කර ඇත
+import React from 'react'; // 👈 මේ පේළිය තමයි අඩු වෙලා තිබුණේ
+import { Link, useNavigate } from 'react-router-dom';
+import DestinationCard from '../components/DestinationCard';
+import heroImage from '../assets/Image.png';
 
-export default function HeroSection() {
+export default function Home() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-
-  const features = [
-    "AI-powered itinerary planning",
-    "Local tour & vehicle booking",
-    "Exclusive hidden gem recommendations",
-  ];
-
+  
   return (
-    <section className="flex min-h-screen items-center justify-center bg-[#0b1220] px-6 py-12 font-sans md:px-8">
-      <div className="grid w-full max-w-[1160px] grid-cols-1 items-center gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        
-        {/* ── LEFT CARD ── */}
-        <div className="flex flex-col gap-7 rounded-[28px] bg-[#131e2e] p-8 md:p-11">
-          <div className="flex w-fit items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-1.5 pl-2 pr-4">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a5c3a] text-sm font-bold text-white">E</span>
-            <span className="text-sm font-medium text-[#d0d8e8]">ExploreCeylon</span>
-          </div>
- 
-          <h1 className="m-0 text-4xl font-extrabold leading-tight tracking-tight text-white md:text-[52px]">
-            Discover Sri Lanka<br />with AI-powered<br />travel planning
+    <div>
+      <div 
+        className="relative flex flex-col items-center justify-center w-full min-h-screen px-4 text-center bg-center bg-cover"
+        style={{ 
+          // පසුබිම් රූපය සඳහා ලokal assets හි image.jpg භාවිතා කරයි
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${heroImage})`
+        }}
+      >
+        {/* Top Badge - Powered by GPT-4o AI */}
+        <div className="absolute top-8 bg-black/40 border border-yellow-500/30 backdrop-blur-sm text-xs text-stone-300 px-4 py-1.5 rounded-full flex items-center gap-1.5 tracking-wide">
+          <span className="text-sm text-yellow-500">🤖</span>
+          <span>Powered by <span className="font-semibold text-white">GPT-4o AI</span></span>
+          <span className="text-yellow-500">★</span>
+        </div>
+
+        {/* Main Content Container */}
+        <div className="flex flex-col items-center max-w-3xl mx-auto mt-12 space-y-6">
+          
+          {/* Main Heading */}
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl drop-shadow-md">
+            Discover Sri Lanka
           </h1>
- 
-          <p className="m-0 max-w-[440px] text-[15px] leading-[1.65] text-[#8a9ab8]">
-            Plan the perfect Sri Lanka adventure, connect with local guides, and
-            explore hidden gems—all in one place.
-          </p>
- 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3 sm:gap-3.5">
-            {[
-              { val: "12k+", label: "Happy Travelers" },
-              { val: "4.9★", label: "Average Rating" },
-              { val: "500+", label: "Destinations" }
-            ].map(stat => (
-              <div key={stat.label} className="flex flex-row items-center gap-4 rounded-[18px] bg-[#1a2840] p-4 sm:flex-col sm:items-center sm:gap-2 sm:text-center">
-                <span className="text-[26px] font-bold leading-none text-[#1db67c]">{stat.val}</span>
-                <span className="text-[12.5px] leading-tight text-[#7888a4]">{stat.label}</span>
-              </div>
-            ))}
-          </div>
- 
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-3.5">
-            {!isAuthenticated ? (
-              <>
-                <button className="rounded-full bg-[#1db67c] px-7 py-3 text-[14.5px] font-semibold text-white transition-transform hover:-translate-y-px hover:opacity-90" onClick={() => navigate("/login")}>
-                  Sign In
-                </button>
-                <button className="rounded-full border border-white/15 bg-white/10 px-7 py-3 text-[14.5px] font-semibold text-[#d0d8e8] transition-colors hover:bg-white/20" onClick={() => navigate("/register")}>
-                  Sign Up
-                </button>
-              </>
-            ) : (
-              <button className="rounded-full bg-[#1db67c] px-7 py-3 text-[14.5px] font-semibold text-white transition-transform hover:-translate-y-px hover:opacity-90" onClick={() => navigate("/planner")}>
-                Plan a Trip →
-              </button>
-            )}
-          </div>
-        </div>
- 
-        {/* ── RIGHT CARD ── */}
-        <div className="flex h-full flex-col justify-center gap-4 rounded-[28px] bg-[#131e2e] p-8 md:p-10">
-          <h2 className="m-0 text-2xl font-bold leading-snug text-white md:text-[32px]">
-            Fast, friendly bookings for Sri Lanka
+          
+          {/* Sub Heading */}
+          <h2 className="text-3xl font-bold tracking-wide md:text-5xl text-amber-500 drop-shadow-md">
+            Like Never Before
           </h2>
-          <p className="m-0 text-sm leading-relaxed text-[#7888a4]">
-            Access curated itineraries, local support, and hidden adventures
-            from one modern travel dashboard.
+
+          {/* Description Paragraph */}
+          <p className="max-w-xl mt-2 text-sm font-medium leading-relaxed md:text-base text-stone-200">
+            AI-powered travel planning with real local data. <br />
+            <span className="opacity-90">From ancient kingdoms to hidden beaches — your perfect Sri Lanka trip starts here.</span>
           </p>
-          <ul className="m-0 mt-3 flex flex-col gap-3 p-0">
-            {features.map((f) => (
-              <li key={f} className="rounded-xl bg-[#1a2840] px-5 py-4 text-sm font-medium tracking-wide text-[#c0cce0] transition-colors hover:bg-[#1e2f4a]">
-                {f}
-              </li>
-            ))}
-          </ul>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col items-center w-full gap-4 pt-6 sm:flex-row sm:w-auto">
+            
+            {/* Primary Button: Generate AI Trip */}
+            <button 
+              onClick={() => navigate('/create-trip')}
+              className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-8 py-3.5 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200 shadow-lg text-sm md:text-base"
+            >
+              {/* Sparkles Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0V6H3a1 1 0 110-2h1V3a1 1 0 011-1zm12 7a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1zm-11 2.5a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zm4-7.5a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75V7zm3.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1l7-7a1 1 0 000-1.414z" clipRule="evenodd" />
+              </svg>
+              Generate AI Trip — Free
+            </button>
+
+            {/* Secondary Button: Browse Destinations */}
+            {/* 🚨 ඔයාගේ Route එක /destinations නම් මෙතන /destinations ම තියන්න, View All එකේ තියෙන එකත් ඒකටම ගැලපෙන්න වෙනස් කරන්න */}
+            <Link 
+              to="/destinations" 
+              className="w-full sm:w-auto bg-white hover:bg-stone-100 text-emerald-900 font-semibold px-8 py-3.5 rounded-lg transition-colors duration-200 shadow-lg text-sm md:text-base border border-stone-200 text-center block"
+            >
+              Browse Destinations
+            </Link>
+
+          </div>
         </div>
+
       </div>
-    </section>
+    </div>
   );
 }

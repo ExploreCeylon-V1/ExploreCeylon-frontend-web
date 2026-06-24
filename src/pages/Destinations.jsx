@@ -121,7 +121,7 @@ const Destinations = () => {
           </p>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-10 py-6 pb-14">
+        <div className="px-4 py-6 mx-auto max-w-7xl sm:px-10 pb-14">
           {/* Featured carousel */}
           {!loading && !error && (
             <FeaturedCarousel destinations={featured} onExplore={handleExplore} />
@@ -157,7 +157,7 @@ const Destinations = () => {
           </div>
 
           {/* Toolbar */}
-          <div className="flex gap-3 items-center flex-wrap bg-white rounded-xl p-4 mb-5">
+          <div className="flex flex-wrap items-center gap-3 p-4 mb-5 bg-white rounded-xl">
             <select
               value={provinceFilter}
               onChange={(e) => setProvinceFilter(e.target.value)}
@@ -172,7 +172,7 @@ const Destinations = () => {
             </select>
 
             <div className="flex-1 min-w-[200px] relative flex items-center">
-              <span className="absolute left-3 text-sm text-gray-500">🔍</span>
+              <span className="absolute text-sm text-gray-500 left-3">🔍</span>
               <input
                 type="text"
                 placeholder="Search destinations..."
@@ -196,18 +196,18 @@ const Destinations = () => {
           </div>
 
           {/* Result count */}
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="mb-4 text-sm text-gray-500">
             Showing <strong>{filteredDestinations.length}</strong> destinations
           </p>
 
           {loading && (
-            <p className="text-center py-12 text-gray-500 text-base">
+            <p className="py-12 text-base text-center text-gray-500">
               Loading destinations...
             </p>
           )}
 
           {!loading && error && (
-            <div className="text-center py-12 text-red-700 text-base">
+            <div className="py-12 text-base text-center text-red-700">
               {error}
               <button
                 type="button"
@@ -220,13 +220,13 @@ const Destinations = () => {
           )}
 
           {!loading && !error && filteredDestinations.length === 0 && (
-            <p className="text-center py-12 text-gray-500 text-base">
+            <p className="py-12 text-base text-center text-gray-500">
               No destinations match your filters. Try adjusting your search.
             </p>
           )}
 
           {!loading && !error && filteredDestinations.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredDestinations.map((destination) => (
                 <DestinationCard
                   key={destination.id}
