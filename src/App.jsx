@@ -10,7 +10,6 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import MyTrips from "./pages/MyTrips";
 import HotelsPage from "./pages/HotelsPage";
 import HiddenGems from "./pages/Hiddengems";
 import GemDetail from "./pages/Gemdetail";
@@ -18,8 +17,7 @@ import SubmitGem from "./pages/Submitgem";
 import DestinationsPage from "./pages/Destinations";
 import DestinationDetail from "./pages/DestinationDetail";
 import VehicleListing from "./pages/vehicles/VehicleListing";
-import CreateTrip from "./pages/CreateTrip";
-
+import CreateTrip from "./pages/trips/CreateTrip";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -54,14 +52,12 @@ function App() {
           {/* 2. Navbar & Footer NATHI Pages (Auth) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/my-trips" element={<MyTrips />} />
           <Route path="/hidden-gems" element={<HiddenGems />} />
           <Route path="/hidden-gems/:id" element={<GemDetail />} />
           <Route path="/hidden-gems/submit" element={<SubmitGem />} />
           <Route path="/destinations" element={<DestinationsPage />} />
           <Route path="/destinations/:id" element={<DestinationDetail />} />
           <Route path="/vehicles" element={<VehicleListing />} />
-
         </Routes>
       </AuthProvider>
     </Router>
