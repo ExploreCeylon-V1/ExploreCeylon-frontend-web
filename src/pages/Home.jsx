@@ -49,7 +49,7 @@ export default function Home() {
           <div className="flex flex-col items-center w-full gap-4 pt-6 sm:flex-row sm:w-auto">
             {/* Primary Button: Generate AI Trip */}
             <button
-              onClick={() => navigate("/create-trip")}
+              onClick={() => navigate("/trips/new")}
               className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-8 py-3.5 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200 shadow-lg text-sm md:text-base"
             >
               {/* Sparkles Icon */}
