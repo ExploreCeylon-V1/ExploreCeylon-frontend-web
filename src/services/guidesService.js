@@ -26,6 +26,67 @@ const guidesService = {
     const response = await apiClient.get(`/api/v1/guides/${id}`);
     return response.data;
   },
+
+  /**
+   * GET /api/v1/guides/search?keyword=...
+   */
+  searchGuides: async (keyword) => {
+    const response = await apiClient.get('/api/v1/guides/search', {
+      params: { keyword },
+    });
+    return response.data;
+  },
+
+  /**
+   * GET /api/v1/guides/{id}/reviews
+   */
+  getGuideReviews: async (id) => {
+    const response = await apiClient.get(`/api/v1/guides/${id}/reviews`);
+    return response.data;
+  },
+
+  /**
+   * POST /api/v1/guides/{id}/reviews
+   */
+  writeReview: async (id, { rating, comment, bookingId }) => {
+    const response = await apiClient.post(`/api/v1/guides/${id}/reviews`, {
+      rating,
+      comment,
+      bookingId,
+    });
+    return response.data;
+  },
+
+  /**
+   * GET /api/v1/guides/{id}/bookings
+   * Used to derive guide availability (booked date ranges) for the calendar.
+   */
+  getGuideBookings: async (id) => {
+    const response = await apiClient.get(`/api/v1/guides/${id}/bookings`);
+    return response.data;
+  },
+
+  /**
+   * POST /api/v1/guide-bookings
+   */
+  bookGuide: async ({ guideId, tripId, startDate, endDate, notes }) => {
+    const response = await apiClient.post('/api/v1/guide-bookings', {
+      guideId,
+      tripId,
+      startDate,
+      endDate,
+      notes,
+    });
+    return response.data;
+  },
+
+  /**
+   * GET /api/v1/guide-bookings/my
+   */
+  getMyBookings: async () => {
+    const response = await apiClient.get('/api/v1/guide-bookings/my');
+    return response.data;
+  },
 };
 
 export default guidesService;

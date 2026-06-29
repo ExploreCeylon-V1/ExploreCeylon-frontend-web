@@ -66,7 +66,7 @@ export async function updateTripTitle(tripId, title) {
 export async function updateTripStatus(tripId, status) {
   const res = await fetch(
     `${API_BASE}/api/v1/trips/${tripId}/status?status=${status}`,
-    { method: "PATCH", headers: { ...getAuthHeader() } },
+    { method: "PATCH", headers: { ...getAuthHeader() } }
   );
   if (!res.ok) throw new Error("Failed to update status");
   return res.json();
@@ -90,11 +90,14 @@ export async function getTripByShareToken(token) {
 
 // ── Update trip day ────────────────────────────────────────
 export async function updateTripDay(tripId, dayId, data) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}/days/${dayId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify(data),
-  });
+  const res = await fetch(
+    `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(data),
+    }
+  );
   if (!res.ok) throw new Error("Failed to update day");
   return res.json();
 }
@@ -107,7 +110,7 @@ export async function addItemToDay(tripId, dayId, item) {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAuthHeader() },
       body: JSON.stringify(item),
-    },
+    }
   );
   if (!res.ok) throw new Error("Failed to add item");
   return res.json();
@@ -117,7 +120,7 @@ export async function addItemToDay(tripId, dayId, item) {
 export async function removeItemFromDay(tripId, dayId, itemId) {
   const res = await fetch(
     `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}/items/${itemId}`,
-    { method: "DELETE", headers: { ...getAuthHeader() } },
+    { method: "DELETE", headers: { ...getAuthHeader() } }
   );
   if (!res.ok) throw new Error("Failed to remove item");
 }
@@ -143,54 +146,37 @@ export function getRoutePreview(trip) {
     return `${trip.fromLocation} → ${trip.toLocation}`;
   }
   if (trip.regions) {
-    return trip.regions
-      .split(",")
-      .slice(0, 3)
-      .map((r) => r.trim())
-      .join(" → ");
+    return trip.regions.split(",").slice(0, 3).map(r => r.trim()).join(" → ");
   }
   return null;
 }
 
 export function getPlannedDays(trip) {
   if (!trip.days) return 0;
-  return trip.days.filter((d) => d.items && d.items.length > 0).length;
+  return trip.days.filter(d => d.items && d.items.length > 0).length;
 }
 
 export const STATUS_META = {
   DRAFT: {
-    label: "Draft",
-    emoji: "📝",
-    textColor: "text-gray-600",
-    bgColor: "bg-gray-100",
+    label: "Draft", emoji: "📝",
+    textColor: "text-gray-600", bgColor: "bg-gray-100",
   },
   CONFIRMED: {
-    label: "Confirmed",
-    emoji: "✅",
-    textColor: "text-green-800",
-    bgColor: "bg-green-100",
+    label: "Confirmed", emoji: "✅",
+    textColor: "text-green-800", bgColor: "bg-green-100",
   },
   COMPLETED: {
-    label: "Completed",
-    emoji: "✔️",
-    textColor: "text-blue-800",
-    bgColor: "bg-blue-100",
+    label: "Completed", emoji: "✔️",
+    textColor: "text-blue-800", bgColor: "bg-blue-100",
   },
 };
 
 export const STYLE_EMOJI = {
-  ADVENTURE: "🏔️",
-  CULTURAL: "🏛️",
-  RELAXATION: "🌴",
-  FAMILY: "👨‍👩‍👧",
-  HONEYMOON: "💑",
-  PILGRIMAGE: "🛕",
-  WILDLIFE: "🦁",
-  PHOTOGRAPHY: "📸",
+  ADVENTURE: "🏔️", CULTURAL: "🏛️", RELAXATION: "🌴",
+  FAMILY: "👨‍👩‍👧", HONEYMOON: "💑", PILGRIMAGE: "🛕",
+  WILDLIFE: "🦁", PHOTOGRAPHY: "📸",
 };
 
 export const BUDGET_EMOJI = {
-  BUDGET: "💚",
-  MID_RANGE: "🔥",
-  LUXURY: "👑",
+  BUDGET: "💚", MID_RANGE: "🔥", LUXURY: "👑",
 };
