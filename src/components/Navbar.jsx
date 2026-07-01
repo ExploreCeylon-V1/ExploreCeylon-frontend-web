@@ -15,7 +15,7 @@ export default function Navbar() {
     { name: "Vehicles", path: "/vehicles" },
     { name: "Guides", path: "/guides" },
     { name: "Destinations", path: "/destinations" },
-    { name: "Calendar", path: "/calendar" },
+    { name: "Events", path: "/events" },
     { name: "Hidden Gems", path: "/hidden-gems" },
   ];
 
