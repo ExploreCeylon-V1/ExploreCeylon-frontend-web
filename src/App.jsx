@@ -19,11 +19,9 @@ import SubmitGem from "./pages/Submitgem";
 import DestinationsPage from "./pages/Destinations";
 import DestinationDetail from "./pages/DestinationDetail";
 import VehicleListing from "./pages/vehicles/VehicleListing";
-import Guides from './pages/Guides';
-import GuideDetail from './pages/GuideDetail';
+import Guides from "./pages/Guides";
+import GuideDetail from "./pages/GuideDetail";
 import TripDetailPage from "./pages/TripDetailPage";
-
-
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -50,8 +48,6 @@ function App() {
             <Route path="/" element={<Home />} />
             {/* Anith pages meke pahalin add karanna */}
             <Route path="/hotels" element={<HotelsPage />} />
-            {/* <Route path="/vehicles" element={<VehiclesPage />} /> */}
-            {/* <Route path="/destinations" element={<DestinationsPage />} /> */}
           </Route>
 
           {/* 2. Navbar & Footer NATHI Pages (Auth) */}
@@ -68,7 +64,6 @@ function App() {
           <Route path="/guides/:id" element={<GuideDetail />} />
           <Route path="/trips/new" element={<CreateTripPage />} />
           <Route path="/trips/:id" element={<TripDetailPage />} />
-
         </Routes>
       </AuthProvider>
     </Router>
