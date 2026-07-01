@@ -22,6 +22,8 @@ import VehicleListing from "./pages/vehicles/VehicleListing";
 import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import TripDetailPage from "./pages/TripDetailPage";
+import EventsPage from "./pages/EventsPage";
+import EventDetailPage from "./pages/EventDetailPage";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -64,6 +66,8 @@ function App() {
           <Route path="/guides/:id" element={<GuideDetail />} />
           <Route path="/trips/new" element={<CreateTripPage />} />
           <Route path="/trips/:id" element={<TripDetailPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
         </Routes>
       </AuthProvider>
     </Router>
