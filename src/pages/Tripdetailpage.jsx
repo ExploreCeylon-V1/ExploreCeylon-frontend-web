@@ -6,6 +6,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import TripMapPanel from "../components/TripMapPanel";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -725,7 +726,7 @@ export default function TripDetailPage() {
 
               {/* ── Right: Map + AI Tips + Share ── */}
               <div className="space-y-4">
-                <MapPanel trip={trip} />
+                <TripMapPanel trip={trip} />
                 <AiTipsPanel trip={trip} />
                 <SharePanel trip={trip} />
               </div>
