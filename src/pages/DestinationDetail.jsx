@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import destinationsService from '../services/destinationsService';
-import hiddenGemsService from '../services/hiddenGemsService';
+import hiddenGemsService from '../services/Hiddengemsservice';
 import guidesService from '../services/guidesService';
 import { getDestinationCategoryMeta } from '../components/destinationCategories';
 import { getCategoryMeta } from '../components/gemCategories';

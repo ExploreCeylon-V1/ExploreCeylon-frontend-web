@@ -1,32 +1,35 @@
 // TripDetailPage.jsx
 // Shows full AI-generated itinerary with day cards, map sidebar, stats
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
+import destinationsService from "../services/destinationsService";
+import hiddenGemsService from "../services/Hiddengemsservice";
+import eventService from "../services/eventService";
+import guidesService from "../services/guidesService";
+import { vehicleService } from "../services/vehicleService";
+import { getDistanceKm } from "../utils/geo";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-// ── Item type config ───────────────────────────────────────
+//  Item type config 
 const ITEM_TYPE_META = {
-  ACTIVITY:  { label: "Activity",   color: "bg-blue-100 text-blue-700",   icon: "🎯" },
-  TRANSPORT: { label: "Transport",  color: "bg-orange-100 text-orange-700", icon: "🚗" },
-  GEM:       { label: "Hidden Gem", color: "bg-purple-100 text-purple-700", icon: "💎" },
-  HOTEL:     { label: "Hotel",      color: "bg-green-100 text-green-700",  icon: "🏨" },
-  FOOD:      { label: "Food",       color: "bg-yellow-100 text-yellow-700", icon: "🍽️" },
-  GUIDE:     { label: "Guide",      color: "bg-teal-100 text-teal-700",    icon: "👤" },
+  ACTIVITY:  { label: "Activity",   color: "bg-blue-100 text-blue-700",   icon: "" },
+  TRANSPORT: { label: "Transport",  color: "bg-orange-100 text-orange-700", icon: "" },
+  GEM:       { label: "Hidden Gem", color: "bg-purple-100 text-purple-700", icon: "" },
+  HOTEL:     { label: "Hotel",      color: "bg-green-100 text-green-700",  icon: "" },
+  FOOD:      { label: "Food",       color: "bg-yellow-100 text-yellow-700", icon: "" },
+  GUIDE:     { label: "Guide",      color: "bg-teal-100 text-teal-700",    icon: "" },
 };
 
-const ADD_TYPES = [
-  { value: "HOTEL",     label: "Hotel",      icon: "🏨" },
-  { value: "TRANSPORT", label: "Transport",  icon: "🚗" },
-  { value: "ACTIVITY",  label: "Activity",   icon: "🎯" },
-  { value: "GEM",       label: "Attraction", icon: "💎" },
-  { value: "FOOD",      label: "Food",       icon: "🍽️" },
-  { value: "GUIDE",     label: "Other",      icon: "📌" },
+const NEARBY_CATEGORIES = [
+  { value: "DESTINATION", label: "Destination" },
+  { value: "GEM",         label: "Hidden Gem" },
+  { value: "EVENT",       label: "Event" },
 ];
 
 const STATUS_META = {
@@ -35,7 +38,7 @@ const STATUS_META = {
   COMPLETED: { label: "COMPLETED", color: "text-blue-700 bg-blue-100" },
 };
 
-// ── Helpers ────────────────────────────────────────────────
+//  Helpers 
 function formatDate(d) {
   return new Date(d).toLocaleDateString("en-US", {
     month: "long", day: "numeric", year: "numeric",
@@ -58,114 +61,424 @@ function getUniqueRegions(trip) {
     .filter(Boolean);
   return [...new Set(regions)].length;
 }
+function normalizeName(value = "") {
+  return value
+    .toLowerCase()
+    .replace(/^hidden gem:\s*/i, "")
+    .replace(/^festival:\s*/i, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-// ── Add Item Modal ─────────────────────────────────────────
-function AddItemModal({ dayId, tripId, token, onClose, onAdded }) {
-  const [type,  setType]  = useState("ACTIVITY");
-  const [title, setTitle] = useState("");
-  const [cost,  setCost]  = useState("");
-  const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false);
+function cleanItemTitle(title = "") {
+  return title
+    .replace(/^Hidden Gem:\s*/i, "")
+    .replace(/^Festival:\s*/i, "")
+    .split("")[0]
+    .split("")[0]
+    .split(" - ")[0]
+    .trim();
+}
 
-  async function handleAdd() {
-    if (!title.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}/items`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            type,
-            title: title.trim(),
-            cost: parseFloat(cost) || 0,
-            currency: "USD",
-            notes: notes.trim() || null,
-            orderIndex: 99,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error();
-      const item = await res.json();
-      onAdded(dayId, item);
-      onClose();
-    } catch {
-      alert("Failed to add item");
-    } finally {
-      setSaving(false);
+function tokenScore(a, b) {
+  const aTokens = new Set(normalizeName(a).split(" ").filter(t => t.length > 2));
+  const bTokens = new Set(normalizeName(b).split(" ").filter(t => t.length > 2));
+  if (!aTokens.size || !bTokens.size) return 0;
+  let hits = 0;
+  aTokens.forEach(token => { if (bTokens.has(token)) hits += 1; });
+  return hits / Math.min(aTokens.size, bTokens.size);
+}
+
+function findCatalogMatch(title, records, nameKey) {
+  const itemName = normalizeName(cleanItemTitle(title));
+  if (!itemName) return null;
+
+  let best = null;
+  let bestScore = 0;
+  records.forEach(record => {
+    const recordName = normalizeName(record[nameKey]);
+    if (!recordName) return;
+    const direct = itemName === recordName || itemName.includes(recordName) || recordName.includes(itemName);
+    const score = direct ? 1 : tokenScore(itemName, recordName);
+    if (score > bestScore) {
+      best = record;
+      bestScore = score;
+    }
+  });
+  return bestScore >= 0.45 ? best : null;
+}
+
+const PLACEHOLDER_ITEM_IMAGE =
+  "https://images.unsplash.com/photo-1546484959-f9a381d1330d?auto=format&fit=crop&w=400&q=60";
+
+const DETAIL_LINK_BY_KIND = {
+  GEM:         record => `/hidden-gems/${record.id}`,
+  EVENT:       record => `/events/${record.id}`,
+  DESTINATION: record => `/destinations/${record.id}`,
+  GUIDE:       record => `/guides/${record.id}`,
+  VEHICLE:     record => `/vehicles?selected=${record.id}`,
+};
+
+function getItemImage(kind, record) {
+  switch (kind) {
+    case "DESTINATION": return record.coverImageUrl || record.imageUrls?.[0] || null;
+    case "GUIDE":        return record.photoUrl || record.imageUrls?.[0] || null;
+    default:              return record.imageUrls?.[0] || null;
+  }
+}
+
+function buildItemMatch(kind, record) {
+  return {
+    kind,
+    record,
+    link: DETAIL_LINK_BY_KIND[kind](record),
+    image: getItemImage(kind, record),
+  };
+}
+
+// Resolves an itinerary item to its real destination/gem/event/guide/vehicle
+// row (for a detail link + photo), preferring the backend-resolved
+// referenceId and falling back to fuzzy text matching against the loaded
+// catalogs. Festival items are type ACTIVITY but must resolve against the
+// events catalog, not destinations — checked before the generic ACTIVITY
+// branch so a festival's referenceId (an Event id) is never mistaken for
+// a Destination id.
+function resolveItemMatch(item, catalog = {}) {
+  const isFestival = item.title?.startsWith("Festival:");
+
+  if (item.referenceId) {
+    if (item.type === "GEM") {
+      const record = (catalog.gems || []).find(g => String(g.id) === String(item.referenceId));
+      if (record) return buildItemMatch("GEM", record);
+    } else if (isFestival) {
+      const record = (catalog.events || []).find(e => String(e.id) === String(item.referenceId));
+      if (record) return buildItemMatch("EVENT", record);
+    } else if (item.type === "GUIDE") {
+      const record = (catalog.guides || []).find(g => String(g.id) === String(item.referenceId));
+      if (record) return buildItemMatch("GUIDE", record);
+    } else if (item.type === "VEHICLE" || item.type === "TRANSPORT") {
+      const record = (catalog.vehicles || []).find(v => String(v.id) === String(item.referenceId));
+      if (record) return buildItemMatch("VEHICLE", record);
+    } else if (item.type === "ACTIVITY") {
+      const record = (catalog.destinations || []).find(d => String(d.id) === String(item.referenceId));
+      if (record) return buildItemMatch("DESTINATION", record);
     }
   }
 
+  if (isFestival) {
+    const record = findCatalogMatch(item.title, catalog.events || [], "title");
+    return record ? buildItemMatch("EVENT", record) : null;
+  }
+  if (item.type === "GEM") {
+    const record = findCatalogMatch(item.title, catalog.gems || [], "title");
+    return record ? buildItemMatch("GEM", record) : null;
+  }
+  if (item.type === "ACTIVITY") {
+    const record = findCatalogMatch(item.title, catalog.destinations || [], "name");
+    return record ? buildItemMatch("DESTINATION", record) : null;
+  }
+  if (item.type === "GUIDE") {
+    const record = findCatalogMatch(item.title, catalog.guides || [], "fullName");
+    return record ? buildItemMatch("GUIDE", record) : null;
+  }
+  if (item.type === "VEHICLE" || item.type === "TRANSPORT") {
+    const record = findCatalogMatch(item.title, catalog.vehicles || [], "name");
+    return record ? buildItemMatch("VEHICLE", record) : null;
+  }
+  return null;
+}
+
+async function loadDetailCatalog(startDate, endDate) {
+  const [destinations, gems, events, guides, vehicles] = await Promise.all([
+    destinationsService.getAllDestinations().catch(() => []),
+    hiddenGemsService.getAllGems().catch(() => []),
+    eventService.getTripSyncEvents(startDate, endDate).catch(() => []),
+    guidesService.getAllGuides().catch(() => []),
+    vehicleService.getAllVehicles().catch(() => []),
+  ]);
+  return { destinations, gems, events, guides, vehicles };
+}
+
+//  Nearby suggestions (Destination / Hidden Gem / Event)
+
+// Picks a lat/lng center to rank "nearby" suggestions from: the average
+// position of the day's own resolved items, falling back to a destination
+// matching the day's region (or the trip's destination) when the day is
+// still empty.
+function resolveDayCenter(day, trip, catalog) {
+  const coords = (day.items || [])
+    .map(item => resolveItemMatch(item, catalog)?.record)
+    .filter(r => r && r.latitude != null && r.longitude != null);
+
+  if (coords.length > 0) {
+    return {
+      lat: coords.reduce((s, r) => s + r.latitude, 0) / coords.length,
+      lng: coords.reduce((s, r) => s + r.longitude, 0) / coords.length,
+    };
+  }
+
+  const regionQuery = day.region || trip?.toLocation;
+  if (regionQuery) {
+    const q = regionQuery.toLowerCase();
+    const match = (catalog.destinations || []).find(d =>
+      d.latitude != null && d.longitude != null && (
+        d.district?.toLowerCase().includes(q) ||
+        d.province?.toLowerCase().includes(q) ||
+        d.name?.toLowerCase().includes(q)
+      )
+    );
+    if (match) return { lat: match.latitude, lng: match.longitude };
+  }
+
+  return null;
+}
+
+function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded }) {
+  const [category, setCategory] = useState("DESTINATION");
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [addingId, setAddingId] = useState(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const rowRef = useRef(null);
+
+  const center = resolveDayCenter(day, trip, detailCatalog);
+  const centerKey = center ? `${center.lat.toFixed(4)},${center.lng.toFixed(4)}` : null;
+
+  function updateScrollArrows() {
+    const el = rowRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }
+
+  function scrollByPage(direction) {
+    const el = rowRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth, behavior: "smooth" });
+  }
+
+  useEffect(() => {
+    if (!center) { setSuggestions([]); return; }
+    let cancelled = false;
+    setLoading(true);
+
+    const addedRefIds = new Set(
+      (day.items || [])
+        .filter(i => category === "GEM" ? i.type === "GEM" : i.type === "ACTIVITY")
+        .filter(i => category === "EVENT" ? i.title?.startsWith("Festival:") : true)
+        .filter(i => category === "DESTINATION" ? !i.title?.startsWith("Festival:") : true)
+        .map(i => i.referenceId)
+        .filter(Boolean)
+    );
+
+    async function load() {
+      try {
+        let results = [];
+        if (category === "DESTINATION") {
+          const data = await destinationsService.getNearby(center.lat, center.lng, 9);
+          results = data.filter(d => !addedRefIds.has(String(d.id)));
+        } else if (category === "GEM") {
+          const data = await hiddenGemsService.getNearby(center.lat, center.lng, 9);
+          results = data.filter(g => !addedRefIds.has(String(g.id)));
+        } else {
+          const data = await eventService.getTripSyncEvents(trip.startDate, trip.endDate);
+          results = data
+            .filter(e => e.latitude != null && e.longitude != null)
+            .filter(e => !addedRefIds.has(String(e.id)));
+        }
+        const withDistance = results
+          .map(r => ({ ...r, distanceKm: getDistanceKm(center.lat, center.lng, r.latitude, r.longitude) }))
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 6);
+        if (!cancelled) setSuggestions(withDistance);
+      } catch {
+        if (!cancelled) setSuggestions([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, centerKey, day.items?.length]);
+
+  useEffect(() => {
+    if (rowRef.current) rowRef.current.scrollLeft = 0;
+    updateScrollArrows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestions]);
+
+  async function handleAdd(suggestion) {
+    setAddingId(suggestion.id);
+    const payload = category === "EVENT"
+      ? { type: "ACTIVITY", referenceId: String(suggestion.id),
+          title: `Festival: ${suggestion.title}`, cost: 0, currency: "USD",
+          notes: suggestion.region }
+      : category === "GEM"
+      ? { type: "GEM", referenceId: String(suggestion.id),
+          title: suggestion.title, cost: 0, currency: "USD",
+          notes: suggestion.district }
+      : { type: "ACTIVITY", referenceId: String(suggestion.id),
+          title: suggestion.name, cost: 0, currency: "USD",
+          notes: suggestion.district };
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/v1/trips/${tripId}/days/${day.id}/items`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!res.ok) throw new Error();
+      const newItem = await res.json();
+      onItemAdded(day.id, newItem);
+      setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    } catch {
+      alert("Failed to add item");
+    } finally {
+      setAddingId(null);
+    }
+  }
+
+  const categoryLabel = NEARBY_CATEGORIES.find(c => c.value === category)?.label;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center
-                    bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-gray-900">Add Item to Day</h3>
-          <button onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-        </div>
-
-        {/* Type selector */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {ADD_TYPES.map(t => (
-            <button key={t.value} onClick={() => setType(t.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold
-                          border transition-colors
-                          ${type === t.value
-                            ? "bg-green-800 border-green-800 text-white"
-                            : "border-gray-200 text-gray-600 hover:border-gray-300"
-                          }`}>
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-3 mb-5">
-          <input type="text" placeholder="Title *" value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5
-                       text-sm outline-none focus:border-green-700
-                       focus:ring-2 focus:ring-green-100"/>
-          <input type="number" placeholder="Cost (USD)" value={cost}
-            onChange={e => setCost(e.target.value)} min="0"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5
-                       text-sm outline-none focus:border-green-700
-                       focus:ring-2 focus:ring-green-100"/>
-          <textarea placeholder="Notes (optional)" value={notes}
-            onChange={e => setNotes(e.target.value)} rows={2}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5
-                       text-sm outline-none focus:border-green-700
-                       focus:ring-2 focus:ring-green-100 resize-none"/>
-        </div>
-
-        <div className="flex gap-2">
-          <button onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-200 rounded-xl
-                       text-sm text-gray-600 hover:bg-gray-50">
-            Cancel
+    <div className="mt-3">
+      <p className="text-xs font-semibold text-gray-400 uppercase
+                    tracking-wide mb-2">
+        + Add to this day:
+      </p>
+      <div className="flex gap-1.5 flex-wrap mb-3">
+        {NEARBY_CATEGORIES.map(c => (
+          <button key={c.value}
+            onClick={() => setCategory(c.value)}
+            className={`px-3 py-1.5 rounded-full border text-xs font-semibold
+                        transition-colors
+                        ${category === c.value
+                          ? "bg-green-50 border-green-700 text-green-800"
+                          : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
+                        }`}>
+            {c.label}
           </button>
-          <button onClick={handleAdd} disabled={!title.trim() || saving}
-            className="flex-1 py-2.5 bg-green-800 hover:bg-green-900 text-white
-                       rounded-xl text-sm font-semibold disabled:opacity-50
-                       transition-colors">
-            {saving ? "Adding…" : "Add Item"}
-          </button>
-        </div>
+        ))}
       </div>
+
+      {!center && (
+        <p className="text-xs text-gray-400">
+          Add a region to this day (or a first item) to see nearby suggestions.
+        </p>
+      )}
+
+      {center && (
+        <>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase
+                        tracking-wide mb-2">
+            Suggested {categoryLabel}s Nearby:
+          </p>
+
+          {loading && (
+            <p className="text-xs text-gray-400">Loading suggestions...</p>
+          )}
+
+          {!loading && suggestions.length === 0 && (
+            <p className="text-xs text-gray-400">No nearby suggestions found.</p>
+          )}
+
+          {!loading && suggestions.length > 0 && (
+            <div className="relative">
+              {canScrollLeft && (
+                <button
+                  onClick={() => scrollByPage(-1)}
+                  aria-label="Show previous"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2
+                             z-10 w-7 h-7 rounded-full bg-white border border-gray-200
+                             shadow-md flex items-center justify-center text-gray-600
+                             hover:bg-gray-50"
+                >
+                  ‹
+                </button>
+              )}
+
+              <div ref={rowRef} onScroll={updateScrollArrows}
+                className="flex gap-3 overflow-x-auto snap-x snap-mandatory
+                           pb-2 scroll-smooth">
+                {suggestions.map(s => {
+                  const name = category === "DESTINATION" ? s.name : s.title;
+                  const image = category === "DESTINATION"
+                    ? (s.coverImageUrl || s.imageUrls?.[0])
+                    : s.imageUrls?.[0];
+                  const subtitle = category === "EVENT" ? s.region : s.district;
+                  return (
+                    <div key={s.id}
+                      className="border border-gray-200 rounded-xl overflow-hidden
+                                 bg-white flex-shrink-0 snap-start
+                                 w-[calc((100%-1.5rem)/3)]">
+                      <div className="relative h-24">
+                        <img
+                          src={image || PLACEHOLDER_ITEM_IMAGE}
+                          alt={name}
+                          className="w-full h-full object-cover"
+                          onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
+                        />
+                        <span className="absolute top-1.5 right-1.5 bg-white/90
+                                         text-[10px] font-semibold text-gray-700
+                                         px-1.5 py-0.5 rounded-full">
+                          {s.distanceKm.toFixed(1)} km
+                        </span>
+                      </div>
+                      <div className="p-2.5">
+                        <p className="text-xs font-semibold text-gray-800 truncate">
+                          {name}
+                        </p>
+                        {subtitle && (
+                          <p className="text-[11px] text-gray-400 truncate mb-2">
+                            {subtitle}
+                          </p>
+                        )}
+                        <button
+                          onClick={() => handleAdd(s)}
+                          disabled={addingId === s.id}
+                          className="w-full text-[11px] font-semibold text-green-800
+                                     border border-green-700 rounded-lg py-1.5
+                                     hover:bg-green-50 transition-colors
+                                     disabled:opacity-50"
+                        >
+                          {addingId === s.id ? "Adding..." : `+ Add to Day ${day.dayNumber}`}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {canScrollRight && (
+                <button
+                  onClick={() => scrollByPage(1)}
+                  aria-label="Show more"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2
+                             z-10 w-7 h-7 rounded-full bg-white border border-gray-200
+                             shadow-md flex items-center justify-center text-gray-600
+                             hover:bg-gray-50"
+                >
+                  ›
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-// ── Day Card ───────────────────────────────────────────────
-function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
-                   isActive, onClick }) {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [deletingId,   setDeletingId]   = useState(null);
+//  Day Card 
+function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
+                   isActive, onClick, detailCatalog }) {
+  const [deletingId, setDeletingId] = useState(null);
 
   const dayTotal = (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
 
@@ -189,7 +502,7 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
       <div className={`border rounded-2xl overflow-hidden transition-all
                        ${isActive ? "border-green-700 shadow-md" : "border-gray-200"}`}>
 
-        {/* ── Day header ── */}
+        {/*  Day header  */}
         <button
           onClick={onClick}
           className="w-full flex items-center justify-between px-5 py-4
@@ -200,35 +513,35 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
               DAY {day.dayNumber}
             </span>
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <span>📅</span>
+              
               <span>{formatDateShort(day.date)}</span>
             </div>
             {day.region && (
               <div className="flex items-center gap-1 text-xs text-gray-600">
-                <span>📍</span>
+                
                 <span className="font-medium">{day.region}</span>
               </div>
             )}
             {day.theme && (
               <div className="flex items-center gap-1 text-xs text-gray-400">
-                <span>⭐</span>
+                
                 <span>{day.theme}</span>
               </div>
             )}
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-xs text-gray-400">
-              {(day.items || []).length} items •{" "}
+              {(day.items || []).length} items -{" "}
               Day total: ${dayTotal.toFixed(2)}
             </span>
             <span className={`text-gray-400 transition-transform text-sm
                               ${isActive ? "rotate-180" : ""}`}>
-              ▼
+              
             </span>
           </div>
         </button>
 
-        {/* ── Day body (expanded) ── */}
+        {/*  Day body (expanded)  */}
         {isActive && (
           <div className="px-5 pb-5 border-t border-gray-100">
 
@@ -236,7 +549,7 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
             {day.items?.some(i => i.title?.startsWith("Festival:")) && (
               <div className="mt-3 mb-3 bg-yellow-50 border border-yellow-200
                               rounded-lg px-3 py-2 text-xs text-yellow-800 font-medium">
-                🎉{" "}
+                {" "}
                 {day.items.find(i => i.title?.startsWith("Festival:"))?.title
                   .replace("Festival: ", "")} nearby!
               </div>
@@ -245,7 +558,7 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
             {/* Tips */}
             {day.tips && (
               <p className="mt-3 mb-4 text-xs text-gray-400 italic">
-                💡 {day.tips}
+                 {day.tips}
               </p>
             )}
 
@@ -259,16 +572,21 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
                 <div className="space-y-2">
                   {day.items.map(item => {
                     const meta = ITEM_TYPE_META[item.type] || ITEM_TYPE_META.ACTIVITY;
+                    const match = resolveItemMatch(item, detailCatalog);
+                    const detailLink = match?.link || null;
+                    const image = match?.image || PLACEHOLDER_ITEM_IMAGE;
                     return (
                       <div key={item.id}
                         className="flex items-center gap-3 bg-gray-50
                                    rounded-xl px-4 py-3">
-                        {/* Type icon */}
-                        <div className={`w-8 h-8 rounded-lg flex items-center
-                                         justify-center text-sm flex-shrink-0
-                                         ${meta.color}`}>
-                          {meta.icon}
-                        </div>
+                        {/* Photo */}
+                        <img
+                          src={image}
+                          alt={item.title}
+                          className="w-14 h-14 rounded-lg object-cover
+                                     flex-shrink-0 bg-gray-200"
+                          onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
+                        />
 
                         {/* Title + type */}
                         <div className="flex-1 min-w-0">
@@ -283,11 +601,23 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
                           )}
                         </div>
 
-                        {/* Cost */}
-                        <span className="text-sm font-medium text-gray-700
-                                         whitespace-nowrap">
-                          {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Free"}
-                        </span>
+                        {/* Cost + details link */}
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <span className="text-sm font-medium text-gray-700
+                                           whitespace-nowrap">
+                            {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Free"}
+                          </span>
+                          {detailLink && (
+                            <Link
+                              to={detailLink}
+                              className="text-[11px] font-semibold text-green-800
+                                         hover:text-green-900 hover:underline
+                                         whitespace-nowrap"
+                            >
+                              View Details
+                            </Link>
+                          )}
+                        </div>
 
                         {/* Delete */}
                         <button
@@ -299,7 +629,7 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
                                      disabled:opacity-40 flex-shrink-0"
                           title="Remove item"
                         >
-                          {deletingId === item.id ? "…" : "🗑"}
+                          {deletingId === item.id ? "..." : "x"}
                         </button>
                       </div>
                     );
@@ -308,27 +638,15 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
               </div>
             )}
 
-            {/* Add item row */}
-            <div className="flex items-center gap-2 flex-wrap mt-3">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="text-xs font-semibold text-green-800
-                           hover:text-green-900 flex items-center gap-1"
-              >
-                + ADD ITEM TO THIS DAY
-              </button>
-              <div className="flex gap-1.5 flex-wrap">
-                {ADD_TYPES.map(t => (
-                  <button key={t.value}
-                    onClick={() => setShowAddModal(true)}
-                    className="px-2.5 py-1 rounded-full border border-gray-200
-                               text-xs text-gray-500 hover:border-green-700
-                               hover:text-green-800 transition-colors bg-white">
-                    {t.icon} {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Nearby suggestions to add */}
+            <AddNearbySection
+              day={day}
+              trip={trip}
+              tripId={tripId}
+              token={token}
+              detailCatalog={detailCatalog}
+              onItemAdded={onItemAdded}
+            />
 
             {/* Day total footer */}
             <div className="mt-4 pt-3 border-t border-gray-100 flex
@@ -337,27 +655,17 @@ function DayCard({ day, tripId, token, onItemAdded, onItemDeleted,
                 Day Total:
               </span>
               <span className="text-base font-bold text-green-800">
-                ${dayTotal.toFixed(2)} 🔥
+                ${dayTotal.toFixed(2)}
               </span>
             </div>
           </div>
         )}
       </div>
-
-      {showAddModal && (
-        <AddItemModal
-          dayId={day.id}
-          tripId={tripId}
-          token={token}
-          onClose={() => setShowAddModal(false)}
-          onAdded={onItemAdded}
-        />
-      )}
     </>
   );
 }
 
-// ── AI Tips Panel ──────────────────────────────────────────
+//  AI Tips Panel
 function AiTipsPanel({ trip }) {
   const festivalDay = (trip.days || []).find(d =>
     d.items?.some(i => i.title?.startsWith("Festival:"))
@@ -371,7 +679,7 @@ function AiTipsPanel({ trip }) {
       Consider staying an extra night in ${festivalDay.region} 
       to experience the celebrations.`,
     gemDays.length > 0 && `${gemDays.length} hidden gem${gemDays.length > 1 ? "s" : ""} 
-      discovered on your route — locals love these spots!`,
+      discovered on your route - locals love these spots!`,
     trip.travelStyle === "RELAXATION" &&
       "Your relaxation trip is optimized for slower paced days. Enjoy!",
     trip.aiGenerated &&
@@ -383,7 +691,7 @@ function AiTipsPanel({ trip }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">✨</span>
+        <span className="text-lg"></span>
         <span className="text-sm font-bold text-gray-800">AI Travel Tip</span>
       </div>
       <p className="text-sm text-gray-600 leading-relaxed mb-4">{tip}</p>
@@ -396,7 +704,7 @@ function AiTipsPanel({ trip }) {
   );
 }
 
-// ── Share Panel ────────────────────────────────────────────
+//  Share Panel 
 function SharePanel({ trip }) {
   const [copied, setCopied] = useState(false);
   const shareUrl = `${window.location.origin}/trips/share/${trip.shareToken}`;
@@ -426,19 +734,19 @@ function SharePanel({ trip }) {
         <button className="flex items-center justify-center gap-1.5 py-2
                            border border-gray-200 rounded-xl text-xs font-medium
                            text-gray-600 hover:bg-gray-50 transition-colors">
-          📄 PDF Itinerary
+           PDF Itinerary
         </button>
         <button className="flex items-center justify-center gap-1.5 py-2
                            border border-gray-200 rounded-xl text-xs font-medium
                            text-gray-600 hover:bg-gray-50 transition-colors">
-          🗺️ Google Maps
+           Google Maps
         </button>
       </div>
     </div>
   );
 }
 
-// ── Map Placeholder ────────────────────────────────────────
+//  Map Placeholder 
 function MapPanel({ trip }) {
   const regions = [...new Set(
     (trip.days || []).map(d => d.region).filter(Boolean)
@@ -451,7 +759,7 @@ function MapPanel({ trip }) {
       <div className="relative h-72 bg-gradient-to-br from-green-50 to-blue-50
                       flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-2">🗺️</div>
+          <div className="text-sm font-semibold text-green-800 mb-2">Map</div>
           <p className="text-xs text-gray-400 font-medium">Route Map</p>
         </div>
 
@@ -475,7 +783,7 @@ function MapPanel({ trip }) {
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────
+//  Main Page 
 export default function TripDetailPage() {
   const { id }        = useParams();
   const navigate      = useNavigate();
@@ -487,6 +795,9 @@ export default function TripDetailPage() {
   const [activeDay,  setActiveDay]  = useState(null);
   const [activeTab,  setActiveTab]  = useState("itinerary");
   const [confirming, setConfirming] = useState(false);
+  const [detailCatalog, setDetailCatalog] = useState({
+    destinations: [], gems: [], events: [], guides: [], vehicles: []
+  });
 
   useEffect(() => {
     if (!isAuthenticated) { navigate("/login"); return; }
@@ -503,7 +814,7 @@ export default function TripDetailPage() {
       if (!res.ok) throw new Error("Trip not found");
       const data = await res.json();
       setTrip(data);
-      // Auto-open day 1
+      loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
       if (data.days?.length > 0) setActiveDay(data.days[0].id);
     } catch (e) {
       setError(e.message);
@@ -551,35 +862,31 @@ export default function TripDetailPage() {
     }));
   }
 
-  // ── Loading ────────────────────────────────────────────
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 flex items-center
-                      justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-gray-400">
-          <div className="w-10 h-10 border-4 border-green-100
-                          border-t-green-700 rounded-full animate-spin" />
-          <p className="text-sm">Loading trip…</p>
+          <div className="w-10 h-10 border-4 border-green-100 border-t-green-700 rounded-full animate-spin" />
+          <p className="text-sm">Loading trip...</p>
         </div>
       </div>
       <Footer />
     </>
   );
-
-  // ── Error ──────────────────────────────────────────────
+  //  Error 
   if (error || !trip) return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 flex items-center
                       justify-center">
         <div className="text-center">
-          <p className="text-4xl mb-3">⚠️</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">Notice</p>
           <p className="text-gray-700 font-medium mb-4">{error || "Trip not found"}</p>
           <Link to="/trips"
             className="px-5 py-2.5 bg-green-800 text-white rounded-xl
                        text-sm font-semibold hover:bg-green-900 transition-colors">
-            ← Back to My Trips
+             Back to My Trips
           </Link>
         </div>
       </div>
@@ -594,14 +901,14 @@ export default function TripDetailPage() {
     s + (d.estimatedDayCost || 0), 0);
   const statusMeta = STATUS_META[trip.status] || STATUS_META.DRAFT;
 
-  // ── Render ─────────────────────────────────────────────
+  //  Render 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-          {/* ── Page header ── */}
+          {/*  Page header  */}
           <div className="flex items-start justify-between gap-4 mb-6
                           flex-wrap">
             <div>
@@ -615,8 +922,8 @@ export default function TripDetailPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-500">
-                {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
-                {" "}• {trip.groupSize || 1} Traveler{trip.groupSize > 1 ? "s" : ""}
+                {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+                {" - "}{trip.groupSize || 1} Traveler{trip.groupSize > 1 ? "s" : ""}
               </p>
             </div>
 
@@ -632,7 +939,7 @@ export default function TripDetailPage() {
                            border-gray-200 rounded-xl text-sm font-medium
                            text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                🔗 Share
+                 Share
               </button>
 
               {trip.status === "DRAFT" && (
@@ -647,9 +954,8 @@ export default function TripDetailPage() {
                     <>
                       <span className="w-4 h-4 border-2 border-white/30
                                         border-t-white rounded-full animate-spin"/>
-                      Confirming…
-                    </>
-                  ) : "✅ Confirm Trip"}
+                      Confirming...</>
+                  ) : " Confirm Trip"}
                 </button>
               )}
 
@@ -657,16 +963,16 @@ export default function TripDetailPage() {
                 className="px-4 py-2.5 border border-gray-200 rounded-xl
                            text-sm font-medium text-gray-600 hover:bg-gray-50
                            transition-colors">
-                ← Back
+                 Back
               </Link>
             </div>
           </div>
 
-          {/* ── Tabs ── */}
+          {/*  Tabs  */}
           <div className="flex gap-0 mb-6 border-b border-gray-200">
             {[
-              { key: "itinerary", label: "📅 Itinerary" },
-              { key: "budget",    label: "💰 Budget Tracker" },
+              { key: "itinerary", label: "Itinerary" },
+              { key: "budget",    label: "Budget Tracker" },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -683,18 +989,18 @@ export default function TripDetailPage() {
             ))}
           </div>
 
-          {/* ── Stats row ── */}
+          {/*  Stats row  */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { icon: "📅", value: days,       label: "Days" },
-              { icon: "💰", value: `$${totalCost.toFixed(0)}`, label: "Budgeted" },
-              { icon: "📍", value: locations,  label: "Locations" },
-              { icon: "✅", value: totalItems, label: "Items Added" },
+              { value: days,       label: "Days" },
+              { value: `${totalCost.toFixed(0)}`, label: "Budgeted" },
+              { value: locations,  label: "Locations" },
+              { value: totalItems, label: "Items Added" },
             ].map(s => (
               <div key={s.label}
                 className="bg-white rounded-2xl border border-gray-200 p-4
                            shadow-sm flex items-center gap-3">
-                <span className="text-2xl">{s.icon}</span>
+                
                 <div>
                   <p className="text-xl font-bold text-gray-900">{s.value}</p>
                   <p className="text-xs text-gray-400">{s.label}</p>
@@ -706,12 +1012,13 @@ export default function TripDetailPage() {
           {activeTab === "itinerary" && (
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
 
-              {/* ── Left: Day cards ── */}
+              {/*  Left: Day cards  */}
               <div className="space-y-3">
                 {(trip.days || []).map(day => (
                   <DayCard
                     key={day.id}
                     day={day}
+                    trip={trip}
                     tripId={trip.id}
                     token={token}
                     isActive={activeDay === day.id}
@@ -720,11 +1027,12 @@ export default function TripDetailPage() {
                     }
                     onItemAdded={handleItemAdded}
                     onItemDeleted={handleItemDeleted}
+                    detailCatalog={detailCatalog}
                   />
                 ))}
               </div>
 
-              {/* ── Right: Map + AI Tips + Share ── */}
+              {/*  Right: Map + AI Tips + Share  */}
               <div className="space-y-4">
                 <TripMapPanel trip={trip} />
                 <AiTipsPanel trip={trip} />
@@ -736,7 +1044,7 @@ export default function TripDetailPage() {
           {activeTab === "budget" && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6
                             shadow-sm text-center py-16">
-              <p className="text-4xl mb-3">💰</p>
+              <p className="text-sm font-semibold text-gray-700 mb-3">Notice</p>
               <p className="text-gray-700 font-semibold mb-1">Budget Tracker</p>
               <p className="text-sm text-gray-400 mb-4">
                 Track your spending across this trip
@@ -756,3 +1064,9 @@ export default function TripDetailPage() {
     </>
   );
 }
+
+
+
+
+
+

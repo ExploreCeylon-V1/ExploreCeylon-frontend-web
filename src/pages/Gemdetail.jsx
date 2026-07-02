@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import hiddenGemsService from '../services/hiddenGemsService';
+import hiddenGemsService from '../services/Hiddengemsservice';
 import { getCategoryMeta } from '../components/gemCategories';
 import GemReviews from '../components/GemReviews';
 import AddToTripCard from '../components/AddToTripCard';

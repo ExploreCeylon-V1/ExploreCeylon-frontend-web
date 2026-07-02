@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { searchHotels } from '../services/hotelService';
+import { searchHotels } from '../services/Hotelservice';
 import HotelDetailsPanel from '../components/HotelDetailsPanel';
 import { buildBookingComUrl } from '../utils/hotelLinks';
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import hiddenGemsService from '../services/hiddenGemsService';
-import uploadService from '../services/uploadService';
+import hiddenGemsService from '../services/Hiddengemsservice';
+import uploadService from '../services/Uploadservice';
 import { GEM_CATEGORIES, getCategoryMeta } from '../components/gemCategories';
 import { SRI_LANKA_DISTRICTS } from '../components/sriLankaDistricts';
 import Navbar from '../components/Navbar';

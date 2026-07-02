@@ -47,6 +47,17 @@ const hiddenGemsService = {
     const response = await apiClient.post('/api/v1/gems/submit', gemData);
     return response.data;
   },
+
+  /**
+   * GET /api/v1/gems/nearby?lat=&lng=&limit=
+   * Distance-sorted hidden gems near a point (nearest first).
+   */
+  getNearby: async (lat, lng, limit = 6) => {
+    const response = await apiClient.get('/api/v1/gems/nearby', {
+      params: { lat, lng, limit },
+    });
+    return response.data;
+  },
 };
 
 export default hiddenGemsService;

@@ -6,7 +6,7 @@ import heroImage from "../assets/Image.png";
 import destinationsService from "../services/destinationsService";
 import guidesService from "../services/guidesService";
 import eventService from "../services/eventService";
-import hiddenGemsService from "../services/hiddenGemsService";
+import hiddenGemsService from "../services/Hiddengemsservice";
 import { vehicleService } from "../services/vehicleService";
 
 // ─── Category filter pills (DestinationCategory enum values ekata match wenna oni) ───

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import hiddenGemsService from '../services/hiddenGemsService';
+import hiddenGemsService from '../services/Hiddengemsservice';
 import GemCard from '../components/GemCard';
 import { GEM_CATEGORIES } from '../components/gemCategories';
 import Navbar from '../components/Navbar';
