@@ -8,7 +8,7 @@ export default function Footer() {
   const supportLinks = ["About Us", "Contact", "Privacy Policy", "Terms of Service", "FAQ"];
 
   return (
-    <footer className="bg-[#0f1923] font-sans text-[#c8cdd6]">
+    <footer className="bg-[#0f1923] font-sans text-[#1A2035]">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-10 lg:pt-14">
         
         {/* Brand Column */}

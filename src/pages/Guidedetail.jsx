@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import guidesService from '../services/guidesService';
-import tripsService from '../services/tripsService';
+import tripsService from '../services/Tripsservice';
 import GuideReviews from '../components/GuideReviews';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';

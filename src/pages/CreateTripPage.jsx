@@ -163,7 +163,7 @@ export default function CreateTripPage() {
   const [startDate,    setStartDate]    = useState("");
   const [endDate,      setEndDate]      = useState("");
   const [groupSize,    setGroupSize]    = useState(2);
-  const [travelStyle,  setTravelStyle]  = useState([]); // Changed to Array
+  const [travelStyle,  setTravelStyle]  = useState([]);
   const [budgetRange,  setBudgetRange]  = useState("MID_RANGE");
   const [specialNotes, setSpecialNotes] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -177,7 +177,7 @@ export default function CreateTripPage() {
       toLocation.trim()   &&
       startDate           &&
       endDate             &&
-      travelStyle.length > 0 && // Validates that at least one style is selected
+      travelStyle.length > 0 &&
       budgetRange
     );
   }
@@ -192,17 +192,14 @@ export default function CreateTripPage() {
     setLoading(true);
 
     try {
-      // Format array to comma-separated string for backend compatibility. 
-      // If your backend expects a list/array, you can pass 'travelStyle' directly.
-      const formattedTravelStyle = travelStyle.join(","); 
-
       const payload = {
         fromLocation:   fromLocation.trim(),
         toLocation:     toLocation.trim(),
         startDate,
         endDate,
         groupSize,
-        travelStyle:    formattedTravelStyle, 
+        travelStyle:    travelStyle[0],
+        travelStyles:   travelStyle,
         budgetRange,
         specialNotes:   specialNotes.trim() || null,
         generateWithAi: withAi,
@@ -216,7 +213,8 @@ export default function CreateTripPage() {
         await generateAiItinerary(trip.id, {
           startDate,
           endDate,
-          travelStyle:   formattedTravelStyle,
+          travelStyle:   travelStyle[0],
+          travelStyles:  travelStyle,
           budgetRange,
           groupSize,
           regions:       [toLocation.trim()],
@@ -241,10 +239,9 @@ export default function CreateTripPage() {
   function toggleTravelStyle(styleValue) {
     setTravelStyle(prev => {
       if (prev.includes(styleValue)) {
-        return prev.filter(item => item !== styleValue); // Remove if already selected
-      } else {
-        return [...prev, styleValue]; // Add if not selected
+        return prev.filter(item => item !== styleValue);
       }
+      return [...prev, styleValue];
     });
   }
 

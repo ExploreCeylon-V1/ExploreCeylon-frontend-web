@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import destinationReviewsService from '../services/destinationReviewsService';
+import destinationReviewsService from '../services/Destinationreviewsservice';
 
 const StarPicker = ({ value, onChange }) => (
   <div className="flex gap-1">
