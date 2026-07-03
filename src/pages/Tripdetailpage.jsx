@@ -7,14 +7,34 @@ import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
+import BudgetTracker from "../components/BudgetTracker";
+import budgetService from "../services/budgetService";
 import destinationsService from "../services/destinationsService";
 import hiddenGemsService from "../services/Hiddengemsservice";
 import eventService from "../services/eventService";
 import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
+import {
+  Calendar, Wallet, MapPin, FileText, ChevronDown,
+  ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
+  PartyPopper, Lightbulb,
+} from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+// Per-day accent colors, cycled by day index — mirrors the marker colors
+// TripMapPanel already uses, so a day's color means the same thing on
+// both the itinerary list and the map.
+const DAY_BADGE_COLORS = [
+  { text: "text-green-800",  border: "border-green-700",  bg: "bg-green-700"  },
+  { text: "text-blue-700",   border: "border-blue-600",   bg: "bg-blue-600"   },
+  { text: "text-orange-700", border: "border-orange-500", bg: "bg-orange-500" },
+  { text: "text-purple-700", border: "border-purple-600", bg: "bg-purple-600" },
+  { text: "text-cyan-700",   border: "border-cyan-600",   bg: "bg-cyan-600"   },
+  { text: "text-pink-700",   border: "border-pink-600",   bg: "bg-pink-600"   },
+  { text: "text-teal-700",   border: "border-teal-600",   bg: "bg-teal-600"   },
+];
 
 //  Item type config 
 const ITEM_TYPE_META = {
@@ -477,10 +497,11 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
 
 //  Day Card 
 function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
-                   isActive, onClick, detailCatalog }) {
+                   isActive, onClick, detailCatalog, dayIndex }) {
   const [deletingId, setDeletingId] = useState(null);
 
   const dayTotal = (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
+  const color = DAY_BADGE_COLORS[dayIndex % DAY_BADGE_COLORS.length];
 
   async function handleDeleteItem(itemId) {
     setDeletingId(itemId);
@@ -500,7 +521,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
   return (
     <>
       <div className={`border rounded-2xl overflow-hidden transition-all
-                       ${isActive ? "border-green-700 shadow-md" : "border-gray-200"}`}>
+                       ${isActive ? `${color.border} shadow-md` : "border-gray-200"}`}>
 
         {/*  Day header  */}
         <button
@@ -508,23 +529,29 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
           className="w-full flex items-center justify-between px-5 py-4
                      hover:bg-gray-50 transition-colors text-left"
         >
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-bold text-green-800">
-              DAY {day.dayNumber}
-            </span>
+          <div className="flex items-center gap-4 flex-wrap">
+            {isActive ? (
+              <span className={`text-sm font-bold ${color.text}`}>
+                DAY {day.dayNumber}
+              </span>
+            ) : (
+              <span className={`text-xs font-bold text-white px-2.5 py-1
+                                rounded-full ${color.bg}`}>
+                DAY {day.dayNumber}
+              </span>
+            )}
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              
+              <Calendar size={13} className="text-gray-400" />
               <span>{formatDateShort(day.date)}</span>
             </div>
             {day.region && (
               <div className="flex items-center gap-1 text-xs text-gray-600">
-                
+                <MapPin size={13} className="text-gray-400" />
                 <span className="font-medium">{day.region}</span>
               </div>
             )}
             {day.theme && (
               <div className="flex items-center gap-1 text-xs text-gray-400">
-                
                 <span>{day.theme}</span>
               </div>
             )}
@@ -534,10 +561,9 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
               {(day.items || []).length} items -{" "}
               Day total: ${dayTotal.toFixed(2)}
             </span>
-            <span className={`text-gray-400 transition-transform text-sm
-                              ${isActive ? "rotate-180" : ""}`}>
-              
-            </span>
+            <ChevronDown size={16}
+              className={`text-gray-400 transition-transform
+                         ${isActive ? "rotate-180" : ""}`} />
           </div>
         </button>
 
@@ -547,9 +573,10 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
             {/* Festival banner */}
             {day.items?.some(i => i.title?.startsWith("Festival:")) && (
-              <div className="mt-3 mb-3 bg-yellow-50 border border-yellow-200
-                              rounded-lg px-3 py-2 text-xs text-yellow-800 font-medium">
-                {" "}
+              <div className="mt-3 mb-3 flex items-center gap-1.5 bg-yellow-50
+                              border border-yellow-200 rounded-lg px-3 py-2
+                              text-xs text-yellow-800 font-medium">
+                <PartyPopper size={13} className="flex-shrink-0" />
                 {day.items.find(i => i.title?.startsWith("Festival:"))?.title
                   .replace("Festival: ", "")} nearby!
               </div>
@@ -557,8 +584,10 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
             {/* Tips */}
             {day.tips && (
-              <p className="mt-3 mb-4 text-xs text-gray-400 italic">
-                 {day.tips}
+              <p className="mt-3 mb-4 flex items-start gap-1.5 text-xs
+                            text-gray-400 italic">
+                <Lightbulb size={13} className="flex-shrink-0 mt-0.5" />
+                <span>{day.tips}</span>
               </p>
             )}
 
@@ -654,7 +683,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
               <span className="text-sm font-semibold text-gray-700">
                 Day Total:
               </span>
-              <span className="text-base font-bold text-green-800">
+              <span className={`text-base font-bold ${color.text}`}>
                 ${dayTotal.toFixed(2)}
               </span>
             </div>
@@ -687,103 +716,54 @@ function AiTipsPanel({ trip }) {
   ].filter(Boolean);
 
   const tip = tips[0] || "Your AI itinerary is ready to explore!";
+  const hasGems = gemDays.length > 0;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg"></span>
+        <Sparkles size={16} className="text-green-700" />
         <span className="text-sm font-bold text-gray-800">AI Travel Tip</span>
       </div>
       <p className="text-sm text-gray-600 leading-relaxed mb-4">{tip}</p>
-      <button className="w-full py-2.5 bg-green-800 hover:bg-green-900
-                         text-white rounded-xl text-sm font-semibold
-                         transition-colors">
-        Apply Suggestion
+      {hasGems && (
+        <Link to="/hidden-gems"
+          className="inline-flex w-full items-center justify-center gap-1.5
+                     py-2.5 bg-green-50 hover:bg-green-100 text-green-800
+                     rounded-xl text-sm font-semibold transition-colors">
+          View Hidden Gems
+        </Link>
+      )}
+    </div>
+  );
+}
+
+//  Share Panel
+function SharePanel({ trip }) {
+  function handleShare() {
+    const url = `${window.location.origin}/trips/share/${trip.shareToken}`;
+    navigator.clipboard.writeText(url).then(() => alert("Share link copied!"));
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-2">
+        <UserPlus size={16} className="text-green-700" />
+        <span className="text-sm font-bold text-gray-800">Share Your Trip</span>
+      </div>
+      <p className="text-sm text-gray-500 mb-4">
+        Invite friends or family to view this itinerary.
+      </p>
+      <button onClick={handleShare}
+        className="w-full flex items-center justify-center gap-1.5 py-2.5
+                   bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl
+                   text-sm font-semibold transition-colors">
+        <Share2 size={15} /> Share Trip
       </button>
     </div>
   );
 }
 
-//  Share Panel 
-function SharePanel({ trip }) {
-  const [copied, setCopied] = useState(false);
-  const shareUrl = `${window.location.origin}/trips/share/${trip.shareToken}`;
-
-  function handleCopy() {
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-      <p className="text-sm font-bold text-gray-800 mb-3">Share this trip</p>
-      <div className="flex gap-2 mb-4">
-        <input readOnly value={shareUrl}
-          className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg
-                     px-3 py-2 text-gray-500 bg-gray-50 outline-none truncate"/>
-        <button onClick={handleCopy}
-          className="px-3 py-2 bg-green-800 hover:bg-green-900 text-white
-                     rounded-lg text-xs font-semibold transition-colors whitespace-nowrap">
-          {copied ? "Copied!" : "Copy"}
-        </button>
-      </div>
-      <p className="text-xs font-semibold text-gray-500 mb-2">Export Options</p>
-      <div className="grid grid-cols-2 gap-2">
-        <button className="flex items-center justify-center gap-1.5 py-2
-                           border border-gray-200 rounded-xl text-xs font-medium
-                           text-gray-600 hover:bg-gray-50 transition-colors">
-           PDF Itinerary
-        </button>
-        <button className="flex items-center justify-center gap-1.5 py-2
-                           border border-gray-200 rounded-xl text-xs font-medium
-                           text-gray-600 hover:bg-gray-50 transition-colors">
-           Google Maps
-        </button>
-      </div>
-    </div>
-  );
-}
-
-//  Map Placeholder 
-function MapPanel({ trip }) {
-  const regions = [...new Set(
-    (trip.days || []).map(d => d.region).filter(Boolean)
-  )];
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm
-                    overflow-hidden">
-      {/* Map placeholder */}
-      <div className="relative h-72 bg-gradient-to-br from-green-50 to-blue-50
-                      flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-sm font-semibold text-green-800 mb-2">Map</div>
-          <p className="text-xs text-gray-400 font-medium">Route Map</p>
-        </div>
-
-        {/* Region markers */}
-        <div className="absolute bottom-3 left-3 flex flex-col gap-1.5">
-          {regions.map((r, i) => (
-            <div key={r}
-              className="flex items-center gap-1.5 bg-white rounded-full
-                         px-2.5 py-1 shadow-sm border border-gray-200">
-              <span className="w-5 h-5 rounded-full bg-green-800 text-white
-                               text-[10px] font-bold flex items-center
-                               justify-center flex-shrink-0">
-                {i + 1}
-              </span>
-              <span className="text-xs font-medium text-gray-700">{r}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-//  Main Page 
+//  Main Page
 export default function TripDetailPage() {
   const { id }        = useParams();
   const navigate      = useNavigate();
@@ -795,6 +775,9 @@ export default function TripDetailPage() {
   const [activeDay,  setActiveDay]  = useState(null);
   const [activeTab,  setActiveTab]  = useState("itinerary");
   const [confirming, setConfirming] = useState(false);
+  // Real budget total from the Budget API (null = no budget yet, so the
+  // stats row falls back to the AI-estimated trip cost).
+  const [budgetTotal, setBudgetTotal] = useState(null);
   const [detailCatalog, setDetailCatalog] = useState({
     destinations: [], gems: [], events: [], guides: [], vehicles: []
   });
@@ -815,6 +798,9 @@ export default function TripDetailPage() {
       const data = await res.json();
       setTrip(data);
       loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
+      budgetService.getBudgetByTrip(data.id)
+        .then(b => setBudgetTotal(b.totalBudget))
+        .catch(() => setBudgetTotal(null));
       if (data.days?.length > 0) setActiveDay(data.days[0].id);
     } catch (e) {
       setError(e.message);
@@ -939,7 +925,7 @@ export default function TripDetailPage() {
                            border-gray-200 rounded-xl text-sm font-medium
                            text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                 Share
+                <Share2 size={15} /> Share
               </button>
 
               {trip.status === "DRAFT" && (
@@ -955,15 +941,15 @@ export default function TripDetailPage() {
                       <span className="w-4 h-4 border-2 border-white/30
                                         border-t-white rounded-full animate-spin"/>
                       Confirming...</>
-                  ) : " Confirm Trip"}
+                  ) : <><CheckCircle2 size={15} /> Confirm Trip</>}
                 </button>
               )}
 
               <Link to="/trips"
-                className="px-4 py-2.5 border border-gray-200 rounded-xl
-                           text-sm font-medium text-gray-600 hover:bg-gray-50
-                           transition-colors">
-                 Back
+                className="flex items-center gap-1.5 px-4 py-2.5 border
+                           border-gray-200 rounded-xl text-sm font-medium
+                           text-gray-600 hover:bg-gray-50 transition-colors">
+                <ArrowLeft size={15} /> Back
               </Link>
             </div>
           </div>
@@ -971,36 +957,41 @@ export default function TripDetailPage() {
           {/*  Tabs  */}
           <div className="flex gap-0 mb-6 border-b border-gray-200">
             {[
-              { key: "itinerary", label: "Itinerary" },
-              { key: "budget",    label: "Budget Tracker" },
+              { key: "itinerary", label: "Itinerary",      Icon: FileText },
+              { key: "budget",    label: "Budget Tracker", Icon: Wallet },
             ].map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-5 py-3 text-sm font-medium border-b-2
-                            transition-colors -mb-px
+                className={`flex items-center gap-1.5 px-5 py-3 text-sm
+                            font-medium border-b-2 transition-colors -mb-px
                             ${activeTab === tab.key
                               ? "border-green-800 text-green-800"
                               : "border-transparent text-gray-500 hover:text-gray-700"
                             }`}
               >
-                {tab.label}
+                <tab.Icon size={15} /> {tab.label}
               </button>
             ))}
           </div>
 
-          {/*  Stats row  */}
+          {/*  Stats row (itinerary tab only — the budget tab has its own) */}
+          {activeTab === "itinerary" && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { value: days,       label: "Days" },
-              { value: `${totalCost.toFixed(0)}`, label: "Budgeted" },
-              { value: locations,  label: "Locations" },
-              { value: totalItems, label: "Items Added" },
+              { value: days,       label: "Days",          Icon: Calendar },
+              { value: `${(budgetTotal ?? totalCost).toFixed(0)}`,
+                label: "Budgeted (USD)", Icon: Wallet },
+              { value: locations,  label: "Locations",      Icon: MapPin },
+              { value: totalItems, label: "Items Added",    Icon: FileText },
             ].map(s => (
               <div key={s.label}
                 className="bg-white rounded-2xl border border-gray-200 p-4
                            shadow-sm flex items-center gap-3">
-                
+                <div className="w-9 h-9 rounded-xl bg-green-50 text-green-800
+                                flex items-center justify-center flex-shrink-0">
+                  <s.Icon size={18} />
+                </div>
                 <div>
                   <p className="text-xl font-bold text-gray-900">{s.value}</p>
                   <p className="text-xs text-gray-400">{s.label}</p>
@@ -1008,16 +999,18 @@ export default function TripDetailPage() {
               </div>
             ))}
           </div>
+          )}
 
           {activeTab === "itinerary" && (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/*  Left: Day cards  */}
               <div className="space-y-3">
-                {(trip.days || []).map(day => (
+                {(trip.days || []).map((day, dayIndex) => (
                   <DayCard
                     key={day.id}
                     day={day}
+                    dayIndex={dayIndex}
                     trip={trip}
                     tripId={trip.id}
                     token={token}
@@ -1042,20 +1035,7 @@ export default function TripDetailPage() {
           )}
 
           {activeTab === "budget" && (
-            <div className="bg-white rounded-2xl border border-gray-200 p-6
-                            shadow-sm text-center py-16">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Notice</p>
-              <p className="text-gray-700 font-semibold mb-1">Budget Tracker</p>
-              <p className="text-sm text-gray-400 mb-4">
-                Track your spending across this trip
-              </p>
-              <Link to="/budget"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5
-                           bg-green-800 text-white rounded-xl text-sm
-                           font-semibold hover:bg-green-900 transition-colors">
-                Open Budget Tracker
-              </Link>
-            </div>
+            <BudgetTracker trip={trip} onBudgetChange={setBudgetTotal} />
           )}
 
         </div>
