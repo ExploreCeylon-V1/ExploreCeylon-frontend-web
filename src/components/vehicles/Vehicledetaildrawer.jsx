@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { vehicleService } from "../../services/vehicleService";
+import { useCart } from "../../context/CartContext";
+import VehicleReviews from "../VehicleReviews";
 
 const BOOKING_BASE = "http://localhost:8080/api/v1/vehicle-bookings";
 
@@ -12,31 +15,9 @@ const SPEC_ICONS = {
   driverIncluded: { icon: "🧑", label: "Driver" },
 };
 
-function StarBar({ star, count, max }) {
-  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
-  const colors = [
-    "",
-    "bg-red-400",
-    "bg-orange-400",
-    "bg-yellow-400",
-    "bg-yellow-400",
-    "bg-yellow-500",
-  ];
-  return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className="w-5 text-right text-gray-500">{star}★</span>
-      <div className="flex-1 h-2 bg-gray-200 rounded-full">
-        <div
-          className={`h-2 rounded-full ${colors[star]}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="w-6 text-right text-gray-500">{count}</span>
-    </div>
-  );
-}
-
-export default function VehicleDetailDrawer({ vehicleId, onClose, onBook }) {
+export default function VehicleDetailDrawer({ vehicleId, onClose }) {
+  const navigate = useNavigate();
+  const { addToCart, isInCart } = useCart();
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imgIndex, setImgIndex] = useState(0);
@@ -45,16 +26,18 @@ export default function VehicleDetailDrawer({ vehicleId, onClose, onBook }) {
   const [avail, setAvail] = useState(null);
   const [checkingAvail, setCheckingAvail] = useState(false);
 
+  const fetchVehicle = useCallback(() => {
+    if (!vehicleId) return;
+    return vehicleService.getVehicleById(vehicleId).then(setVehicle);
+  }, [vehicleId]);
+
   useEffect(() => {
     if (!vehicleId) return;
     setLoading(true);
     setImgIndex(0);
     setAvail(null);
-    vehicleService
-      .getVehicleById(vehicleId)
-      .then(setVehicle)
-      .finally(() => setLoading(false));
-  }, [vehicleId]);
+    fetchVehicle().finally(() => setLoading(false));
+  }, [vehicleId, fetchVehicle]);
 
   // Close on Escape
   useEffect(() => {
@@ -91,19 +74,6 @@ export default function VehicleDetailDrawer({ vehicleId, onClose, onBook }) {
     : [
         `https://placehold.co/600x300/1a5c38/white?text=${encodeURIComponent(vehicle?.name || "")}`,
       ];
-
-  // Mock reviews distribution (replace with real endpoint when available)
-  const totalReviews = vehicle?.reviewCount || 0;
-  const mockDist =
-    totalReviews > 0
-      ? {
-          5: Math.round(totalReviews * 0.76),
-          4: Math.round(totalReviews * 0.14),
-          3: Math.round(totalReviews * 0.05),
-          2: Math.round(totalReviews * 0.01),
-          1: Math.round(totalReviews * 0.01),
-        }
-      : { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
   const features = [
     vehicle?.driverIncluded && "Driver Included",
@@ -410,71 +380,73 @@ export default function VehicleDetailDrawer({ vehicleId, onClose, onBook }) {
                 )}
               </div>
 
-              {/* Reviews */}
-              {vehicle.reviewCount > 0 && (
-                <div>
-                  <h4 className="mb-3 font-semibold text-gray-800">
-                    Guest Reviews ({vehicle.reviewCount})
-                  </h4>
-                  <div className="mb-4 space-y-2">
-                    {[5, 4, 3, 2, 1].map((s) => (
-                      <StarBar
-                        key={s}
-                        star={s}
-                        count={mockDist[s]}
-                        max={totalReviews}
-                      />
-                    ))}
-                  </div>
-                  {/* Sample review card */}
-                  <div className="pt-4 border-t border-gray-100">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-yellow-400">★★★★★</span>
-                        <span className="text-sm font-semibold text-gray-800">
-                          Anna K.
-                        </span>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                          FR
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-400">June 2026</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Lovely drive along the coast.{" "}
-                      {vehicle.driverName
-                        ? `${vehicle.driverName.split(" ")[0]} was a wonderful host.`
-                        : ""}{" "}
-                      The car was comfortable.
-                    </p>
-                    <p className="mt-1 text-xs text-gray-400">Helpful 7</p>
-                  </div>
-                </div>
-              )}
+              {/* Reviews — live, wired to the backend */}
+              <VehicleReviews
+                vehicleId={vehicle.id}
+                onReviewAdded={fetchVehicle}
+              />
             </div>
           </div>
         )}
 
         {/* Sticky footer */}
         {!loading && vehicle && (
-          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+          <div className="px-6 py-4 bg-white border-t border-gray-200 space-y-3">
             <div>
               <span className="text-2xl font-bold text-gray-900">
                 ${vehicle.pricePerDay}
               </span>
               <span className="text-sm text-gray-400">/day</span>
             </div>
-            <button
-              onClick={() => onBook(vehicle)}
-              disabled={!vehicle.available}
-              className={`flex-1 ml-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
-                vehicle.available
-                  ? "bg-green-700 text-white hover:bg-green-800"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Book Now →
-            </button>
+
+            <div className="flex gap-2">
+              {isInCart("vehicle", vehicle.id) ? (
+                <button
+                  onClick={() => navigate("/profile?tab=cart")}
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 transition-colors"
+                >
+                  ✓ In Cart — View Cart
+                </button>
+              ) : (
+                <button
+                  onClick={() =>
+                    addToCart({
+                      type: "vehicle",
+                      id: vehicle.id,
+                      name: vehicle.name,
+                      price: vehicle.pricePerDay,
+                      image: vehicle.imageUrls?.[0],
+                      meta: {
+                        district: vehicle.district,
+                        type: vehicle.type,
+                        seats: vehicle.seats,
+                        driverName: vehicle.driverName,
+                        driverPhone: vehicle.driverPhone,
+                        whatsappNumber: vehicle.whatsappNumber,
+                        languages: vehicle.driverLanguages,
+                      },
+                    })
+                  }
+                  disabled={!vehicle.available}
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm border border-green-700 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  + Add to Cart
+                </button>
+              )}
+              {(vehicle.whatsappNumber || vehicle.driverPhone) && (
+                <a
+                  href={`https://wa.me/${String(vehicle.whatsappNumber || vehicle.driverPhone).replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 py-2.5 px-4 rounded-xl font-semibold text-sm border border-[#25D366] text-[#128C4B] hover:bg-green-50 transition-colors whitespace-nowrap"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  Chat
+                </a>
+              )}
+            </div>
           </div>
         )}
       </div>

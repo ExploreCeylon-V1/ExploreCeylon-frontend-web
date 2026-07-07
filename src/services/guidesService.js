@@ -14,6 +14,8 @@ const guidesService = {
     if (filters.language) params.language = filters.language;
     if (filters.specialty) params.specialty = filters.specialty;
     if (filters.maxPrice) params.maxPrice = filters.maxPrice;
+    if (filters.startDate) params.startDate = filters.startDate;
+    if (filters.endDate) params.endDate = filters.endDate;
 
     const response = await apiClient.get('/api/v1/guides', { params });
     return response.data;

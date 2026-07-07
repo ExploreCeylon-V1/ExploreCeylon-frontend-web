@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { SuccessModal } from "../components/SuccessModal";
 import { register as registerUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
@@ -37,7 +37,10 @@ const InputWrap = ({ icon, children }) => (
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { login: setAuth, isAdmin } = useAuth();
+  const location = useLocation();
+  // Return the user to wherever the login prompt was triggered, else home.
+  const redirectTo = location.state?.from?.pathname || "/";
+  const { login: setAuth } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,10 +52,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  useEffect(() => {
-    if (isAdmin) navigate("/admin");
-  }, [isAdmin, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -78,7 +77,7 @@ export default function RegisterPage() {
         email: data.email || email,
         role: data.role || "TRAVELER",
         avatarUrl: data.avatarUrl,
-      });
+      }, true, data.refreshToken);
       setShowSuccessModal(true);
     } catch (err) {
       setError(err?.message || "Registration failed. Please try again.");
@@ -89,11 +88,11 @@ export default function RegisterPage() {
 
   function handleSuccessModalAction() {
     setShowSuccessModal(false);
-    navigate("/");
+    navigate(redirectTo, { replace: true });
   }
 
-  const inputClasses = "w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-[13.5px] text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10";
-  const selectClasses = "w-full appearance-none box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-8 pr-8 text-[13.5px] text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10 cursor-pointer";
+  const inputClasses = "w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10";
+  const selectClasses = "w-full appearance-none box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-8 pr-8 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10 cursor-pointer";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6 font-sans text-slate-900 md:p-12">
@@ -111,8 +110,8 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <p className="mb-3 text-[11.5px] font-semibold uppercase tracking-[0.3em] text-emerald-200">Join Thousands of Travelers</p>
-              <h1 className="mb-3.5 text-[32px] font-semibold leading-[1.2] md:text-[36px]">Create Your Account</h1>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Join Thousands of Travelers</p>
+              <h1 className="mb-3.5 text-3xl font-semibold leading-[1.2] md:text-4xl">Create Your Account</h1>
               <p className="m-0 max-w-[320px] text-sm leading-[1.6] text-slate-200/90">
                 Start planning your Sri Lankan adventure with AI-powered itineraries, expert guides, and hidden local gems.
               </p>
@@ -128,7 +127,7 @@ export default function RegisterPage() {
                   <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50/90 text-base font-bold text-emerald-800">✓</div>
                   <div>
                     <p className="m-0 mb-1 text-sm font-semibold text-white">{item.title}</p>
-                    <p className="m-0 text-[13px] text-slate-200/80">{item.desc}</p>
+                    <p className="m-0 text-sm text-slate-200/80">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -144,13 +143,13 @@ export default function RegisterPage() {
             </Link>
           </div>
 
-          <h1 className="m-0 mb-1 text-[26px] font-bold text-slate-900">Create Your Account ✨</h1>
-          <p className="m-0 mb-5 text-[13.5px] text-slate-500">Start planning your Sri Lanka adventure</p>
+          <h1 className="m-0 mb-1 text-2xl font-bold text-slate-900">Create Your Account ✨</h1>
+          <p className="m-0 mb-5 text-sm text-slate-500">Start planning your Sri Lanka adventure</p>
 
           <form className="flex flex-col gap-3.5" onSubmit={handleSubmit}>
             {/* Full Name */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="fullName">Full Name <span className="text-red-500">*</span></label>
+              <label className="text-sm font-semibold text-slate-700" htmlFor="fullName">Full Name <span className="text-red-500">*</span></label>
               <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>}>
                 <input id="fullName" type="text" className={inputClasses} placeholder="John Smith" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </InputWrap>
@@ -158,7 +157,7 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="reg-email">Email Address <span className="text-red-500">*</span></label>
+              <label className="text-sm font-semibold text-slate-700" htmlFor="reg-email">Email Address <span className="text-red-500">*</span></label>
               <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>}>
                 <input id="reg-email" type="email" className={inputClasses} placeholder="john@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </InputWrap>
@@ -166,7 +165,7 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="reg-password">Password <span className="text-red-500">*</span></label>
+              <label className="text-sm font-semibold text-slate-700" htmlFor="reg-password">Password <span className="text-red-500">*</span></label>
               <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>}>
                 <input id="reg-password" type={showPassword ? "text" : "password"} className={`${inputClasses} pr-[44px]`} placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 <button type="button" className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((v) => !v)}>
@@ -177,7 +176,7 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></label>
+              <label className="text-sm font-semibold text-slate-700" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></label>
               <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>}>
                 <input id="confirmPassword" type={showPassword ? "text" : "password"} className={`${inputClasses} pr-[44px]`} placeholder="Repeat password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                 <button type="button" className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((v) => !v)}>
@@ -189,9 +188,9 @@ export default function RegisterPage() {
             {/* Nationality & Language */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[13.5px] font-semibold text-slate-700">Nationality</label>
+                <label className="text-sm font-semibold text-slate-700">Nationality</label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-[15px]">🌐</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-base">🌐</span>
                   <select className={selectClasses} value={nationality} onChange={(e) => setNationality(e.target.value)}>
                     <option value="">🌍 Select country</option>
                     {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -200,9 +199,9 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[13.5px] font-semibold text-slate-700">Language</label>
+                <label className="text-sm font-semibold text-slate-700">Language</label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-[15px]">💬</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-base">💬</span>
                   <select className={selectClasses} value={language} onChange={(e) => setLanguage(e.target.value)}>
                     {LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
                   </select>
@@ -217,21 +216,21 @@ export default function RegisterPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
               </span>
               <div>
-                <p className="m-0 mb-1 text-[13.5px] text-slate-600">
-                  Your account type: <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold tracking-[0.6px] text-blue-700">TRAVELER</span>
+                <p className="m-0 mb-1 text-sm text-slate-600">
+                  Your account type: <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-3xs font-bold tracking-[0.6px] text-blue-700">TRAVELER</span>
                 </p>
                 <p className="m-0 text-xs text-slate-500">Traveler accounts can plan trips, book guides & vehicles, and track budget. All accounts start as Traveler.</p>
               </div>
             </div>
 
             {/* Terms */}
-            <label className="mt-1 flex cursor-pointer items-start gap-2.5 text-[13.5px] leading-[1.5] text-slate-600">
+            <label className="mt-1 flex cursor-pointer items-start gap-2.5 text-sm leading-[1.5] text-slate-600">
               <input type="checkbox" className="mt-[2px] h-4 w-4 shrink-0 cursor-pointer accent-emerald-600" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
               <span>I agree to the <Link to="#" className="font-semibold text-emerald-600 hover:text-emerald-700">Terms of Service</Link> and <Link to="#" className="font-semibold text-emerald-600 hover:text-emerald-700">Privacy Policy</Link></span>
             </label>
 
             {/* Error */}
-            {error && <div className="mt-1 rounded-2xl border-[1.5px] border-red-200 bg-red-50 px-4 py-3.5 text-[13.5px] text-red-700">{error}</div>}
+            {error && <div className="mt-1 rounded-2xl border-[1.5px] border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700">{error}</div>}
 
             {/* Submit */}
             <button type="submit" disabled={loading} className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1a5c3a] py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#134d2f] disabled:cursor-not-allowed disabled:opacity-50">
@@ -239,7 +238,7 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-[13.5px] text-slate-500">
+          <p className="mt-4 text-center text-sm text-slate-500">
             Already have an account? <Link to="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">Sign in here →</Link>
           </p>
         </main>

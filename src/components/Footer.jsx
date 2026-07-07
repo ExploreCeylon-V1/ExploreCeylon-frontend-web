@@ -19,9 +19,9 @@ export default function Footer() {
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
               </svg>
             </div>
-            <span className="text-[15px] font-bold tracking-tight text-white">ExploreCeylon</span>
+            <span className="text-base font-bold tracking-tight text-white">ExploreCeylon</span>
           </div>
-          <p className="mb-5 max-w-xs text-[13.5px] leading-relaxed text-[#8a93a2]">
+          <p className="mb-5 max-w-xs text-sm leading-relaxed text-[#8a93a2]">
             Your AI-powered Sri Lanka travel companion.
           </p>
           <div className="flex gap-2.5">
@@ -42,12 +42,12 @@ export default function Footer() {
           { title: "SUPPORT", links: supportLinks },
         ].map((col) => (
           <div key={col.title} className="pt-1">
-            <h4 className="mb-4 text-[11.5px] font-bold tracking-[1.1px] text-white">{col.title}</h4>
+            <h4 className="mb-4 text-xs font-bold tracking-[1.1px] text-white">{col.title}</h4>
             <ul className="flex flex-col gap-3">
               {col.links.map((link) => (
                 <li key={link}>
                   <button 
-                    className="text-left text-[13.5px] leading-none text-[#8a93a2] transition-colors hover:text-white"
+                    className="text-left text-sm leading-none text-[#8a93a2] transition-colors hover:text-white"
                     onClick={() => navigate(`/${link.toLowerCase().replace(/ /g, '-')}`)}
                   >
                     {link}
@@ -61,7 +61,7 @@ export default function Footer() {
 
       <div className="mx-auto max-w-7xl px-6 pb-7 lg:px-10">
         <div className="mb-5 h-px bg-[#1e2a36]" />
-        <p className="text-center text-[13px] text-[#5a6472]">
+        <p className="text-center text-sm text-[#5a6472]">
           © 2026 ExploreCeylon. Built with <span className="text-red-500">❤</span> for Sri Lanka tourism
         </p>
       </div>

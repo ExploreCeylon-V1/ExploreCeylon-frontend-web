@@ -126,7 +126,7 @@ export default function EventsPage() {
             <ChevronRight size={14} />
             <span>Events</span>
           </div>
-          <h1 className="text-4xl font-bold mb-2">Events in Sri Lanka</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Events in Sri Lanka</h1>
           <p className="text-gray-200 max-w-xl">
             Experience the vibrant culture, traditions and celebrations that make Sri Lanka truly unique.
           </p>

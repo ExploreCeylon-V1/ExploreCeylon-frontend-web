@@ -18,7 +18,7 @@ const TYPE_COLORS = {
   MINIVAN: "bg-orange-600",
 };
 
-export default function VehicleCard({ vehicle, onBook, onViewDetails }) {
+export default function VehicleCard({ vehicle, onViewDetails }) {
   const {
     id,
     name,
@@ -126,30 +126,15 @@ export default function VehicleCard({ vehicle, onBook, onViewDetails }) {
         {/* Footer */}
         <div className="flex items-center justify-between pt-3 mt-auto border-t border-gray-100">
           <div className="flex items-baseline gap-0.5">
-            <span className="text-xl font-bold text-gray-900">
-              ${pricePerDay}
-            </span>
+            <span className="text-xl font-bold text-gray-900">${pricePerDay}</span>
             <span className="text-sm text-gray-400">/day</span>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => onViewDetails(id)}
-              className="px-3 py-1.5 text-sm font-medium border border-green-700 text-green-700 rounded-lg hover:bg-green-700 hover:text-white transition-colors"
-            >
-              View Details
-            </button>
-            <button
-              onClick={() => available && onBook(vehicle)}
-              disabled={!available}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                available
-                  ? "bg-green-700 text-white hover:bg-green-800"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Book →
-            </button>
-          </div>
+          <button
+            onClick={() => onViewDetails(id)}
+            className="px-4 py-2 text-sm font-semibold border border-green-700 text-green-700 rounded-lg hover:bg-green-700 hover:text-white transition-colors"
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>

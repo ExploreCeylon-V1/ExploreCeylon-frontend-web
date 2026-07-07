@@ -1,11 +1,12 @@
 import axios from "axios";
+import { getToken } from "../utils/authStorage";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const EVENTS_URL = `${API_BASE}/api/v1/events`;
 
 // Attach JWT token if present (matches your auth interceptor pattern)
 const authHeader = () => {
-  const token = localStorage.getItem("ec_traveler_token");
+  const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 

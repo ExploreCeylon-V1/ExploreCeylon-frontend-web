@@ -153,7 +153,7 @@ function CategoryDonut({ perCategory, totalSpent }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-lg font-bold text-gray-900">{money(totalSpent)}</span>
-        <span className="text-[11px] text-gray-400">Total Spent</span>
+        <span className="text-2xs text-gray-400">Total Spent</span>
       </div>
     </div>
   );
@@ -167,7 +167,7 @@ function DailyBarChart({ daily }) {
 
   return (
     <div className="flex gap-3">
-      <div className="h-40 flex flex-col justify-between text-[10px]
+      <div className="h-40 flex flex-col justify-between text-3xs
                       text-gray-400">
         {ticks.map(t => <span key={t}>${Math.round(niceMax * t)}</span>)}
       </div>
@@ -327,21 +327,21 @@ function ExpenseRow({ e, onDelete }) {
           <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
             {e.auto && (
               <span className="inline-flex items-center gap-0.5 bg-blue-500
-                               text-white text-[9px] font-bold px-1.5 py-0.5
+                               text-white text-3xs font-bold px-1.5 py-0.5
                                rounded">
                 <RefreshCw size={8} /> AUTO
               </span>
             )}
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded
+            <span className="text-3xs font-semibold px-1.5 py-0.5 rounded
                              bg-gray-100" style={{ color: meta.color }}>
               {meta.emoji} {meta.label}
             </span>
           </div>
           <p className="text-sm font-semibold text-gray-800 truncate">{e.title}</p>
-          <p className="text-[11px] text-gray-400">{formatItemDate(e.date)}</p>
-          {e.note && <p className="text-[11px] text-gray-400">{e.note}</p>}
+          <p className="text-2xs text-gray-400">{formatItemDate(e.date)}</p>
+          {e.note && <p className="text-2xs text-gray-400">{e.note}</p>}
           {e.reference && (
-            <p className="text-[10px] text-gray-400 font-mono">Ref: {e.reference}</p>
+            <p className="text-3xs text-gray-400 font-mono">Ref: {e.reference}</p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
@@ -688,20 +688,28 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     const html = `<!doctype html><html><head><meta charset="utf-8">
       <title>Budget Report — ${esc(tripTitle)}</title>
       <style>
+        :root {
+          --font-size-3xs: 0.625rem;
+          --font-size-2xs: 0.6875rem;
+          --font-size-xs: 0.75rem;
+          --font-size-sm: 0.875rem;
+          --font-size-lg: 1.125rem;
+          --font-size-2xl: 1.5rem;
+        }
         * { box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; color: #1f2937;
-               margin: 32px; font-size: 12px; }
-        h1 { font-size: 22px; margin: 0 0 4px; color: #14532d; }
-        h2 { font-size: 14px; margin: 24px 0 8px; color: #14532d;
+               margin: 32px; font-size: var(--font-size-xs); }
+        h1 { font-size: var(--font-size-2xl); margin: 0 0 4px; color: #14532d; }
+        h2 { font-size: var(--font-size-sm); margin: 24px 0 8px; color: #14532d;
              border-bottom: 2px solid #dcfce7; padding-bottom: 4px; }
         .sub { color: #6b7280; margin: 0 0 16px; }
         .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
         .card { flex: 1; min-width: 130px; border: 1px solid #e5e7eb;
                 border-radius: 10px; padding: 12px; }
-        .card .val { font-size: 18px; font-weight: 700; }
-        .card .lbl { color: #6b7280; font-size: 11px; }
+        .card .val { font-size: var(--font-size-lg); font-weight: 700; }
+        .card .lbl { color: #6b7280; font-size: var(--font-size-2xs); }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 999px;
-                 font-weight: 700; font-size: 11px; }
+                 font-weight: 700; font-size: var(--font-size-2xs); }
         .b-ontrack { background: #dcfce7; color: #166534; }
         .b-warning { background: #fef9c3; color: #854d0e; }
         .b-over { background: #fee2e2; color: #991b1b; }
@@ -711,10 +719,10 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
         .num { text-align: right; font-variant-numeric: tabular-nums; }
         .pos { color: #15803d; } .neg { color: #dc2626; }
         tfoot td { font-weight: 700; border-top: 2px solid #d1d5db; }
-        .tag { background: #dbeafe; color: #1d4ed8; font-size: 9px;
+        .tag { background: #dbeafe; color: #1d4ed8; font-size: var(--font-size-3xs);
                font-weight: 700; padding: 1px 5px; border-radius: 4px; }
-        .note { color: #9ca3af; font-size: 10px; }
-        .foot { margin-top: 28px; color: #9ca3af; font-size: 10px;
+        .note { color: #9ca3af; font-size: var(--font-size-3xs); }
+        .foot { margin-top: 28px; color: #9ca3af; font-size: var(--font-size-3xs);
                 border-top: 1px solid #e5e7eb; padding-top: 8px; }
         @media print { body { margin: 12px; } h2 { page-break-after: avoid; } }
       </style></head><body>
@@ -950,7 +958,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
           <p className="text-2xl font-bold text-green-800">{money(totalBudget)}</p>
           <p className="text-xs text-gray-400 mb-1.5">Total Budget</p>
           <button onClick={handleEditBudget}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold
+            className="inline-flex items-center gap-1 text-2xs font-semibold
                        text-green-800 hover:underline">
             <Pencil size={10} /> Edit Budget
           </button>
@@ -958,7 +966,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
         <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
           <p className="text-2xl font-bold text-gray-900">{money(totalSpent)}</p>
           <p className="text-xs text-gray-400">Total Spent</p>
-          <p className="text-[11px] text-gray-400 mt-1.5">{pctUsed.toFixed(1)}% used</p>
+          <p className="text-2xs text-gray-400 mt-1.5">{pctUsed.toFixed(1)}% used</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
           <p className={`text-2xl font-bold
@@ -966,7 +974,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
             {money(remaining)}
           </p>
           <p className="text-xs text-gray-400">Remaining</p>
-          <p className={`text-[11px] mt-1.5
+          <p className={`text-2xs mt-1.5
               ${remaining < 0 ? "text-red-500" : "text-green-700"}`}>
             {remaining < 0 ? "over budget" : `${(100 - pctUsed).toFixed(1)}% left`}
           </p>
@@ -974,7 +982,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
         <div className="bg-white rounded-2xl border border-yellow-200 p-4 shadow-sm">
           <p className="text-2xl font-bold text-orange-500">{money(dailyAvg)}</p>
           <p className="text-xs text-gray-400">Daily Average</p>
-          <p className="text-[11px] text-gray-400 mt-1.5">{tripDays} days total</p>
+          <p className="text-2xs text-gray-400 mt-1.5">{tripDays} days total</p>
         </div>
       </div>
 
@@ -994,7 +1002,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
           <div className="h-full rounded-full transition-all"
             style={{ width: `${Math.min(pctUsed, 100)}%`, background: barGradient }} />
         </div>
-        <div className="relative h-5 text-[10px] text-gray-400">
+        <div className="relative h-5 text-3xs text-gray-400">
           <span className="absolute" style={{ left: "25%" }}>25%</span>
           <span className="absolute" style={{ left: "50%" }}>50%</span>
           <span className="absolute text-yellow-600 font-semibold"
@@ -1011,7 +1019,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
               {statusBanner.title}
             </p>
             <p className="text-xs text-gray-600 mt-0.5">{statusBanner.body}</p>
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-2xs text-gray-500 mt-1">
               <Lightbulb size={10} className="inline mr-1" />{statusBanner.tip}
             </p>
           </div>
@@ -1060,13 +1068,13 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
             <div className="flex gap-2 mt-1 ml-10">
               {daily.slice(0, tripDays).map((_, i) => (
                 <span key={i}
-                  className="flex-1 text-center text-[10px] text-gray-400">
+                  className="flex-1 text-center text-3xs text-gray-400">
                   Day {i + 1}
                 </span>
               ))}
             </div>
             {unscheduledSpend > 0 && (
-              <p className="text-[11px] text-gray-400 mt-2">
+              <p className="text-2xs text-gray-400 mt-2">
                 + {money(unscheduledSpend)} not tagged to a specific day.
                 Pick a Trip Day when adding an expense to place it here.
               </p>
@@ -1134,7 +1142,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
 
             {editingAllocations ? (
               <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
-                <p className="text-[11px] text-gray-400">
+                <p className="text-2xs text-gray-400">
                   Allocated:{" "}
                   <span className={
                     Object.values(editingAllocations)
@@ -1294,7 +1302,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
                   <span className="font-bold text-gray-800">{lkr(v)}</span>
                 </div>
               ))}
-              <p className="text-[10px] text-gray-400 mt-2">
+              <p className="text-3xs text-gray-400 mt-2">
                 Rate: 1 USD = {LKR_RATE} LKR · Updated today
               </p>
             </div>

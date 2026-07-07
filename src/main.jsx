@@ -4,12 +4,19 @@ import App from './App.jsx'
 import './index.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
-// Oyaage Google Client ID eka methanata danna (Nathnam .env file eken ganna)
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "OYAAGE_GOOGLE_CLIENT_ID_EKA_METHANATA_DANNA";
+// Google Client ID eka .env file eken (VITE_GOOGLE_CLIENT_ID) ganna.
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+if (!GOOGLE_CLIENT_ID) {
+  // Env var eka nathnam Google Sign-In eka wada karanne na — dev ekata kiyanna.
+  console.warn(
+    "[auth] VITE_GOOGLE_CLIENT_ID is not set — Google Sign-In will not work."
+  );
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>,

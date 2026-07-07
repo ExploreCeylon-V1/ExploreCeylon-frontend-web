@@ -88,8 +88,9 @@ function loadGoogleMaps(apiKey) {
 }
 
 // Fetches a real road-following route from OSRM's public routing API
-// (free, no key required) for the given ordered stops. Returns null on
-// any failure so the caller can fall back to a straight line.
+// (free, no key required) for the given ordered stops. Returns
+// { coords, distance(m), duration(s) } or null on any failure so the caller
+// can fall back to a straight line.
 async function fetchOsrmRoute(points) {
   if (points.length < 2) return null;
   const trimmed = points.slice(0, 100);
@@ -101,10 +102,22 @@ async function fetchOsrmRoute(points) {
     if (!res.ok) return null;
     const data = await res.json();
     if (data.code !== "Ok" || !data.routes?.length) return null;
-    return data.routes[0].geometry.coordinates.map(([lng, lat]) => ({ lat, lng }));
+    const route = data.routes[0];
+    return {
+      coords: route.geometry.coordinates.map(([lng, lat]) => ({ lat, lng })),
+      distance: route.distance, // meters
+      duration: route.duration, // seconds
+    };
   } catch {
     return null;
   }
+}
+
+// Minutes → "Xh Ym" (or "Ym").
+function formatTravelTime(min) {
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  return h ? `${h}h ${m}m` : `${m}m`;
 }
 
 function hasCoords(record) {
@@ -336,74 +349,77 @@ function createMarkerSvg(label, color) {
   return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
 
-// Draws the trip route: an immediate straight geodesic line so there's
-// no blank period, then upgrades in place to a real road-following path
-// from OSRM once it resolves (silently keeps the straight line if the
-// routing call fails).
-function drawRoutePolyline(google, map, routeMarkers) {
-  const straightPath = routeMarkers.map(m => ({ lat: m.lat, lng: m.lng }));
-
-  const polyline = new google.maps.Polyline({
-    path: straightPath,
-    geodesic: true,
-    strokeColor: "#1a5c2a",
-    strokeOpacity: 0.8,
-    strokeWeight: 3,
-    icons: [{
-      icon: {
-        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-        scale: 3,
-        fillColor: "#1a5c2a",
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 1,
-      },
-      offset: "50%",
-      repeat: "150px",
-    }],
-    map,
-  });
-
-  fetchOsrmRoute(straightPath).then(roadPath => {
-    if (roadPath && roadPath.length >= 2) {
-      polyline.setPath(roadPath);
-    }
-  });
-
-  return polyline;
-}
-
-export default function TripMapPanel({ trip }) {
+export default function TripMapPanel({
+  trip,
+  activeDayNumber = null,
+  onMarkerDayClick,
+  mapHeightClass = "h-72",
+}) {
   const mapRef = useRef(null);
   const googleMapRef = useRef(null);
+  const googleRef = useRef(null);
+  const catalogRef = useRef(null);
+  const loadedTripIdRef = useRef(null);
+  const fittedTripIdRef = useRef(null);
+  const drawTokenRef = useRef(0);
+  const activeDayRef = useRef(activeDayNumber);
+  const infoWindowRef = useRef(null);
+  const markerObjsRef = useRef([]);          // [{ marker, dayNum, type }]
+  const segmentsRef = useRef([]);            // [{ dayNum, polyline }]
+  const boundsByDayRef = useRef(new Map());  // dayNum -> LatLngBounds
+  const fullBoundsRef = useRef(null);
   const [mapStatus, setMapStatus] = useState("loading");
   const [markerCount, setMarkerCount] = useState(0);
+  const [routeStats, setRouteStats] = useState(null); // { km, min }
 
+  // Changes whenever the itinerary's items change, so the route recalculates
+  // live on add/remove/regenerate (§8) — not only when the trip id changes.
+  const itemsSignature = (trip?.days || [])
+    .map(d => `${d.dayNumber}:${(d.items || [])
+      .map(i => i.id ?? i.referenceId ?? i.title).join(",")}`)
+    .join("|");
+
+  useEffect(() => { activeDayRef.current = activeDayNumber; }, [activeDayNumber]);
+
+  // Load Google + catalog (catalog cached per trip), then (re)draw the route.
+  // Runs on trip change AND on any item change so edits update the map live.
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) {
-      setMapStatus("nokey");
-      return;
+    if (!GOOGLE_MAPS_API_KEY) { setMapStatus("nokey"); return; }
+    let cancelled = false;
+
+    async function run() {
+      const google = await loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+      if (cancelled) return;
+      googleRef.current = google;
+
+      // The destination/gem/event catalog only depends on the trip, not on
+      // item edits — fetch it once per trip and reuse on every redraw.
+      if (loadedTripIdRef.current !== trip.id || !catalogRef.current) {
+        if (!catalogRef.current) setMapStatus("loading");
+        catalogRef.current = await loadMapCatalog(trip);
+        loadedTripIdRef.current = trip.id;
+        if (cancelled) return;
+      }
+      if (!mapRef.current) return;
+      ensureMap(google);
+      drawTrip(google, catalogRef.current);
+      setMapStatus("ready");
     }
 
-    let cancelled = false;
-    setMapStatus("loading");
-
-    Promise.all([loadGoogleMaps(GOOGLE_MAPS_API_KEY), loadMapCatalog(trip)])
-      .then(([google, catalog]) => {
-        if (cancelled || !mapRef.current) return;
-        initMap(google, catalog);
-        setMapStatus("ready");
-      })
-      .catch(() => setMapStatus("error"));
-
+    run().catch(() => setMapStatus("error"));
     return () => { cancelled = true; };
-  }, [trip?.id]);
+  }, [trip?.id, itemsSignature]);
 
-  function initMap(google, catalog) {
-    const markers = buildMarkers(trip, catalog);
-    setMarkerCount(markers.length);
-    if (!markers.length) return;
+  // Bidirectional sync (§3): re-emphasize + pan when the selected day changes.
+  useEffect(() => {
+    if (mapStatus === "ready") applyDayEmphasis(activeDayNumber, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDayNumber, mapStatus]);
 
+  // Creates the Google map once; later redraws reuse this instance so the
+  // user's zoom/pan and the tile load aren't thrown away on every edit.
+  function ensureMap(google) {
+    if (googleMapRef.current) return googleMapRef.current;
     const map = new google.maps.Map(mapRef.current, {
       center: { lat: 7.8731, lng: 80.7718 },
       zoom: 8,
@@ -418,9 +434,57 @@ export default function TripMapPanel({ trip }) {
       ],
     });
     googleMapRef.current = map;
+    infoWindowRef.current = new google.maps.InfoWindow();
+    return map;
+  }
+
+  // Emphasizes the active day's segment/markers and dims the rest; optionally
+  // fits the viewport to the active day (or the whole trip when none active).
+  function applyDayEmphasis(dayNum, doFit) {
+    const map = googleMapRef.current;
+    if (!map) return;
+
+    segmentsRef.current.forEach(s => {
+      const isActive = s.dayNum === dayNum;
+      s.polyline.setOptions({
+        strokeOpacity: dayNum == null ? 0.85 : isActive ? 1 : 0.15,
+        strokeWeight: isActive ? 6 : 3,
+        zIndex: isActive ? 40 : 1,
+      });
+    });
+    markerObjsRef.current.forEach(m => {
+      const dim = dayNum != null && m.dayNum !== dayNum;
+      m.marker.setOpacity(dim ? 0.3 : 1);
+      m.marker.setZIndex(m.dayNum === dayNum ? 60 : m.type === "REGION" ? 20 : 10);
+    });
+
+    if (!doFit) return;
+    if (dayNum != null && boundsByDayRef.current.has(dayNum)) {
+      map.fitBounds(boundsByDayRef.current.get(dayNum), { top: 60, right: 40, bottom: 40, left: 40 });
+    } else if (fullBoundsRef.current) {
+      map.fitBounds(fullBoundsRef.current, { top: 40, right: 20, bottom: 20, left: 20 });
+    }
+  }
+
+  // Clears existing overlays and redraws markers + per-day route segments.
+  // A draw token guards the async OSRM results so a rapid second edit never
+  // has its stale routing overwrite the current one.
+  function drawTrip(google, catalog) {
+    const map = googleMapRef.current;
+    const token = ++drawTokenRef.current;
+
+    markerObjsRef.current.forEach(o => o.marker.setMap(null));
+    segmentsRef.current.forEach(s => s.polyline.setMap(null));
+    markerObjsRef.current = [];
+    segmentsRef.current = [];
+
+    const markers = buildMarkers(trip, catalog);
+    setMarkerCount(markers.length);
+    if (!markers.length) { setRouteStats(null); return; }
 
     const bounds = new google.maps.LatLngBounds();
-    const infoWindow = new google.maps.InfoWindow();
+    const infoWindow = infoWindowRef.current;
+    const markerObjs = [];
 
     markers.forEach(m => {
       const position = { lat: m.lat, lng: m.lng };
@@ -440,28 +504,95 @@ export default function TripMapPanel({ trip }) {
       marker.addListener("click", () => {
         infoWindow.setContent(`
           <div style="font-family:system-ui;padding:4px;min-width:150px">
-            <div style="font-weight:700;font-size:13px;color:#1a5c2a;margin-bottom:3px">
+            <div style="font-weight:700;font-size:var(--font-size-sm);color:#1a5c2a;margin-bottom:3px">
               ${m.type === "REGION" ? `Day ${m.dayNum}: ${m.region}` : `${m.type}: ${m.title}`}
             </div>
-            ${m.theme ? `<div style="font-size:11px;color:#6b7280">Theme: ${m.theme}</div>` : ""}
-            ${m.notes && m.notes !== m.title ? `<div style="font-size:11px;color:#6b7280;margin-top:2px">${m.notes}</div>` : ""}
+            ${m.theme ? `<div style="font-size:var(--font-size-2xs);color:#6b7280">Theme: ${m.theme}</div>` : ""}
+            ${m.notes && m.notes !== m.title ? `<div style="font-size:var(--font-size-2xs);color:#6b7280;margin-top:2px">${m.notes}</div>` : ""}
           </div>
         `);
         infoWindow.open(map, marker);
+        if (m.dayNum != null) onMarkerDayClick?.(m.dayNum);
       });
-    });
 
+      markerObjs.push({ marker, dayNum: m.dayNum, type: m.type });
+    });
+    markerObjsRef.current = markerObjs;
+
+    const byDay = new Map();
+    markers.forEach(m => {
+      if (m.dayNum == null) return;
+      if (!byDay.has(m.dayNum)) byDay.set(m.dayNum, new google.maps.LatLngBounds());
+      byDay.get(m.dayNum).extend({ lat: m.lat, lng: m.lng });
+    });
+    boundsByDayRef.current = byDay;
+    fullBoundsRef.current = bounds;
+
+    // Per-day colored route segments (events excluded). Each day starts from
+    // the previous day's last stop so the polyline reads as one journey while
+    // remaining individually highlightable, and each is upgraded to a real
+    // road path from OSRM — whose distance/duration feed the live totals.
     const routeMarkers = markers
       .filter(m => m.type !== "EVENT")
       .sort((a, b) =>
         a.dayNum === b.dayNum ? (a.order || 0) - (b.order || 0) : a.dayNum - b.dayNum
       );
 
-    if (routeMarkers.length >= 2) {
-      drawRoutePolyline(google, map, routeMarkers);
-    }
+    const dayNums = [...new Set(routeMarkers.map(m => m.dayNum))].sort((a, b) => a - b);
+    const segments = [];
+    const osrmPromises = [];
+    let prevLast = null;
+    dayNums.forEach(dn => {
+      const pts = routeMarkers
+        .filter(m => m.dayNum === dn)
+        .map(m => ({ lat: m.lat, lng: m.lng }));
+      const path = prevLast ? [prevLast, ...pts] : pts;
+      prevLast = pts[pts.length - 1] || prevLast;
+      if (path.length < 2) return;
+      const color = (routeMarkers.find(m => m.dayNum === dn) || {}).color || "#1a5c2a";
+      const polyline = new google.maps.Polyline({
+        path,
+        geodesic: true,
+        strokeColor: color,
+        strokeOpacity: 0.85,
+        strokeWeight: 3,
+        icons: [{
+          icon: {
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 2.5, fillColor: color, fillOpacity: 1,
+            strokeColor: "#fff", strokeWeight: 1,
+          },
+          offset: "60%",
+        }],
+        map,
+      });
+      segments.push({ dayNum: dn, polyline });
+      osrmPromises.push(
+        fetchOsrmRoute(path).then(r => {
+          if (token !== drawTokenRef.current) return null; // superseded
+          if (r?.coords?.length >= 2) polyline.setPath(r.coords);
+          return r ? { km: r.distance / 1000, min: r.duration / 60 } : null;
+        })
+      );
+    });
+    segmentsRef.current = segments;
 
-    map.fitBounds(bounds, { top: 40, right: 20, bottom: 20, left: 20 });
+    // Live trip travel time + distance (§8; also feeds §14). Best-effort:
+    // if OSRM is unavailable the totals simply don't show.
+    Promise.all(osrmPromises).then(rows => {
+      if (token !== drawTokenRef.current) return;
+      const valid = rows.filter(Boolean);
+      setRouteStats(valid.length ? {
+        km: valid.reduce((s, r) => s + r.km, 0),
+        min: valid.reduce((s, r) => s + r.min, 0),
+      } : null);
+    });
+
+    // Fit the whole trip on first draw; on later edits preserve the current
+    // view unless a specific day is selected.
+    const firstFit = fittedTripIdRef.current !== trip.id;
+    applyDayEmphasis(activeDayRef.current, firstFit || activeDayRef.current != null);
+    fittedTripIdRef.current = trip.id;
   }
 
   const regions = [...new Set(
@@ -471,11 +602,17 @@ export default function TripMapPanel({ trip }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm">Map</span>
           <span className="text-sm font-semibold text-gray-800">Trip Route</span>
           {markerCount > 0 && (
-            <span className="text-[11px] text-gray-400">{markerCount} mapped stops</span>
+            <span className="text-2xs text-gray-400">{markerCount} mapped stops</span>
+          )}
+          {routeStats && (
+            <span className="text-2xs font-semibold text-green-800 bg-green-50
+                             rounded-full px-2 py-0.5">
+              🚗 {formatTravelTime(routeStats.min)} · {Math.round(routeStats.km)} km
+            </span>
           )}
         </div>
         <div className="flex gap-1">
@@ -493,7 +630,7 @@ export default function TripMapPanel({ trip }) {
         </div>
       </div>
 
-      <div className="relative h-72">
+      <div className={`relative ${mapHeightClass}`}>
         <div ref={mapRef} className="w-full h-full" />
 
         {mapStatus === "loading" && (
@@ -509,7 +646,7 @@ export default function TripMapPanel({ trip }) {
           <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-blue-50 flex flex-col items-center justify-center gap-2">
             <span className="text-4xl">Map</span>
             <p className="text-xs text-gray-500 font-medium">Map Preview</p>
-            <p className="text-[11px] text-gray-400 px-4 text-center">
+            <p className="text-2xs text-gray-400 px-4 text-center">
               Add VITE_GOOGLE_MAPS_API_KEY to .env for live map
             </p>
           </div>
@@ -524,7 +661,7 @@ export default function TripMapPanel({ trip }) {
 
       {regions.length > 0 && (
         <div className="px-4 py-3 border-t border-gray-100">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+          <p className="text-2xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
             Route
           </p>
           <div className="flex flex-col gap-1.5">
@@ -537,12 +674,12 @@ export default function TripMapPanel({ trip }) {
               ];
               return (
                 <div key={r} className="flex items-center gap-2.5">
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full text-white text-[11px] font-bold flex-shrink-0"
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full text-white text-2xs font-bold flex-shrink-0"
                        style={{ background: color }}>
                     {i + 1}
                   </div>
                   <span className="text-xs text-gray-700 font-medium">{r}</span>
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-2xs text-gray-400">
                     Day{dayNums.length > 1 ? "s" : ""} {dayNums.join(", ")}
                   </span>
                 </div>

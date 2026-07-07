@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { login as loginUser, googleLogin as googleLoginApi } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from '@react-oauth/google';
@@ -7,6 +7,10 @@ import { useGoogleLogin } from '@react-oauth/google';
 export default function LoginPage() {
   const { login: setAuth } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Where to send the user after a successful login: back to the page a
+  // ProtectedRoute bounced them from, else the home page.
+  const redirectTo = location.state?.from?.pathname || "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +32,8 @@ export default function LoginPage() {
         email: data.email || "",
         role: data.role || "TRAVELER",
         avatarUrl: data.avatarUrl,
-      });
-      navigate("/");
+      }, rememberMe, data.refreshToken);
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err?.message || "Sign in failed.");
     } finally {
@@ -45,15 +49,15 @@ export default function LoginPage() {
       try {
         // Google eken labena access_token eka backend ekata yawanawa
         const data = await googleLoginApi(tokenResponse.access_token);
-        
+
         setAuth(data.accessToken, {
           id: data.userId,
           name: data.name || "",
           email: data.email || "",
           role: data.role || "TRAVELER",
           avatarUrl: data.avatarUrl,
-        });
-        navigate("/");
+        }, rememberMe);
+        navigate(redirectTo, { replace: true });
       } catch (err) {
         setError(err?.message || "Google Sign in failed.");
       } finally {
@@ -84,8 +88,8 @@ export default function LoginPage() {
 
             {/* Hero text */}
             <div>
-              <p className="mb-3 text-[11.5px] font-semibold uppercase tracking-[0.3em] text-emerald-200">Welcome Back</p>
-              <h1 className="mb-3.5 text-[32px] font-semibold leading-[1.2] md:text-[36px]">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Welcome Back</p>
+              <h1 className="mb-3.5 text-3xl font-semibold leading-[1.2] md:text-4xl">
                 Your Journey to Paradise Begins Here
               </h1>
               <p className="m-0 max-w-[280px] text-sm leading-[1.6] text-slate-200/90">
@@ -102,7 +106,7 @@ export default function LoginPage() {
                 { val: "500+", label: "Destinations" },
               ].map((stat, idx) => (
                 <div key={idx} className="rounded-3xl bg-white/10 p-5 text-center">
-                  <p className="m-0 mb-1.5 text-[22px] font-semibold">{stat.val}</p>
+                  <p className="m-0 mb-1.5 text-2xl font-semibold">{stat.val}</p>
                   <p className="m-0 text-xs text-slate-200/80">{stat.label}</p>
                 </div>
               ))}
@@ -123,8 +127,8 @@ export default function LoginPage() {
           </div>
 
           {/* Heading */}
-          <h1 className="m-0 mb-1 text-[28px] font-bold text-slate-900">Welcome Back 👋</h1>
-          <p className="m-0 mb-6 text-[13.5px] text-slate-500">Sign in to your ExploreCeylon account</p>
+          <h1 className="m-0 mb-1 text-3xl font-bold text-slate-900">Welcome Back 👋</h1>
+          <p className="m-0 mb-6 text-sm text-slate-500">Sign in to your ExploreCeylon account</p>
 
           {/* Google Button */}
           <button 
@@ -143,7 +147,7 @@ export default function LoginPage() {
           </button>
 
           {/* Divider */}
-          <div className="mb-4 flex items-center gap-3 text-[13px] text-slate-400">
+          <div className="mb-4 flex items-center gap-3 text-sm text-slate-400">
             <span className="h-px flex-1 bg-slate-200" />
             <span>or sign in with email</span>
             <span className="h-px flex-1 bg-slate-200" />
@@ -153,7 +157,7 @@ export default function LoginPage() {
           <form className="flex flex-col gap-4.5" onSubmit={handleSubmit}>
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="email">Email Address</label>
+              <label className="text-sm font-semibold text-slate-700" htmlFor="email">Email Address</label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -163,7 +167,7 @@ export default function LoginPage() {
                 </span>
                 <input
                   id="email" type="email" placeholder="your@email.com" required
-                  className="w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-3 pl-10 pr-3.5 text-[13.5px] text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10"
+                  className="w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-3 pl-10 pr-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10"
                   value={email} onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
@@ -172,8 +176,8 @@ export default function LoginPage() {
             {/* Password */}
             <div className="flex flex-col gap-1.5 mt-4">
               <div className="flex items-center justify-between">
-                <label className="text-[13.5px] font-semibold text-slate-700" htmlFor="password">Password</label>
-                <Link to="#" className="text-[13.5px] font-semibold text-emerald-600 hover:text-emerald-700">Forgot password?</Link>
+                <label className="text-sm font-semibold text-slate-700" htmlFor="password">Password</label>
+                <Link to="/forgot-password" state={{ email }} className="text-sm font-semibold text-emerald-600 hover:text-emerald-700">Forgot password?</Link>
               </div>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400">
@@ -184,7 +188,7 @@ export default function LoginPage() {
                 </span>
                 <input
                   id="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" required
-                  className="w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-3 pl-10 pr-[44px] text-[13.5px] text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10"
+                  className="w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-3 pl-10 pr-[44px] text-sm text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10"
                   value={password} onChange={(e) => setPassword(e.target.value)}
                 />
                 <button type="button" className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((v) => !v)}>
@@ -198,13 +202,13 @@ export default function LoginPage() {
             </div>
 
             {/* Remember Me */}
-            <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-[13.5px] text-slate-600">
+            <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-slate-600">
               <input type="checkbox" className="h-4 w-4 cursor-pointer accent-emerald-600" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
               Remember me on this device
             </label>
 
             {/* Error */}
-            {error && <div className="mt-2 rounded-2xl border-[1.5px] border-red-200 bg-red-50 px-4 py-3.5 text-[13.5px] text-red-700">{error}</div>}
+            {error && <div className="mt-2 rounded-2xl border-[1.5px] border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700">{error}</div>}
 
             {/* Submit */}
             <button type="submit" disabled={loading} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1a5c3a] py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#134d2f] disabled:cursor-not-allowed disabled:opacity-50">
@@ -213,13 +217,13 @@ export default function LoginPage() {
           </form>
 
           {/* Footer */}
-          <p className="mt-4 text-center text-[13.5px] text-slate-500">
+          <p className="mt-4 text-center text-sm text-slate-500">
             Don't have an account?{" "}
             <Link to="/register" className="font-semibold text-emerald-600 hover:text-emerald-700">Create one free →</Link>
           </p>
 
           {/* SSL */}
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border-[1.5px] border-slate-200 bg-slate-50 px-4 py-3 text-[12.5px] text-slate-500">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border-[1.5px] border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
             Your login is secured with 256-bit SSL encryption
           </div>

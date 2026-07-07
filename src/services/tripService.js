@@ -1,9 +1,11 @@
+import { getToken } from "../utils/authStorage";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 function getAuthHeader() {
   const token =
+    getToken() ||
     localStorage.getItem("travelerToken") ||
-    localStorage.getItem("ec_traveler_token") ||
     localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
@@ -47,7 +49,18 @@ export async function generateAiItinerary(tripId, data) {
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
     body: JSON.stringify({ tripId, ...data }),
   });
-  if (!res.ok) throw new Error("AI generation failed");
+  if (!res.ok) {
+    // Surface the real reason from the backend instead of a generic message.
+    // The backend's GlobalExceptionHandler returns { "error": "..." } (400),
+    // e.g. "AI response day count mismatch", "AI service returned null
+    // response", or a wrapped Groq/AI-service error (bad key, rate limit,
+    // truncated JSON, DB unreachable).
+    const detail = await res
+      .json()
+      .then((b) => b.error || b.message || b.detail)
+      .catch(() => null);
+    throw new Error(detail || `AI generation failed (HTTP ${res.status})`);
+  }
   return res.json();
 }
 

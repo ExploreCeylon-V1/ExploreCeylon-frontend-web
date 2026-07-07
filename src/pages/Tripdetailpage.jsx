@@ -8,6 +8,8 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
 import BudgetTracker from "../components/BudgetTracker";
+import TripGenerationLoader from "../components/TripGenerationLoader";
+import { updateTripTitle, generateAiItinerary } from "../services/tripService";
 import budgetService from "../services/budgetService";
 import destinationsService from "../services/destinationsService";
 import hiddenGemsService from "../services/Hiddengemsservice";
@@ -15,10 +17,12 @@ import eventService from "../services/eventService";
 import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
+import { downloadTripPdf } from "../utils/tripPdf";
 import {
   Calendar, Wallet, MapPin, FileText, ChevronDown,
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
-  PartyPopper, Lightbulb,
+  PartyPopper, Lightbulb, Sunrise, Sun, Moon,
+  Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -51,6 +55,26 @@ const NEARBY_CATEGORIES = [
   { value: "GEM",         label: "Hidden Gem" },
   { value: "EVENT",       label: "Event" },
 ];
+
+// §2 — time-of-day slots. There's no slot field on the backend TripDayItem,
+// so we bucket each day's already-ordered items into three consecutive
+// groups (Morning / Afternoon / Evening). Empty slots are omitted (§6).
+const TIME_SLOTS = [
+  { key: "morning",   label: "Morning",   time: "Start of day",  Icon: Sunrise },
+  { key: "afternoon", label: "Afternoon", time: "Midday",        Icon: Sun },
+  { key: "evening",   label: "Evening",   time: "Later",         Icon: Moon },
+];
+
+function bucketItemsIntoSlots(items) {
+  const groups = [[], [], []];
+  const n = items.length;
+  if (n === 0) return groups;
+  const per = Math.ceil(n / 3);
+  items.forEach((item, i) => {
+    groups[Math.min(2, Math.floor(i / per))].push(item);
+  });
+  return groups;
+}
 
 const STATUS_META = {
   DRAFT:     { label: "DRAFT",     color: "text-gray-500 bg-gray-100" },
@@ -95,8 +119,6 @@ function cleanItemTitle(title = "") {
   return title
     .replace(/^Hidden Gem:\s*/i, "")
     .replace(/^Festival:\s*/i, "")
-    .split("")[0]
-    .split("")[0]
     .split(" - ")[0]
     .trim();
 }
@@ -395,7 +417,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
 
       {center && (
         <>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase
+          <p className="text-2xs font-semibold text-gray-400 uppercase
                         tracking-wide mb-2">
             Suggested {categoryLabel}s Nearby:
           </p>
@@ -445,7 +467,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
                           onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
                         />
                         <span className="absolute top-1.5 right-1.5 bg-white/90
-                                         text-[10px] font-semibold text-gray-700
+                                         text-3xs font-semibold text-gray-700
                                          px-1.5 py-0.5 rounded-full">
                           {s.distanceKm.toFixed(1)} km
                         </span>
@@ -455,14 +477,14 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
                           {name}
                         </p>
                         {subtitle && (
-                          <p className="text-[11px] text-gray-400 truncate mb-2">
+                          <p className="text-2xs text-gray-400 truncate mb-2">
                             {subtitle}
                           </p>
                         )}
                         <button
                           onClick={() => handleAdd(s)}
                           disabled={addingId === s.id}
-                          className="w-full text-[11px] font-semibold text-green-800
+                          className="w-full text-2xs font-semibold text-green-800
                                      border border-green-700 rounded-lg py-1.5
                                      hover:bg-green-50 transition-colors
                                      disabled:opacity-50"
@@ -502,6 +524,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
   const dayTotal = (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
   const color = DAY_BADGE_COLORS[dayIndex % DAY_BADGE_COLORS.length];
+  const slotGroups = bucketItemsIntoSlots(day.items || []);
 
   async function handleDeleteItem(itemId) {
     setDeletingId(itemId);
@@ -591,79 +614,93 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
               </p>
             )}
 
-            {/* Items list */}
+            {/* Time-slotted items (§2): Morning / Afternoon / Evening */}
             {(day.items || []).length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase
-                              tracking-wide mb-2">
-                  Items in this day
-                </p>
-                <div className="space-y-2">
-                  {day.items.map(item => {
-                    const meta = ITEM_TYPE_META[item.type] || ITEM_TYPE_META.ACTIVITY;
-                    const match = resolveItemMatch(item, detailCatalog);
-                    const detailLink = match?.link || null;
-                    const image = match?.image || PLACEHOLDER_ITEM_IMAGE;
-                    return (
-                      <div key={item.id}
-                        className="flex items-center gap-3 bg-gray-50
-                                   rounded-xl px-4 py-3">
-                        {/* Photo */}
-                        <img
-                          src={image}
-                          alt={item.title}
-                          className="w-14 h-14 rounded-lg object-cover
-                                     flex-shrink-0 bg-gray-200"
-                          onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
-                        />
-
-                        {/* Title + type */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {item.title}
-                          </p>
-                          <p className="text-xs text-gray-400">{meta.label}</p>
-                          {item.notes && (
-                            <p className="text-xs text-gray-400 mt-0.5 italic">
-                              {item.notes}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Cost + details link */}
-                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          <span className="text-sm font-medium text-gray-700
-                                           whitespace-nowrap">
-                            {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Free"}
-                          </span>
-                          {detailLink && (
-                            <Link
-                              to={detailLink}
-                              className="text-[11px] font-semibold text-green-800
-                                         hover:text-green-900 hover:underline
-                                         whitespace-nowrap"
-                            >
-                              View Details
-                            </Link>
-                          )}
-                        </div>
-
-                        {/* Delete */}
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          disabled={deletingId === item.id}
-                          className="w-7 h-7 flex items-center justify-center
-                                     rounded-lg text-gray-400 hover:bg-red-50
-                                     hover:text-red-500 transition-colors
-                                     disabled:opacity-40 flex-shrink-0"
-                          title="Remove item"
-                        >
-                          {deletingId === item.id ? "..." : "x"}
-                        </button>
+              <div className="mb-4 space-y-4">
+                {TIME_SLOTS.map((slot, slotIdx) => {
+                  const slotItems = slotGroups[slotIdx] || [];
+                  if (!slotItems.length) return null;
+                  return (
+                    <div key={slot.key}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <slot.Icon size={14} className={color.text} />
+                        <p className="text-xs font-bold text-gray-600 uppercase
+                                      tracking-wide">
+                          {slot.label}
+                        </p>
+                        <span className="text-2xs text-gray-300">
+                          {slot.time}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="space-y-2">
+                        {slotItems.map(item => {
+                          const meta = ITEM_TYPE_META[item.type] || ITEM_TYPE_META.ACTIVITY;
+                          const match = resolveItemMatch(item, detailCatalog);
+                          const detailLink = match?.link || null;
+                          const image = match?.image || PLACEHOLDER_ITEM_IMAGE;
+                          return (
+                            <div key={item.id}
+                              className="flex items-center gap-3 bg-gray-50
+                                         rounded-xl px-4 py-3">
+                              {/* Photo */}
+                              <img
+                                src={image}
+                                alt={item.title}
+                                className="w-14 h-14 rounded-lg object-cover
+                                           flex-shrink-0 bg-gray-200"
+                                onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
+                              />
+
+                              {/* Title + type */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-800 truncate">
+                                  {item.title}
+                                </p>
+                                <p className="text-xs text-gray-400">{meta.label}</p>
+                                {item.notes && (
+                                  <p className="text-xs text-gray-400 mt-0.5 italic">
+                                    {item.notes}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Cost + details link */}
+                              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                <span className="text-sm font-medium text-gray-700
+                                                 whitespace-nowrap">
+                                  {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Free"}
+                                </span>
+                                {detailLink && (
+                                  <Link
+                                    to={detailLink}
+                                    className="text-2xs font-semibold text-green-800
+                                               hover:text-green-900 hover:underline
+                                               whitespace-nowrap"
+                                  >
+                                    View Details
+                                  </Link>
+                                )}
+                              </div>
+
+                              {/* Delete */}
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                disabled={deletingId === item.id}
+                                className="w-7 h-7 flex items-center justify-center
+                                           rounded-lg text-gray-400 hover:bg-red-50
+                                           hover:text-red-500 transition-colors
+                                           disabled:opacity-40 flex-shrink-0"
+                                title="Remove item"
+                              >
+                                {deletingId === item.id ? "..." : "x"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -763,6 +800,154 @@ function SharePanel({ trip }) {
   );
 }
 
+//  Trip Overview
+// Classifies every item across all days into destination / hidden gem /
+// event, then builds (a) a one-paragraph narrative summary of the whole
+// journey and (b) a flat, date-ordered list for the timeline below.
+function classifyItem(item) {
+  if (item.type === "GEM") return "GEM";
+  if (item.title?.startsWith("Festival:")) return "EVENT";
+  return "DESTINATION";
+}
+
+const OVERVIEW_KIND_META = {
+  DESTINATION: { label: "Destination", Icon: Compass,     dot: "bg-green-600"  },
+  GEM:         { label: "Hidden Gem",  Icon: Gem,          dot: "bg-purple-600" },
+  EVENT:       { label: "Event",       Icon: PartyPopper,  dot: "bg-yellow-500" },
+};
+
+function buildTripSummary(trip, stops) {
+  const from = trip.fromLocation || trip.startingPoint;
+  const to = trip.toLocation;
+  const dayCount = countDays(trip.startDate, trip.endDate);
+  const regionSequence = [...new Set((trip.days || []).map(d => d.region).filter(Boolean))];
+  const destCount = stops.filter(s => s.kind === "DESTINATION").length;
+  const gemCount = stops.filter(s => s.kind === "GEM").length;
+  const eventCount = stops.filter(s => s.kind === "EVENT").length;
+
+  const routeText = from && to
+    ? (regionSequence.length > 2
+        ? `from ${from}, through ${regionSequence.slice(0, -1).join(", ")}, and on to ${to}`
+        : `from ${from} to ${to}`)
+    : (to ? `to ${to}` : "across Sri Lanka");
+
+  const parts = [];
+  parts.push(`This ${dayCount}-day journey takes you ${routeText}.`);
+
+  const highlights = [];
+  if (destCount > 0) highlights.push(`${destCount} destination${destCount > 1 ? "s" : ""}`);
+  if (gemCount > 0) highlights.push(`${gemCount} hidden gem${gemCount > 1 ? "s" : ""}`);
+  if (eventCount > 0) highlights.push(`${eventCount} local event${eventCount > 1 ? "s" : ""}`);
+  if (highlights.length > 0) {
+    const last = highlights.pop();
+    const joined = highlights.length > 0 ? `${highlights.join(", ")} and ${last}` : last;
+    parts.push(`Along the way you'll experience ${joined}${regionSequence.length > 1 ? ` across ${regionSequence.length} regions` : ""}.`);
+  }
+  return parts.join(" ");
+}
+
+function TripOverviewSection({ trip, detailCatalog }) {
+  const stops = (trip.days || []).flatMap(day =>
+    (day.items || []).map(item => ({
+      ...item,
+      kind: classifyItem(item),
+      dayNumber: day.dayNumber,
+      date: day.date,
+      region: day.region,
+      match: resolveItemMatch(item, detailCatalog),
+    }))
+  );
+
+  if (stops.length === 0) return null;
+
+  const summary = buildTripSummary(trip, stops);
+  const destCount = stops.filter(s => s.kind === "DESTINATION").length;
+  const gemCount = stops.filter(s => s.kind === "GEM").length;
+  const eventCount = stops.filter(s => s.kind === "EVENT").length;
+
+  // Group the already date-ordered stops by day for the timeline.
+  const byDay = [];
+  stops.forEach(s => {
+    let bucket = byDay.find(b => b.dayNumber === s.dayNumber);
+    if (!bucket) {
+      bucket = { dayNumber: s.dayNumber, date: s.date, region: s.region, stops: [] };
+      byDay.push(bucket);
+    }
+    bucket.stops.push(s);
+  });
+  byDay.sort((a, b) => a.dayNumber - b.dayNumber);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Route size={17} className="text-green-700" />
+        <h2 className="text-base font-bold text-gray-900">Trip Overview</h2>
+      </div>
+
+      <p className="text-sm text-gray-600 leading-relaxed mb-4">{summary}</p>
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {[
+          { count: destCount,  label: "Destinations", meta: OVERVIEW_KIND_META.DESTINATION },
+          { count: gemCount,   label: "Hidden Gems",   meta: OVERVIEW_KIND_META.GEM },
+          { count: eventCount, label: "Events",        meta: OVERVIEW_KIND_META.EVENT },
+        ].filter(c => c.count > 0).map(c => (
+          <span key={c.label}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                       bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700">
+            <c.meta.Icon size={13} className="text-gray-500" />
+            {c.count} {c.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Chronological timeline of every stop, grouped by day/date */}
+      <div className="space-y-4">
+        {byDay.map(bucket => (
+          <div key={bucket.dayNumber} className="flex gap-3">
+            <div className="flex flex-col items-center flex-shrink-0 w-16 pt-0.5">
+              <span className="text-2xs font-bold text-gray-400 uppercase tracking-wide">
+                Day {bucket.dayNumber}
+              </span>
+              <span className="text-2xs text-gray-400 text-center">
+                {formatDateShort(bucket.date)}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0 pb-1 border-l border-gray-100 pl-4">
+              {bucket.region && (
+                <p className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
+                  <MapPin size={11} className="text-gray-400" /> {bucket.region}
+                </p>
+              )}
+              <ul className="space-y-1.5">
+                {bucket.stops.map(s => {
+                  const meta = OVERVIEW_KIND_META[s.kind];
+                  const title = cleanItemTitle(s.title);
+                  const content = (
+                    <span className="flex items-center gap-2 text-sm text-gray-700" title={meta.label}>
+                      <meta.Icon size={13} className={`flex-shrink-0 ${meta.dot.replace("bg-", "text-")}`} />
+                      <span className="truncate font-medium">{title}</span>
+                    </span>
+                  );
+                  return (
+                    <li key={s.id}>
+                      {s.match?.link ? (
+                        <Link to={s.match.link} className="hover:text-green-800 transition-colors">
+                          {content}
+                        </Link>
+                      ) : content}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 //  Main Page
 export default function TripDetailPage() {
   const { id }        = useParams();
@@ -781,6 +966,19 @@ export default function TripDetailPage() {
   const [detailCatalog, setDetailCatalog] = useState({
     destinations: [], gems: [], events: [], guides: [], vehicles: []
   });
+  // Mobile-only Itinerary/Map tab (§1). Desktop shows both panels.
+  const [mobileView, setMobileView] = useState("itinerary");
+  // Refs to each day card so a map-marker click can scroll to it (§3).
+  const dayRefs = useRef({});
+  // Inline title edit (§4)
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft]     = useState("");
+  const [savingTitle, setSavingTitle]   = useState(false);
+  // Regenerate-with-feedback (§4 / §15)
+  const [regenOpen,     setRegenOpen]     = useState(false);
+  const [regenFeedback, setRegenFeedback] = useState("");
+  const [regenerating,  setRegenerating]  = useState(false);
+  const [regenError,    setRegenError]    = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) { navigate("/login"); return; }
@@ -848,6 +1046,92 @@ export default function TripDetailPage() {
     }));
   }
 
+  // The currently-expanded day drives the map focus (§3). Clicking a marker
+  // selects that day, switches the mobile view to the itinerary, and scrolls
+  // the matching day card into view.
+  const activeDayNumber =
+    (trip?.days || []).find(d => d.id === activeDay)?.dayNumber ?? null;
+
+  function handleMarkerDayClick(dayNum) {
+    const day = (trip?.days || []).find(d => d.dayNumber === dayNum);
+    if (!day) return;
+    setActiveDay(day.id);
+    setMobileView("itinerary");
+    requestAnimationFrame(() => {
+      dayRefs.current[day.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  // ── Inline title (§4) ──────────────────────────────────
+  function beginEditTitle() {
+    setTitleDraft(trip.title || "");
+    setEditingTitle(true);
+  }
+  async function saveTitle() {
+    const next = titleDraft.trim();
+    if (!next || next === trip.title) { setEditingTitle(false); return; }
+    setSavingTitle(true);
+    try {
+      await updateTripTitle(trip.id, next);
+      setTrip(prev => ({ ...prev, title: next }));
+      setEditingTitle(false);
+    } catch {
+      alert("Couldn't update the title. Please try again.");
+    } finally {
+      setSavingTitle(false);
+    }
+  }
+
+  // ── Regenerate with feedback (§4 / §15) ────────────────
+  // Refetch the itinerary in place without flipping the whole page back to
+  // its loading state (which would unmount the generation overlay).
+  async function refreshTrip() {
+    const res = await fetch(`${API_BASE}/api/v1/trips/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    setTrip(data);
+    if (data.days?.length) setActiveDay(data.days[0].id);
+    loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
+    budgetService.getBudgetByTrip(data.id)
+      .then(b => setBudgetTotal(b.totalBudget))
+      .catch(() => {});
+  }
+
+  async function doRegenerate() {
+    setRegenError(null);
+    setRegenerating(true);
+    try {
+      const feedback = regenFeedback.trim();
+      await generateAiItinerary(trip.id, {
+        startDate:     trip.startDate,
+        endDate:       trip.endDate,
+        travelStyle:   trip.travelStyle,
+        travelStyles:  trip.travelStyle ? [trip.travelStyle] : [],
+        budgetRange:   trip.budgetRange,
+        groupSize:     trip.groupSize,
+        regions:       trip.toLocation ? [trip.toLocation] : [],
+        interests:     trip.interests
+          ? trip.interests.split(",").map(s => s.trim()).filter(Boolean)
+          : [],
+        startingPoint: trip.startingPoint || trip.fromLocation,
+        fromLocation:  trip.fromLocation,
+        toLocation:    trip.toLocation,
+        specialNotes:  feedback
+          ? `Traveler feedback for regeneration: ${feedback}`
+          : null,
+      });
+      await refreshTrip();
+      setRegenerating(false);
+    } catch (e) {
+      // Keep the overlay up and show the real reason with a retry. The
+      // backend validates before touching trip state, so the existing
+      // itinerary is preserved on failure.
+      setRegenError(e.message || "Regeneration failed. Please try again.");
+    }
+  }
+
   if (loading) return (
     <>
       <Navbar />
@@ -891,6 +1175,64 @@ export default function TripDetailPage() {
   return (
     <>
       <Navbar />
+
+      {/* §4/§15 — regeneration overlay (reuses the generation loader) */}
+      {regenerating && (
+        <TripGenerationLoader
+          destination={trip.toLocation}
+          travelStyleLabel={trip.travelStyle}
+          error={regenError}
+          onRetry={doRegenerate}
+          onDismiss={() => { setRegenerating(false); setRegenError(null); }}
+        />
+      )}
+
+      {/* §15 — "what would you like to change?" before regenerating */}
+      {regenOpen && (
+        <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50"
+               onClick={() => setRegenOpen(false)} />
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-1.5">
+              <RefreshCw size={17} className="text-green-700" />
+              <h2 className="text-lg font-bold text-gray-900">Regenerate itinerary</h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Tell the AI what to change and it'll re-plan with your feedback.
+              Leave blank for a fresh take.
+            </p>
+            <textarea
+              autoFocus
+              value={regenFeedback}
+              onChange={e => setRegenFeedback(e.target.value)}
+              rows={3}
+              maxLength={300}
+              placeholder="e.g. more hidden gems, fewer temples, slower pace, add a beach day…"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm
+                         outline-none focus:border-green-600 focus:ring-2
+                         focus:ring-green-100 resize-none"
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setRegenOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500
+                           hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setRegenOpen(false); doRegenerate(); }}
+                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-green-800
+                           hover:bg-green-900 text-white text-sm font-semibold
+                           transition-colors"
+              >
+                <Sparkles size={15} /> Regenerate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-screen bg-gray-50 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
@@ -899,9 +1241,56 @@ export default function TripDetailPage() {
                           flex-wrap">
             <div>
               <div className="flex items-center gap-3 mb-1 flex-wrap">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {trip.title}
-                </h1>
+                {editingTitle ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      autoFocus
+                      value={titleDraft}
+                      onChange={e => setTitleDraft(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") saveTitle();
+                        if (e.key === "Escape") setEditingTitle(false);
+                      }}
+                      maxLength={120}
+                      className="text-2xl font-bold text-gray-900 border-b-2
+                                 border-green-700 outline-none bg-transparent
+                                 min-w-[220px]"
+                    />
+                    <button
+                      onClick={saveTitle}
+                      disabled={savingTitle}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg
+                                 bg-green-700 text-white hover:bg-green-800
+                                 disabled:opacity-50"
+                      title="Save title"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      onClick={() => setEditingTitle(false)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg
+                                 text-gray-400 hover:bg-gray-100"
+                      title="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 group">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {trip.title}
+                    </h1>
+                    <button
+                      onClick={beginEditTitle}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg
+                                 text-gray-300 hover:text-green-700 hover:bg-green-50
+                                 transition-colors"
+                      title="Rename trip"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  </div>
+                )}
                 <span className={`text-xs font-semibold px-2.5 py-1
                                   rounded-full ${statusMeta.color}`}>
                   {statusMeta.label}
@@ -927,6 +1316,26 @@ export default function TripDetailPage() {
               >
                 <Share2 size={15} /> Share
               </button>
+
+              <button
+                onClick={() => downloadTripPdf(trip)}
+                className="flex items-center gap-1.5 px-4 py-2.5 border
+                           border-gray-200 rounded-xl text-sm font-medium
+                           text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Download size={15} /> Download PDF
+              </button>
+
+              {trip.aiGenerated && (
+                <button
+                  onClick={() => { setRegenFeedback(""); setRegenOpen(true); }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 border
+                             border-gray-200 rounded-xl text-sm font-medium
+                             text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <RefreshCw size={15} /> Regenerate
+                </button>
+              )}
 
               {trip.status === "DRAFT" && (
                 <button
@@ -1002,36 +1411,74 @@ export default function TripDetailPage() {
           )}
 
           {activeTab === "itinerary" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <>
+              <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
 
-              {/*  Left: Day cards  */}
-              <div className="space-y-3">
-                {(trip.days || []).map((day, dayIndex) => (
-                  <DayCard
-                    key={day.id}
-                    day={day}
-                    dayIndex={dayIndex}
+              {/*  Mobile Itinerary/Map switch (§1) — hidden on desktop  */}
+              <div className="lg:hidden sticky top-[60px] z-30 -mx-4 sm:-mx-6
+                              mb-4 bg-gray-50/95 backdrop-blur px-4 sm:px-6 py-2">
+                <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl">
+                  {[
+                    { key: "itinerary", label: "Itinerary", Icon: FileText },
+                    { key: "map",       label: "Map",       Icon: MapPin },
+                  ].map(v => (
+                    <button
+                      key={v.key}
+                      onClick={() => setMobileView(v.key)}
+                      className={`flex items-center justify-center gap-1.5 py-2
+                                  rounded-lg text-sm font-medium transition-colors
+                                  ${mobileView === v.key
+                                    ? "bg-white text-green-800 shadow-sm"
+                                    : "text-gray-500"}`}
+                    >
+                      <v.Icon size={15} /> {v.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+                {/*  Left: Day cards  */}
+                <div className={`space-y-3 ${mobileView === "itinerary" ? "" : "hidden"} lg:block`}>
+                  {(trip.days || []).map((day, dayIndex) => (
+                    <div
+                      key={day.id}
+                      ref={el => { dayRefs.current[day.id] = el; }}
+                      className="scroll-mt-[120px]"
+                    >
+                      <DayCard
+                        day={day}
+                        dayIndex={dayIndex}
+                        trip={trip}
+                        tripId={trip.id}
+                        token={token}
+                        isActive={activeDay === day.id}
+                        onClick={() =>
+                          setActiveDay(activeDay === day.id ? null : day.id)
+                        }
+                        onItemAdded={handleItemAdded}
+                        onItemDeleted={handleItemDeleted}
+                        detailCatalog={detailCatalog}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/*  Right: Map (sticky on desktop) + AI Tips + Share  */}
+                <div className={`space-y-4 ${mobileView === "map" ? "" : "hidden"}
+                                lg:block lg:sticky lg:top-20 lg:self-start`}>
+                  <TripMapPanel
                     trip={trip}
-                    tripId={trip.id}
-                    token={token}
-                    isActive={activeDay === day.id}
-                    onClick={() =>
-                      setActiveDay(activeDay === day.id ? null : day.id)
-                    }
-                    onItemAdded={handleItemAdded}
-                    onItemDeleted={handleItemDeleted}
-                    detailCatalog={detailCatalog}
+                    activeDayNumber={activeDayNumber}
+                    onMarkerDayClick={handleMarkerDayClick}
+                    mapHeightClass="h-[60vh] lg:h-[560px]"
                   />
-                ))}
+                  <AiTipsPanel trip={trip} />
+                  <SharePanel trip={trip} />
+                </div>
               </div>
-
-              {/*  Right: Map + AI Tips + Share  */}
-              <div className="space-y-4">
-                <TripMapPanel trip={trip} />
-                <AiTipsPanel trip={trip} />
-                <SharePanel trip={trip} />
-              </div>
-            </div>
+            </>
           )}
 
           {activeTab === "budget" && (
