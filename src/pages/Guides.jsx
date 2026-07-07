@@ -34,16 +34,18 @@ const Guides = () => {
   const [minRating, setMinRating] = useState(null);
   const [sortBy, setSortBy] = useState('rating_desc');
   const [viewMode, setViewMode] = useState('grid');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const dateRangeInvalid = Boolean(startDate && endDate && endDate < startDate);
 
-  useEffect(() => {
-    fetchGuides();
-  }, []);
-
-  const fetchGuides = async () => {
+  async function fetchGuides() {
     try {
       setLoading(true);
       setError(null);
-      const data = await guidesService.getAllGuides();
+      const hasRange = startDate && endDate && !dateRangeInvalid;
+      const data = await guidesService.getAllGuides(
+        hasRange ? { startDate, endDate } : {}
+      );
       setGuides(data || []);
     } catch (err) {
       console.error('Failed to load guides:', err);
@@ -51,7 +53,13 @@ const Guides = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount/filter change
+    fetchGuides();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, endDate]);
 
   const languages = useMemo(() => {
     const all = guides.flatMap((g) =>
@@ -129,6 +137,8 @@ const Guides = () => {
     setMaxPrice(100);
     setMinRating(null);
     setSortBy('rating_desc');
+    setStartDate('');
+    setEndDate('');
   };
 
   return (
@@ -144,6 +154,14 @@ const Guides = () => {
           </p>
         </header>
 
+        {/* Chat-before-payment notice */}
+        <div className="bg-amber-50 border-y border-amber-200 px-6 sm:px-10 py-3">
+          <p className="max-w-7xl mx-auto text-sm text-amber-800 flex items-center gap-2">
+            <span className="text-base">💬</span>
+            Chat with your guide on WhatsApp and confirm availability before you pay.
+          </p>
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-10 py-6 pb-14">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Filter sidebar */}
@@ -152,6 +170,42 @@ const Guides = () => {
                 <h2 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
                   🔍 Filter Guides
                 </h2>
+
+                <p className="font-semibold text-gray-700 text-sm mb-2">📅 Trip Dates</p>
+                <div className="grid grid-cols-2 gap-2 mb-1">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">From</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">To</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={startDate || undefined}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    />
+                  </div>
+                </div>
+                {dateRangeInvalid ? (
+                  <p className="text-xs text-red-600 mb-4">End date must be after start date.</p>
+                ) : startDate && endDate ? (
+                  <p className="text-xs text-gray-500 mb-4">
+                    Showing guides free for these dates.{' '}
+                    <button type="button" onClick={() => { setStartDate(''); setEndDate(''); }}
+                      className="text-[#2D6A4F] font-semibold underline">
+                      Clear
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400 mb-4">Set dates to only show available guides.</p>
+                )}
 
                 <div className="relative mb-5">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">

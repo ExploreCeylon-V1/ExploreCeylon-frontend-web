@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import VehicleCard from "../../components/vehicles/VehicleCard";
 import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
-import VehicleBookingDrawer from "../../components/vehicles/VehicleBookingDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -9,7 +8,7 @@ import Footer from "../../components/Footer";
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
   { key: "TUKTUK", label: "🛺 Tuk-Tuks" },
-  { key: "AIRPORT", label: "✈ Airport Transfers" },
+  //{ key: "AIRPORT", label: "✈ Airport Transfers" },
   { key: "CAR", label: "🚗 Cars" },
   { key: "VAN", label: "🚐 Vans" },
 ];
@@ -62,6 +61,9 @@ export default function VehicleListing() {
   const [sortBy, setSortBy] = useState("default");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const dateRangeInvalid = Boolean(startDate && endDate && endDate < startDate);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -70,17 +72,17 @@ export default function VehicleListing() {
     airportTransfers: 0,
   });
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
-  const [bookingVehicle, setBookingVehicle] = useState(null);
 
   const fetchVehicles = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const range = startDate && endDate && !dateRangeInvalid ? { startDate, endDate } : undefined;
       let data;
-      if (activeTab === "TUKTUK") data = await vehicleService.getTukTuks();
+      if (activeTab === "TUKTUK") data = await vehicleService.getTukTuks(range);
       else if (activeTab === "AIRPORT")
-        data = await vehicleService.getAirportTransfers();
-      else data = await vehicleService.getAllVehicles();
+        data = await vehicleService.getAirportTransfers(range);
+      else data = await vehicleService.getAllVehicles(range);
       setVehicles(data);
       if (activeTab === "ALL") {
         setStats({
@@ -95,7 +97,7 @@ export default function VehicleListing() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, startDate, endDate, dateRangeInvalid]);
 
   useEffect(() => {
     fetchVehicles();
@@ -138,11 +140,10 @@ export default function VehicleListing() {
     setDriverOnly(false);
     setSearchQuery("");
     setSortBy("default");
+    setStartDate("");
+    setEndDate("");
   };
 
-  const handleBook = (vehicle) => {
-    setBookingVehicle(vehicle);
-  };
   const handleViewDetails = (id) => {
     setSelectedVehicleId(id);
   };
@@ -154,7 +155,7 @@ export default function VehicleListing() {
         {/* Hero */}
         <div className="py-10 bg-green-800">
           <div className="px-6 mx-auto max-w-7xl">
-            <h1 className="mb-2 text-3xl font-bold text-white">
+            <h1 className="mb-2 text-2xl sm:text-3xl font-bold text-white">
               Find Your Perfect Ride in Sri Lanka
             </h1>
             <p className="mb-5 text-sm text-green-200">
@@ -163,9 +164,16 @@ export default function VehicleListing() {
             <div className="flex flex-wrap gap-5 text-sm font-medium text-green-100">
               <span>🚗 {stats.total} Vehicles Available</span>
               <span>📍 All Districts Covered</span>
-              <span>🛡 15% Commission Protected</span>
             </div>
           </div>
+        </div>
+
+        {/* Chat-before-payment notice */}
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
+          <p className="max-w-7xl mx-auto text-sm text-amber-800 flex items-center gap-2">
+            <span className="text-base">💬</span>
+            Chat with the vehicle owner on WhatsApp and confirm availability before you pay.
+          </p>
         </div>
 
         {/* Content */}
@@ -185,6 +193,42 @@ export default function VehicleListing() {
                 {tab.label}
               </button>
             ))}
+          </div>
+
+          {/* Date range — only show vehicles free for these dates */}
+          <div className="flex flex-wrap items-end gap-3 px-4 py-3 mb-4 bg-white border border-gray-200 rounded-xl">
+            <div>
+              <label className="block mb-1 text-xs text-gray-500">📅 From</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-xs text-gray-500">To</label>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+              />
+            </div>
+            {dateRangeInvalid ? (
+              <p className="text-xs text-red-600 pb-2">End date must be after start date.</p>
+            ) : startDate && endDate ? (
+              <p className="text-xs text-gray-500 pb-2">
+                Showing vehicles free for these dates.{" "}
+                <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }}
+                  className="text-green-700 font-semibold underline">
+                  Clear
+                </button>
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 pb-2">Set dates to only show available vehicles.</p>
+            )}
           </div>
 
           {/* Filter bar */}
@@ -278,7 +322,7 @@ export default function VehicleListing() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-7">
             {[
               { icon: "🚗", num: stats.total, label: "Total Vehicles" },
@@ -300,6 +344,7 @@ export default function VehicleListing() {
               </div>
             ))}
           </div>
+          */}
 
           {/* Loading */}
           {loading && (
@@ -348,7 +393,6 @@ export default function VehicleListing() {
                 <VehicleCard
                   key={vehicle.id}
                   vehicle={vehicle}
-                  onBook={handleBook}
                   onViewDetails={handleViewDetails}
                 />
               ))}
@@ -360,18 +404,6 @@ export default function VehicleListing() {
       <VehicleDetailDrawer
         vehicleId={selectedVehicleId}
         onClose={() => setSelectedVehicleId(null)}
-        onBook={(vehicle) => {
-          setSelectedVehicleId(null);
-          handleBook(vehicle);
-        }}
-      />
-
-      <VehicleBookingDrawer
-        vehicle={bookingVehicle}
-        onClose={() => setBookingVehicle(null)}
-        onSuccess={(booking) => {
-          alert(`Booking confirmed! Booking ID: ${booking.id}`);
-        }}
       />
 
       <Footer />

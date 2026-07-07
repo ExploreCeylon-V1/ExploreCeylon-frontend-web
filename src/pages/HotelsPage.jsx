@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { searchHotels } from '../services/Hotelservice';
 import HotelDetailsPanel from '../components/HotelDetailsPanel';
 import { buildBookingComUrl } from '../utils/hotelLinks';
+import { useRequireAuth } from '../context/AuthPromptContext';
 
 // ============================================================================
 // 1. REUSABLE HOTEL CARD COMPONENT
@@ -9,6 +10,23 @@ import { buildBookingComUrl } from '../utils/hotelLinks';
 function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
   // එක් රාත්‍රියක මිල සහ මුළු රැයවල් ගණන අනුව මුළු මුදල ගණනය කිරීම
   const calculatedTotalPrice = (hotel.pricePerNight * nightsCount).toFixed(2);
+  const requireAuth = useRequireAuth();
+
+  const handleBookNow = () => {
+    requireAuth(
+      () =>
+        window.open(
+          buildBookingComUrl(hotel, searchParams),
+          '_blank',
+          'noopener,noreferrer'
+        ),
+      {
+        title: 'Sign in to book',
+        message:
+          'Please sign in or create a free account to book this hotel.',
+      }
+    );
+  };
 
   return (
     <div className="flex flex-col w-full mb-4 overflow-hidden transition-shadow bg-white border border-gray-100 shadow-sm md:flex-row rounded-2xl hover:shadow-md">
@@ -26,12 +44,12 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
         {/* Badges Container */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[90%]">
           {hotel.isLocalPick && (
-            <span className="bg-[#115e3b] text-white text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
+            <span className="bg-[#115e3b] text-white text-2xs font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
               ★ LOCAL PICK
             </span>
           )}
           {hotel.propertyType && (
-            <span className="bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+            <span className="bg-amber-500 text-white text-2xs font-bold px-2.5 py-1 rounded-md shadow-sm">
               {hotel.propertyType}
             </span>
           )}
@@ -127,7 +145,7 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
           <div className="text-xs font-bold text-gray-700 mt-0.5">
             {hotel.currency} {calculatedTotalPrice} total
           </div>
-          <div className="text-[10px] text-gray-400 font-medium">({nightsCount} {nightsCount === 1 ? 'night' : 'nights'})</div>
+          <div className="text-3xs text-gray-400 font-medium">({nightsCount} {nightsCount === 1 ? 'night' : 'nights'})</div>
         </div>
 
         <div className="flex w-auto gap-2 md:flex-col md:w-full shrink-0">
@@ -138,7 +156,7 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
             View Details →
           </button>
           <button
-            onClick={() => window.open(buildBookingComUrl(hotel, searchParams), '_blank', 'noopener,noreferrer')}
+            onClick={handleBookNow}
             className="bg-[#115e3b] hover:bg-[#0c4a2e] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap shadow-sm"
           >
             Book Now ↗
@@ -295,7 +313,7 @@ export default function HotelsPage() {
 
       {/* Hero Section */}
       <div className="bg-[#1a2b49] pt-16 pb-28 px-4 text-center">
-        <h1 className="mb-3 text-4xl font-bold text-white">
+        <h1 className="mb-3 text-3xl sm:text-4xl font-bold text-white">
           Find Your Perfect Stay in Sri Lanka
         </h1>
         <h2 className="text-xl text-blue-300">
@@ -359,7 +377,7 @@ export default function HotelsPage() {
                 <option value="2 Rooms">2 R</option>
                 <option value="3 Rooms">3 R</option>
               </select>
-              <span className="absolute text-[10px] text-gray-400 pointer-events-none right-2">▼</span>
+              <span className="absolute text-3xs text-gray-400 pointer-events-none right-2">▼</span>
             </div>
 
             {/* Guests Dropdown */}
@@ -417,7 +435,7 @@ export default function HotelsPage() {
                 </button>
               ))}
             </div>
-            <span className="text-[11px] text-gray-400">(currency wenas kalama "Search" click karanna)</span>
+            <span className="text-2xs text-gray-400">(currency wenas kalama "Search" click karanna)</span>
           </div>
 
         </div>
@@ -521,7 +539,7 @@ export default function HotelsPage() {
                   <span className="text-sm text-amber-500">☆</span>
                   <span>Show Local Picks Only</span>
                 </div>
-                <p className="text-[11px] text-gray-400 font-medium">Recommended by ExploreCeylon</p>
+                <p className="text-2xs text-gray-400 font-medium">Recommended by ExploreCeylon</p>
               </div>
               <button
                 type="button"
@@ -633,7 +651,7 @@ export default function HotelsPage() {
                       <option value="Price: High to Low">Price: High to Low</option>
                       <option value="Top Rated">Top Rated</option>
                     </select>
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-gray-400 pointer-events-none">▼</span>
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-3xs text-gray-400 pointer-events-none">▼</span>
                   </div>
                 </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import tripsService from '../services/Tripsservice';
+import { getToken } from '../utils/authStorage';
 
 /**
  * AddToTripCard
@@ -23,7 +24,7 @@ const AddToTripCard = ({ item, itemType = 'GEM', title, heading = 'Add to Your T
   const [adding, setAdding] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message }
 
-  const isLoggedIn = Boolean(localStorage.getItem('ec_traveler_token'));
+  const isLoggedIn = Boolean(getToken());
 
   useEffect(() => {
     if (isLoggedIn) fetchTrips();
