@@ -6,6 +6,7 @@ import {
   getMyNotifications, getUnreadCount,
   markNotificationRead, markAllNotificationsRead,
 } from "../services/notificationService";
+import navLogo from "../assets/nav_logo1.png";
 
 // How often to poll for new notifications while the tab is open.
 const NOTIFICATION_POLL_MS = 30000;
@@ -123,14 +124,14 @@ export default function Navbar() {
     <nav className="sticky top-0 z-[1000] border-b border-gray-200 bg-white font-sans">
       <div className="flex h-[60px] items-center justify-between px-4 sm:px-6">
       {/* Logo */}
-      <div className="flex shrink-0 cursor-pointer items-center gap-2" onClick={() => navigate("/")}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#2D6A4F]">
-          <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-          </svg>
-        </div>
-        <span className="text-base font-bold tracking-tight text-gray-900">ExploreCeylon</span>
-      </div>
+      <button
+        type="button"
+        className="flex shrink-0 items-center gap-2"
+        onClick={() => navigate("/")}
+        aria-label="Go to home page"
+      >
+        <img src={navLogo} alt="ExploreCeylon Logo" className="h-14 w-auto object-contain"/>
+      </button>
 
       {/* Nav Links */}
       <ul className="hidden items-center gap-1 md:flex">
