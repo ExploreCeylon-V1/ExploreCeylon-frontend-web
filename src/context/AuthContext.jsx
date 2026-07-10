@@ -1,10 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { saveAuth, getToken, getStoredUser, clearAuth, updateStoredUser } from "../utils/authStorage";
 
 const AuthContext = createContext(null);
-
-const TRAVELER_TOKEN_KEY = "ec_traveler_token";
-const TRAVELER_USER_KEY  = "ec_traveler_user";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -13,43 +11,42 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const t = localStorage.getItem(TRAVELER_TOKEN_KEY);
-    const u = localStorage.getItem(TRAVELER_USER_KEY);
-    
+    const t = getToken();
+    const u = getStoredUser();
+
     if (t && u) {
-      try {
-        setToken(t);
-        setUser(JSON.parse(u));
-      } catch { 
-        // JSON error aawoth corrupted data auto clean kireema
-        localStorage.removeItem(TRAVELER_TOKEN_KEY);
-        localStorage.removeItem(TRAVELER_USER_KEY);
-      }
+      setToken(t);
+      setUser(u);
+    } else if (t || u) {
+      // Only one half survived (corrupted/partial) — clear both.
+      clearAuth();
     }
     setLoading(false);
   }, []);
 
-  const login = (newToken, newUser) => {
+  // remember === true  → persist across browser restarts (localStorage)
+  // remember === false → session-only (cleared when the tab closes)
+  const login = (newToken, newUser, remember = true, refreshToken = null) => {
     setToken(newToken);
     setUser(newUser);
-
-    // Save only the essential traveler keys
-    localStorage.setItem(TRAVELER_TOKEN_KEY, newToken);
-    localStorage.setItem(TRAVELER_USER_KEY, JSON.stringify(newUser));
+    saveAuth(newToken, newUser, remember, refreshToken);
   };
 
   const logout = (redirectTo = "/login") => {
-    // Clean only the specific keys
-    localStorage.removeItem(TRAVELER_TOKEN_KEY);
-    localStorage.removeItem(TRAVELER_USER_KEY);
-
+    clearAuth();
     setToken(null);
     setUser(null);
     navigate(redirectTo);
   };
 
+  // Merge partial fields into the current user and persist to the active store.
+  const updateUser = (partial) => {
+    setUser((prev) => ({ ...(prev || {}), ...partial }));
+    updateStoredUser(partial);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAuthenticated: !!token, loading }}>
       {children}
     </AuthContext.Provider>
   );

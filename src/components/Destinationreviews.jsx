@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import destinationReviewsService from '../services/destinationReviewsService';
+import destinationReviewsService from '../services/Destinationreviewsservice';
+import { getToken } from '../utils/authStorage';
 
 const StarPicker = ({ value, onChange }) => (
   <div className="flex gap-1">
@@ -65,7 +66,7 @@ const DestinationReviews = ({ destinationId, onReviewAdded }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  const isLoggedIn = Boolean(localStorage.getItem('ec_traveler_token'));
+  const isLoggedIn = Boolean(getToken());
 
   useEffect(() => {
     fetchReviews();

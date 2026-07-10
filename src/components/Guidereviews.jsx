@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import guidesService from '../services/guidesService';
+import { getToken } from '../utils/authStorage';
 
 const StarPicker = ({ value, onChange }) => (
   <div className="flex gap-1">
@@ -67,13 +68,9 @@ const GuideReviews = ({ guideId, onReviewAdded }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  const isLoggedIn = Boolean(localStorage.getItem('ec_traveler_token'));
+  const isLoggedIn = Boolean(getToken());
 
-  useEffect(() => {
-    fetchReviews();
-  }, [guideId]);
-
-  const fetchReviews = async () => {
+  async function fetchReviews() {
     try {
       setLoading(true);
       setError(null);
@@ -85,7 +82,13 @@ const GuideReviews = ({ guideId, onReviewAdded }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount/id change
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guideId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

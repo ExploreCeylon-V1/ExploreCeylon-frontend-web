@@ -5,6 +5,7 @@ import heroImg from "../assets/srilanka-hero.png";
 import tipImg from "../assets/trip_img_2.png";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import TripGenerationLoader from '../components/TripGenerationLoader';
 
 // ── Constants ──────────────────────────────────────────────
 const TRAVEL_STYLES = [
@@ -163,12 +164,18 @@ export default function CreateTripPage() {
   const [startDate,    setStartDate]    = useState("");
   const [endDate,      setEndDate]      = useState("");
   const [groupSize,    setGroupSize]    = useState(2);
-  const [travelStyle,  setTravelStyle]  = useState([]); // Changed to Array
+  const [travelStyle,  setTravelStyle]  = useState([]);
   const [budgetRange,  setBudgetRange]  = useState("MID_RANGE");
   const [specialNotes, setSpecialNotes] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
+  // AI generation overlay (§5 loader / §6 failure state)
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [genError,     setGenError]     = useState(null);
+  // Trip is created once; a retry re-generates on this id instead of
+  // creating a duplicate draft.
+  const [pendingTripId, setPendingTripId] = useState(null);
 
   // ── Validation ─────────────────────────────────────────
   function isValid() {
@@ -177,59 +184,37 @@ export default function CreateTripPage() {
       toLocation.trim()   &&
       startDate           &&
       endDate             &&
-      travelStyle.length > 0 && // Validates that at least one style is selected
+      travelStyle.length > 0 &&
       budgetRange
     );
   }
 
-  // ── Submit ─────────────────────────────────────────────
-  async function handleSubmit(withAi) {
+  function buildPayload(withAi) {
+    return {
+      fromLocation:   fromLocation.trim(),
+      toLocation:     toLocation.trim(),
+      startDate,
+      endDate,
+      groupSize,
+      travelStyle:    travelStyle[0],
+      travelStyles:   travelStyle,
+      budgetRange,
+      specialNotes:   specialNotes.trim() || null,
+      generateWithAi: withAi,
+    };
+  }
+
+  // ── Manual create ──────────────────────────────────────
+  async function handleManualCreate() {
     if (!isValid()) {
       setError("Please fill in all required fields.");
       return;
     }
     setError(null);
     setLoading(true);
-
     try {
-      // Format array to comma-separated string for backend compatibility. 
-      // If your backend expects a list/array, you can pass 'travelStyle' directly.
-      const formattedTravelStyle = travelStyle.join(","); 
-
-      const payload = {
-        fromLocation:   fromLocation.trim(),
-        toLocation:     toLocation.trim(),
-        startDate,
-        endDate,
-        groupSize,
-        travelStyle:    formattedTravelStyle, 
-        budgetRange,
-        specialNotes:   specialNotes.trim() || null,
-        generateWithAi: withAi,
-      };
-
-      const trip = await createTrip(payload);
-
-      if (withAi) {
-        // Trigger AI generation then go to trip detail
-        const { generateAiItinerary } = await import("../services/tripService");
-        await generateAiItinerary(trip.id, {
-          startDate,
-          endDate,
-          travelStyle:   formattedTravelStyle,
-          budgetRange,
-          groupSize,
-          regions:       [toLocation.trim()],
-          interests:     [],
-          startingPoint: fromLocation.trim(),
-          fromLocation:  fromLocation.trim(),
-          toLocation:    toLocation.trim(),
-          specialNotes:  specialNotes.trim() || null,
-        });
-        navigate(`/trips/${trip.id}`);
-      } else {
-        navigate(`/trips`);
-      }
+      await createTrip(buildPayload(false));
+      navigate(`/trips`);
     } catch (e) {
       setError(e.message || "Something went wrong. Please try again.");
     } finally {
@@ -237,20 +222,85 @@ export default function CreateTripPage() {
     }
   }
 
+  // ── AI generate (with §5 loader / §6 retry) ────────────
+  // The trip is created once; on retry we reuse pendingTripId and only
+  // re-run generation, so a failed attempt never leaves duplicate drafts.
+  async function runAiGeneration() {
+    setGenError(null);
+    setAiGenerating(true);
+    try {
+      let tripId = pendingTripId;
+      if (!tripId) {
+        const trip = await createTrip(buildPayload(true));
+        tripId = trip.id;
+        setPendingTripId(tripId);
+      }
+
+      const { generateAiItinerary } = await import("../services/tripService");
+      await generateAiItinerary(tripId, {
+        startDate,
+        endDate,
+        travelStyle:   travelStyle[0],
+        travelStyles:  travelStyle,
+        budgetRange,
+        groupSize,
+        regions:       [toLocation.trim()],
+        interests:     [],
+        startingPoint: fromLocation.trim(),
+        fromLocation:  fromLocation.trim(),
+        toLocation:    toLocation.trim(),
+        specialNotes:  specialNotes.trim() || null,
+      });
+      navigate(`/trips/${tripId}`);
+    } catch (e) {
+      // Keep the overlay mounted and show the real reason with a retry.
+      setGenError(e.message || "AI generation failed. Please try again.");
+    }
+  }
+
+  function handleGenerateWithAi() {
+    if (!isValid()) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+    setError(null);
+    runAiGeneration();
+  }
+
+  function dismissGeneration() {
+    setAiGenerating(false);
+    setGenError(null);
+  }
+
+  // Back-compat shim: the two buttons call this with a boolean.
+  function handleSubmit(withAi) {
+    return withAi ? handleGenerateWithAi() : handleManualCreate();
+  }
+
   // ── Toggle Travel Style ────────────────────────────────
   function toggleTravelStyle(styleValue) {
     setTravelStyle(prev => {
       if (prev.includes(styleValue)) {
-        return prev.filter(item => item !== styleValue); // Remove if already selected
-      } else {
-        return [...prev, styleValue]; // Add if not selected
+        return prev.filter(item => item !== styleValue);
       }
+      return [...prev, styleValue];
     });
   }
 
   // ── Render ─────────────────────────────────────────────
   return (
     <>
+    {aiGenerating && (
+      <TripGenerationLoader
+        destination={toLocation.trim()}
+        travelStyleLabel={
+          TRAVEL_STYLES.find((s) => s.value === travelStyle[0])?.label
+        }
+        error={genError}
+        onRetry={runAiGeneration}
+        onDismiss={dismissGeneration}
+      />
+    )}
     <Navbar />
     <div
       className="min-h-screen relative bg-cover bg-center bg-fixed "
@@ -485,7 +535,7 @@ export default function CreateTripPage() {
                            focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100
                            transition-all resize-none"
               />
-              <p className="text-right text-[11px] text-gray-400 mt-1">
+              <p className="text-right text-2xs text-gray-400 mt-1">
                 {specialNotes.length}/300
               </p>
             </div>
@@ -493,7 +543,7 @@ export default function CreateTripPage() {
             {/* ── Generate with AI button ── */}
             <button
               onClick={() => handleSubmit(true)}
-              disabled={loading || !isValid()}
+              disabled={loading || aiGenerating || !isValid()}
               className="w-full py-4 bg-[#1a5c2a] hover:bg-[#14471f] text-white
                          rounded-2xl font-semibold text-sm transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed
@@ -520,7 +570,7 @@ export default function CreateTripPage() {
             {/* ── Manual create link ── */}
             <button
               onClick={() => handleSubmit(false)}
-              disabled={loading || !isValid()}
+              disabled={loading || aiGenerating || !isValid()}
               className="w-full py-3 border border-gray-200 text-gray-500
                          rounded-2xl text-sm font-medium hover:bg-gray-50
                          hover:border-gray-300 transition-colors

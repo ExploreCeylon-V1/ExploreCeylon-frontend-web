@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { buildBookingComUrl, buildGoogleMapsUrl } from '../utils/hotelLinks';
+import { useRequireAuth } from '../context/AuthPromptContext';
 
 // ============================================================================
 // HOTEL DETAILS PANEL — slides in from the right when "View Details" is clicked
@@ -8,6 +9,8 @@ import { buildBookingComUrl, buildGoogleMapsUrl } from '../utils/hotelLinks';
 // the RapidAPI search response doesn't reliably give us that data.
 // ============================================================================
 export default function HotelDetailsPanel({ hotel, nightsCount, searchParams, onClose }) {
+  const requireAuth = useRequireAuth();
+
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -24,7 +27,14 @@ export default function HotelDetailsPanel({ hotel, nightsCount, searchParams, on
   const mapsUrl = buildGoogleMapsUrl(hotel);
 
   const handleBookNow = () => {
-    window.open(bookingUrl, '_blank', 'noopener,noreferrer');
+    requireAuth(
+      () => window.open(bookingUrl, '_blank', 'noopener,noreferrer'),
+      {
+        title: 'Sign in to book',
+        message:
+          'Please sign in or create a free account to book this hotel.',
+      }
+    );
   };
 
   return (
@@ -61,7 +71,7 @@ export default function HotelDetailsPanel({ hotel, nightsCount, searchParams, on
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {hotel.isLocalPick && (
-              <span className="bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
+              <span className="bg-amber-500 text-white text-2xs font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
                 ★ LOCAL PICK
               </span>
             )}
@@ -138,7 +148,7 @@ export default function HotelDetailsPanel({ hotel, nightsCount, searchParams, on
                 Save to Trip
               </button>
             </div>
-            <p className="mt-2 text-[11px] text-gray-400 text-center sm:text-left">
+            <p className="mt-2 text-2xs text-gray-400 text-center sm:text-left">
               Opens Booking.com in a new tab
             </p>
           </div>

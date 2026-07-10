@@ -20,7 +20,7 @@ import {
   FILTER_LABEL,
   STYLE_EMOJI,
   BUDGET_EMOJI,
-} from "../services/MyTripsService";
+} from "../services/Mytripsservice";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 

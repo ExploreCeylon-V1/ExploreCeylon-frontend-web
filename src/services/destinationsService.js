@@ -50,6 +50,17 @@ const destinationsService = {
     const response = await apiClient.get(`/api/v1/destinations/${id}`);
     return response.data;
   },
+
+  /**
+   * GET /api/v1/destinations/nearby?lat=&lng=&limit=
+   * Distance-sorted destinations near a point (nearest first).
+   */
+  getNearby: async (lat, lng, limit = 6) => {
+    const response = await apiClient.get('/api/v1/destinations/nearby', {
+      params: { lat, lng, limit },
+    });
+    return response.data;
+  },
 };
 
 export default destinationsService;
