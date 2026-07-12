@@ -16,23 +16,25 @@ export default function EventCard({ event, onSave, saved, onViewDetails }) {
   const image = event.imageUrls?.[0];
 
   return (
-    <div className="flex gap-4 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
-      <div className="w-32 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
-        {image ? (
-          <img src={image} alt={event.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-            No image
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+      <div className="flex gap-3 sm:contents">
+        <div className="w-24 h-20 sm:w-32 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
+          {image ? (
+            <img src={image} alt={event.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+              No image
+            </div>
+          )}
+        </div>
 
-      <div className="flex flex-col items-center justify-center w-12 shrink-0 text-center">
-        <span className="text-xl font-bold text-gray-900 leading-none">{start.day}</span>
-        <span className="text-xs text-gray-500">{start.month}</span>
-        <span className="text-gray-300 my-0.5">-</span>
-        <span className="text-xl font-bold text-gray-900 leading-none">{end.day}</span>
-        <span className="text-xs text-gray-500">{end.month}</span>
+        <div className="flex flex-col items-center justify-center w-12 shrink-0 text-center">
+          <span className="text-xl font-bold text-gray-900 leading-none">{start.day}</span>
+          <span className="text-xs text-gray-500">{start.month}</span>
+          <span className="text-gray-300 my-0.5">-</span>
+          <span className="text-xl font-bold text-gray-900 leading-none">{end.day}</span>
+          <span className="text-xs text-gray-500">{end.month}</span>
+        </div>
       </div>
 
       <div className="flex-1 min-w-0">
@@ -54,7 +56,7 @@ export default function EventCard({ event, onSave, saved, onViewDetails }) {
       <div className="flex items-center">
         <button
           onClick={() => onViewDetails(event.id)}
-          className="border border-emerald-700 text-emerald-800 text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-emerald-50 whitespace-nowrap"
+          className="w-full sm:w-auto border border-emerald-700 text-emerald-800 text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-emerald-50 whitespace-nowrap"
         >
           View Details
         </button>

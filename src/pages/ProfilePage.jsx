@@ -12,6 +12,7 @@ import { payGuide, payVehicle } from "../services/paymentService";
 import { parseAuthError } from "../utils/authError";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SignOutModal from "../components/SignOutModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -127,6 +128,32 @@ function DeactivateModal({ onClose, onConfirm }) {
             Permanently Deactivate
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Notice Modal (centered error/info popup with a close button) ──
+function NoticeModal({ title = "⚠️ Notice", msg, onClose }) {
+  return (
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-900 text-base">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="text-sm text-gray-600 mb-6">{msg}</p>
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 bg-[#2D6A4F] hover:bg-[#235C42] text-white rounded-xl text-sm font-bold transition-colors"
+        >
+          OK
+        </button>
       </div>
     </div>
   );
@@ -1713,6 +1740,8 @@ export default function ProfilePage() {
   });
   const [toast, setToast] = useState(null);
   const [showDeact, setDeact] = useState(false);
+  const [showSignOut, setShowSignOut] = useState(false);
+  const [noticeMsg, setNoticeMsg] = useState(null);
   const [showPhoto, setPhoto] = useState(false);
   const [stats, setStats] = useState({ trips: null, bookings: null });
 
@@ -1918,7 +1947,7 @@ export default function ProfilePage() {
                 DANGER ZONE
               </p>
               <button
-                onClick={() => logout()}
+                onClick={() => setShowSignOut(true)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
                            text-red-600 hover:bg-red-50 transition-colors font-medium"
               >
@@ -1942,18 +1971,36 @@ export default function ProfilePage() {
       </div>
 
       {/* Modals */}
+      {showSignOut && (
+        <SignOutModal
+          onClose={() => setShowSignOut(false)}
+          onConfirm={() => {
+            setShowSignOut(false);
+            logout("/");
+          }}
+        />
+      )}
       {showDeact && (
         <DeactivateModal
           onClose={() => setDeact(false)}
           onConfirm={async () => {
             try {
               await userService.deactivate();
-            } catch {
-              /* log out regardless */
+            } catch (e) {
+              setDeact(false);
+              setNoticeMsg(parseAuthError(e, "Failed to deactivate account"));
+              return;
             }
             setDeact(false);
-            logout();
+            logout("/");
           }}
+        />
+      )}
+      {noticeMsg && (
+        <NoticeModal
+          title="⚠️ Can't Deactivate"
+          msg={noticeMsg}
+          onClose={() => setNoticeMsg(null)}
         />
       )}
       {showPhoto && (
