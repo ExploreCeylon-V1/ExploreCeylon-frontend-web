@@ -33,6 +33,7 @@ import NotFound from "./pages/NotFound";
 import BookingPage         from "./pages/BookingPage";
 import PaymentSuccessPage  from "./pages/PaymentSuccessPage";
 import PaymentCancelPage   from "./pages/PaymentCancelPage";
+import AboutPage from "./pages/AboutPage";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -78,6 +79,7 @@ function App() {
           <Route path="/guides/:id" element={<GuideDetail />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/about" element={<AboutPage />} />
 
           {/* 4. Traveler-only pages (require login) */}
           <Route path="/my-trips" element={<ProtectedRoute><MyTrips /></ProtectedRoute>} />

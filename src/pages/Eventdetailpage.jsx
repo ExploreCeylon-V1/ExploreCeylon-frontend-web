@@ -8,6 +8,9 @@ import {
 import eventService from "../services/eventService";
 import EventCard from "../components/EventCard";
 import { CATEGORY_META } from "../utils/eventCategoryMeta";
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+
 
 /* ── Helpers ─────────────────────────────────────────────── */
 const fmtDate = (str) =>
@@ -153,11 +156,13 @@ export default function EventDetailPage() {
   const Icon = meta.icon;
 
   return (
+    <>
+    <Navbar />
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* ── Hero Gallery ─────────────────────────────── */}
       <div className="relative bg-gray-900">
         {/* Main hero image */}
-        <div className="h-[440px] overflow-hidden relative">
+        <div className="h-[280px] sm:h-[360px] md:h-[440px] overflow-hidden relative">
           {images.length > 0 ? (
             <img
               src={images[activeImg]}
@@ -176,13 +181,13 @@ export default function EventDetailPage() {
           {/* Back button */}
           <button
             onClick={() => navigate("/events")}
-            className="absolute top-5 left-6 flex items-center gap-2 text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full text-sm transition-all"
+            className="absolute top-4 left-4 sm:top-5 sm:left-6 flex items-center gap-2 text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all"
           >
             <ArrowLeft size={16} /> Events
           </button>
 
           {/* Save + share */}
-          <div className="absolute top-5 right-6 flex gap-2">
+          <div className="absolute top-4 right-4 sm:top-5 sm:right-6 flex gap-2">
             <button
               onClick={() => navigator.share?.({ title: event.title, url: window.location.href })}
               className="bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white p-2 rounded-full transition-all"
@@ -198,26 +203,26 @@ export default function EventDetailPage() {
           </div>
 
           {/* Title overlay */}
-          <div className="absolute bottom-6 left-0 right-0 px-6 max-w-7xl mx-auto">
-            <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
+          <div className="absolute bottom-4 sm:bottom-6 left-0 right-0 px-4 sm:px-6 max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 text-white/60 text-xs sm:text-sm mb-2">
               <span className="cursor-pointer hover:text-white" onClick={() => navigate("/")}>Home</span>
               <ChevronRight size={14} />
               <span className="cursor-pointer hover:text-white" onClick={() => navigate("/events")}>Events</span>
               <ChevronRight size={14} />
-              <span className="text-white/90 truncate max-w-[200px]">{event.title}</span>
+              <span className="text-white/90 truncate max-w-[120px] sm:max-w-[200px]">{event.title}</span>
             </div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${meta.badge}`}>
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${meta.badge}`}>
                 <Icon size={14} /> {meta.label}
               </span>
               {event.isRecurring && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-white/10 text-white/80">
+                <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-white/10 text-white/80">
                   <RefreshCw size={13} /> Annual Event
                 </span>
               )}
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-md">{event.title}</h1>
-            <p className="text-white/70 mt-1 flex items-center gap-1.5">
+            <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md">{event.title}</h1>
+            <p className="text-white/70 mt-1 flex items-center gap-1.5 text-sm sm:text-base">
               <MapPin size={14} /> {event.location}, {event.region}
             </p>
           </div>
@@ -225,7 +230,7 @@ export default function EventDetailPage() {
 
         {/* Thumbnail strip */}
         {images.length > 1 && (
-          <div className="bg-gray-900 px-6 py-3 flex gap-2 overflow-x-auto max-w-7xl mx-auto">
+          <div className="bg-gray-900 px-4 sm:px-6 py-3 flex gap-2 overflow-x-auto max-w-7xl mx-auto">
             {images.map((img, i) => (
               <button
                 key={i}
@@ -248,11 +253,11 @@ export default function EventDetailPage() {
       </div>
 
       {/* ── Body ─────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 lg:gap-10">
         {/* Left: content */}
         <div>
           {/* About */}
-          <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+          <section className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">About this Event</h2>
             <p className="text-gray-600 leading-relaxed whitespace-pre-line">
               {event.description || "No description available for this event."}
@@ -261,7 +266,7 @@ export default function EventDetailPage() {
 
           {/* Photo gallery grid — shows max 6, last tile = "+X more" if there are extras */}
           {images.length > 1 && (
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+            <section className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Gallery
@@ -312,9 +317,9 @@ export default function EventDetailPage() {
           )}
 
           {/* Quick facts */}
-          <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <section className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Details</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { icon: Calendar, label: "Start Date", value: fmtDate(event.startDate) },
                 { icon: Calendar, label: "End Date", value: fmtDate(event.endDate) },
@@ -338,9 +343,9 @@ export default function EventDetailPage() {
         </div>
 
         {/* Right: sticky info card */}
-        <aside className="sticky top-4 self-start space-y-4">
+        <aside className="lg:sticky lg:top-4 lg:self-start space-y-4">
           {/* Date card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 mb-4">
               <Calendar size={18} className="text-emerald-700" />
               <h3 className="font-semibold text-gray-900">When</h3>
@@ -379,7 +384,7 @@ export default function EventDetailPage() {
           </div>
 
           {/* Location card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 mb-3">
               <MapPin size={18} className="text-emerald-700" />
               <h3 className="font-semibold text-gray-900">Where</h3>
@@ -406,7 +411,7 @@ export default function EventDetailPage() {
           </div>
 
           {/* Add to Trip CTA */}
-          <div className="bg-emerald-800 rounded-2xl p-6 text-white">
+          <div className="bg-emerald-800 rounded-2xl p-4 sm:p-6 text-white">
             <h3 className="font-semibold mb-1">Planning a trip?</h3>
             <p className="text-emerald-200 text-sm mb-4">
               Add this event to your Sri Lanka itinerary.
@@ -423,7 +428,7 @@ export default function EventDetailPage() {
 
       {/* ── Related Events ────────────────────────────── */}
       {related.length > 0 && (
-        <div className="max-w-7xl mx-auto px-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-gray-900">
               More {meta.label} Events
@@ -458,5 +463,7 @@ export default function EventDetailPage() {
         />
       )}
     </div>
+    <Footer />
+    </>
   );
 }

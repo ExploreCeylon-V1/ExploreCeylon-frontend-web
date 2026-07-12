@@ -109,14 +109,14 @@ export default function EventsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
       <div
-        className="relative h-64 bg-cover bg-center flex flex-col justify-end"
+        className="relative h-48 sm:h-64 bg-cover bg-center flex flex-col justify-end"
         style={{
           backgroundImage:
             "linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2)), url('/images/events-hero.jpg')",
         }}
       >
-        <div className="max-w-7xl mx-auto w-full px-6 pb-8 text-white">
-          <div className="flex items-center gap-1 text-sm text-gray-200 mb-3">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-8 text-white">
+          <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-200 mb-2 sm:mb-3">
             <span
               className="cursor-pointer hover:underline"
               onClick={() => navigate("/")}
@@ -126,18 +126,18 @@ export default function EventsPage() {
             <ChevronRight size={14} />
             <span>Events</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Events in Sri Lanka</h1>
-          <p className="text-gray-200 max-w-xl">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Events in Sri Lanka</h1>
+          <p className="text-sm sm:text-base text-gray-200 max-w-xl">
             Experience the vibrant culture, traditions and celebrations that make Sri Lanka truly unique.
           </p>
         </div>
       </div>
 
       {/* Main grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8 items-start">
-        {/* ── LEFT SIDEBAR (sticky) ── */}
-        <aside className="w-[340px] shrink-0 sticky top-4 self-start">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        {/* ── LEFT SIDEBAR (sticky on desktop only) ── */}
+        <aside className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-4 lg:self-start">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5">
             <h2 className="font-semibold text-gray-900 mb-4">Event Calendar</h2>
             <EventCalendar
               viewDate={viewDate}
@@ -170,7 +170,7 @@ export default function EventsPage() {
             <hr className="my-5" />
 
             <h3 className="font-semibold text-gray-900 mb-3">Filter by Category</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
               {["ALL", ...CATEGORY_LIST].map((key) => {
                 const meta = CATEGORY_META[key];
                 const Icon = meta.icon;
@@ -200,9 +200,9 @@ export default function EventsPage() {
         {/* ── RIGHT: Events list ── */}
         <div className="flex-1 min-w-0">
           {/* Header row */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
             <div>
-              <h2 className="font-semibold text-gray-900 text-lg">
+              <h2 className="font-semibold text-gray-900 text-base sm:text-lg">
                 {selectedDate
                   ? `Events on ${selectedDate.toLocaleDateString("default", {
                       day: "numeric",
@@ -270,7 +270,7 @@ export default function EventsPage() {
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
+            <div className="flex items-center justify-center flex-wrap gap-2 mt-8">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
