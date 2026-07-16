@@ -428,22 +428,22 @@ export default function Home() {
         {loadingGuides ? (
           <div className="py-12 text-center text-stone-400">Loading guides...</div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {guides.slice(0, 3).map((guide) => (
-              <div key={guide.id} className="flex items-center gap-4 p-5 bg-white border shadow-sm rounded-xl border-stone-100 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
+              <div key={guide.id} className="flex flex-col items-center gap-4 p-5 text-center bg-white border shadow-sm rounded-xl border-stone-100 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 sm:flex-row sm:text-left">
                 <img
                   src={guide.photoUrl}
                   alt={guide.fullName}
                   loading="lazy"
-                  className="object-cover w-16 h-16 rounded-full"
+                  className="object-cover rounded-full shrink-0 w-16 h-16"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "https://placehold.co/100x100?text=" + encodeURIComponent((guide.fullName || "G")[0]);
                   }}
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold truncate text-stone-900">{guide.fullName}</h3>
+                <div className="flex-1 w-full min-w-0">
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                    <h3 className="font-bold break-words text-stone-900">{guide.fullName}</h3>
                     {guide.verified !== false && (
                       <span className="px-2 py-0.5 text-3xs font-semibold text-emerald-700 bg-emerald-50 rounded-full whitespace-nowrap">
                         ✓ Verified
@@ -457,11 +457,11 @@ export default function Home() {
                   </p>
                   <p className="mt-1 text-xs text-stone-500">⭐ {guide.rating}</p>
                   <p className="text-xs text-stone-400">📍 {guide.district}</p>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-3 sm:justify-between">
                     <span className="text-sm font-bold text-stone-900">${guide.pricePerDay ?? guide.price}/day</span>
                     <button
                       onClick={() => navigate(`/guides/${guide.id}`)}
-                      className="px-3 py-1.5 text-xs font-semibold text-white rounded-lg bg-emerald-700 hover:bg-emerald-600"
+                      className="px-3 py-1.5 text-xs font-semibold text-white rounded-lg bg-emerald-700 hover:bg-emerald-600 whitespace-nowrap"
                     >
                       Book Guide →
                     </button>
