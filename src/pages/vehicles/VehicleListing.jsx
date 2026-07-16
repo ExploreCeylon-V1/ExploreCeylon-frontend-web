@@ -394,6 +394,7 @@ export default function VehicleListing() {
                   key={vehicle.id}
                   vehicle={vehicle}
                   onViewDetails={handleViewDetails}
+                  layout={viewMode}
                 />
               ))}
             </div>

@@ -2,6 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import dhaneshPhoto from "../assets/dhanesh2.jpeg";
+import punsisiPhoto from "../assets/punsisi.jpeg";
+import shehanPhoto from "../assets/shehan.jpeg";
+import kaveeshaPhoto from "../assets/kaveesha.jpeg";
+import nethmiPhoto from "../assets/nethmi.jpeg";
 
 // ── Team Members ───────────────────────────────────────────
 const TEAM = [
@@ -10,49 +15,49 @@ const TEAM = [
     role: "Founder & CEO",
     quote: '"Travel is the only thing you buy that makes you richer."',
     bio: "Visionary behind ExploreCeylon. Passionate about combining technology and travel to showcase the beauty of Sri Lanka to the world.",
-    photo: null, // replace with: "/images/team/dhanesh.jpg"
+    photo: dhaneshPhoto,
     initials: "DL",
     color: "from-[#1a5c2a] to-[#2d7a3a]",
     social: { linkedin: "#", github: "#" },
   },
   {
-    name: "Saman Perera",
+    name: "Kaveesha Gayanjana",
     role: "Co-Founder & CTO",
     quote: '"Code is poetry written for machines."',
     bio: "Leads the technical architecture of ExploreCeylon. Expert in building scalable backend systems and AI-powered travel solutions.",
-    photo: null,
-    initials: "SP",
+    photo: kaveeshaPhoto,
+    initials: "KG",
     color: "from-blue-600 to-blue-800",
     social: { linkedin: "#", github: "#" },
   },
   {
-    name: "Kavindi Jayasuriya",
+    name: "Shehan Balasooriya",
     role: "Head of Design & UX",
     quote: '"Great design is invisible — it just feels right."',
     bio: "Crafts every pixel of the ExploreCeylon experience. Believes that beautiful interfaces inspire people to explore more.",
-    photo: null,
-    initials: "KJ",
+    photo: shehanPhoto,
+    initials: "SB",
     color: "from-purple-600 to-purple-800",
     social: { linkedin: "#", github: "#" },
   },
   {
-    name: "Nuwan Fernando",
+    name: "Nethmi Rashipaba",
     role: "Head of Operations",
     quote:
       '"Efficiency is doing things right; effectiveness is doing the right things."',
     bio: "Manages guide partnerships, vehicle networks, and ensures every traveler gets the best Sri Lankan experience possible.",
-    photo: null,
-    initials: "NF",
+    photo: nethmiPhoto,
+    initials: "NR",
     color: "from-orange-500 to-orange-700",
     social: { linkedin: "#", github: "#" },
   },
   {
-    name: "Dilini Rathnayake",
+    name: "Punsisi Jayasinghe",
     role: "Head of Marketing",
     quote: '"Stories inspire people to see the world differently."',
     bio: "Shares the magic of Sri Lanka with travelers around the globe through compelling stories, campaigns, and community building.",
-    photo: null,
-    initials: "DR",
+    photo: punsisiPhoto,
+    initials: "PJ",
     color: "from-pink-500 to-pink-700",
     social: { linkedin: "#", github: "#" },
   },
@@ -383,9 +388,9 @@ export default function AboutPage() {
                 wasn't just another booking platform — it needed a
                 <strong className="text-gray-800">
                   {" "}
-                  smart travel companion
+                  smart travel companion 
                 </strong>
-                that could understand each traveler's unique preferences and
+                 that could understand each traveler's unique preferences and
                 match them with authentic local experiences.
               </p>
               <p>
@@ -495,7 +500,7 @@ export default function AboutPage() {
             {/* Photo */}
             <div
               className="bg-gradient-to-br from-[#1a5c2a] to-[#2d7a3a]
-                            min-h-64 flex items-center justify-center relative
+                            h-72 md:h-80 flex items-center justify-center relative
                             overflow-hidden"
             >
               <div className="absolute inset-0 opacity-10">
@@ -512,12 +517,12 @@ export default function AboutPage() {
                 <img
                   src={TEAM[0].photo}
                   alt={TEAM[0].name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover max-h-80"
                 />
               ) : (
                 <div className="text-center z-10">
                   <div
-                    className="w-28 h-28 rounded-full bg-white/20 border-4
+                    className="w-36 h-36 rounded-full bg-white/20 border-4
                                   border-white/30 flex items-center justify-center
                                   text-white text-4xl font-bold mx-auto mb-3"
                   >
@@ -578,7 +583,7 @@ export default function AboutPage() {
             >
               {/* Photo area */}
               <div
-                className={`h-48 bg-gradient-to-br ${member.color} relative
+                className={`h-64 bg-gradient-to-br ${member.color} relative
                               flex items-center justify-center overflow-hidden`}
               >
                 <div className="absolute inset-0 opacity-10">
