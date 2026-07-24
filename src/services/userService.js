@@ -53,8 +53,11 @@ const userService = {
   },
 
   // ── Account ──────────────────────────────────────────────
-  deactivate: async () => {
-    const response = await apiClient.post('/api/v1/users/me/deactivate');
+  // password is omitted for Google-only users who never set one (backend allows this).
+  deactivate: async (password) => {
+    const response = await apiClient.post('/api/v1/users/me/deactivate', {
+      password: password || undefined,
+    });
     return response.data;
   },
 

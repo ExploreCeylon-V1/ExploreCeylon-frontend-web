@@ -154,6 +154,7 @@ export default function Home() {
           backgroundImage: `linear-gradient(180deg, rgba(4,20,14,0.62) 0%, rgba(4,20,14,0.32) 45%, rgba(4,20,14,0.8) 100%), url(${heroImage})`,
         }}
       >
+        {/*
         <div className="absolute top-8 bg-black/40 border border-yellow-500/30 backdrop-blur-sm text-xs text-stone-300 px-4 py-1.5 rounded-full flex items-center gap-1.5 tracking-wide animate-fade-in-up">
           <span className="text-sm text-yellow-500">🤖</span>
           <span>
@@ -161,6 +162,7 @@ export default function Home() {
           </span>
           <span className="text-yellow-500">★</span>
         </div>
+        */}
 
         <div className="flex flex-col items-center max-w-4xl mx-auto mt-12 space-y-6">
           <h1

@@ -65,8 +65,11 @@ function Toast({ msg, type = "success", onClose }) {
 }
 
 // ── Deactivate Modal ───────────────────────────────────────
-function DeactivateModal({ onClose, onConfirm }) {
-  const [input, setInput] = useState("");
+function DeactivateModal({ onClose, onConfirm, hasPassword, passwordError }) {
+  const [password, setPassword] = useState("");
+
+  const canConfirm = !hasPassword || password.trim();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
@@ -102,17 +105,36 @@ function DeactivateModal({ onClose, onConfirm }) {
             </p>
           ))}
         </div>
-        <div className="mb-4">
-          <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-            Type "DEACTIVATE" to confirm
-          </label>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="DEACTIVATE"
-            className="w-full border border-red-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-red-400 placeholder-red-300"
-          />
-        </div>
+        {hasPassword && (
+          <div className="mb-4">
+            {/* Off-screen decoys absorb the browser's saved-credential autofill so it
+                doesn't land in the real field below or in an unrelated nearby input. */}
+            <div style={{ position: "absolute", left: "-9999px", top: "-9999px", height: 0, overflow: "hidden" }} aria-hidden="true">
+              <input type="text" name="fake-username" autoComplete="username" tabIndex="-1" readOnly />
+              <input type="password" name="fake-password" autoComplete="new-password" tabIndex="-1" readOnly />
+            </div>
+            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
+              Confirm with your password
+            </label>
+            <input
+              type="password"
+              name="deactivate-confirm-password"
+              autoComplete="new-password"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canConfirm) onConfirm(password);
+              }}
+              placeholder="Your password"
+              className="w-full border border-red-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-red-400 placeholder-red-300"
+            />
+            {passwordError && (
+              <p className="mt-1.5 text-xs text-red-600">{passwordError}</p>
+            )}
+          </div>
+        )}
         <div className="flex gap-2">
           <button
             onClick={onClose}
@@ -121,8 +143,8 @@ function DeactivateModal({ onClose, onConfirm }) {
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            disabled={input !== "DEACTIVATE"}
+            onClick={() => onConfirm(password)}
+            disabled={!canConfirm}
             className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold disabled:opacity-40 transition-colors"
           >
             Permanently Deactivate
@@ -1740,6 +1762,7 @@ export default function ProfilePage() {
   });
   const [toast, setToast] = useState(null);
   const [showDeact, setDeact] = useState(false);
+  const [deactPasswordError, setDeactPasswordError] = useState(null);
   const [showSignOut, setShowSignOut] = useState(false);
   const [noticeMsg, setNoticeMsg] = useState(null);
   const [showPhoto, setPhoto] = useState(false);
@@ -1982,13 +2005,22 @@ export default function ProfilePage() {
       )}
       {showDeact && (
         <DeactivateModal
-          onClose={() => setDeact(false)}
-          onConfirm={async () => {
+          hasPassword={!!user?.hasPassword}
+          passwordError={deactPasswordError}
+          onClose={() => { setDeact(false); setDeactPasswordError(null); }}
+          onConfirm={async (password) => {
+            setDeactPasswordError(null);
             try {
-              await userService.deactivate();
+              await userService.deactivate(password);
             } catch (e) {
+              const message = parseAuthError(e, "Failed to deactivate account");
+              if (e?.response?.data?.error === "Incorrect password") {
+                // Keep the modal open so they can just retype the password.
+                setDeactPasswordError(message);
+                return;
+              }
               setDeact(false);
-              setNoticeMsg(parseAuthError(e, "Failed to deactivate account"));
+              setNoticeMsg(message);
               return;
             }
             setDeact(false);
