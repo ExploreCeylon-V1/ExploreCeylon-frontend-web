@@ -7,9 +7,11 @@ import {
 import { AuthProvider } from "./context/AuthContext";
 import { AuthPromptProvider } from "./context/AuthPromptContext";
 import { CartProvider } from "./context/CartContext";
+import { ChatProvider } from "./context/ChatContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ChatWidget from "./components/ChatWidget";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -56,6 +58,7 @@ function App() {
       <AuthProvider>
         <AuthPromptProvider>
         <CartProvider>
+        <ChatProvider>
         <Routes>
           {/* 1. Navbar & Footer thiyena Pages */}
           <Route element={<MainLayout />}>
@@ -94,6 +97,8 @@ function App() {
           {/* 5. Catch-all 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatWidget />
+        </ChatProvider>
         </CartProvider>
         </AuthPromptProvider>
       </AuthProvider>
