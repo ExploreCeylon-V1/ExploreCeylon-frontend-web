@@ -1,8 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { searchHotels } from '../services/Hotelservice';
-import HotelDetailsPanel from '../components/HotelDetailsPanel';
-import { buildBookingComUrl } from '../utils/hotelLinks';
-import { useRequireAuth } from '../context/AuthPromptContext';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import { searchHotels } from "../services/Hotelservice";
+import HotelDetailsPanel from "../components/HotelDetailsPanel";
+import { buildBookingComUrl } from "../utils/hotelLinks";
+import { useRequireAuth } from "../context/AuthPromptContext";
+import myImage from "../assets/newTripBanner.png";
+import bannerImage from "../assets/Banner.jpg";
 
 // ============================================================================
 // 1. REUSABLE HOTEL CARD COMPONENT
@@ -17,28 +21,38 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
       () =>
         window.open(
           buildBookingComUrl(hotel, searchParams),
-          '_blank',
-          'noopener,noreferrer'
+          "_blank",
+          "noopener,noreferrer",
         ),
       {
-        title: 'Sign in to book',
-        message:
-          'Please sign in or create a free account to book this hotel.',
-      }
+        title: "Sign in to book",
+        message: "Please sign in or create a free account to book this hotel.",
+      },
     );
+  };
+
+  const divStyle = {
+    backgroundImage: `url(${myImage})`,
+    backgroundSize: "cover", // Image එක div එකට හරියටම fit වෙන්න
+    backgroundPosition: "center", // Center වෙන්න
+    width: "100%",
+    height: "200px", // Div එකට height එකක් අනිවාර්යයෙන් දෙන්න
   };
 
   return (
     <div className="flex flex-col w-full mb-4 overflow-hidden transition-shadow bg-white border border-gray-100 shadow-sm md:flex-row rounded-2xl hover:shadow-md">
-
       {/* Left Side: Image Section */}
       <div className="relative w-full h-48 bg-gray-100 md:w-72 md:h-auto shrink-0">
         <img
-          src={hotel.photoUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop'}
+          src={
+            hotel.photoUrl ||
+            "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop"
+          }
           alt={hotel.name}
           className="object-cover w-full h-full"
           onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop';
+            e.target.src =
+              "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop";
           }}
         />
         {/* Badges Container */}
@@ -66,9 +80,11 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
               {hotel.stars > 0 && (
                 <div className="flex items-center text-amber-400 text-xs mt-1 space-x-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i}>{i < hotel.stars ? '★' : '☆'}</span>
+                    <span key={i}>{i < hotel.stars ? "★" : "☆"}</span>
                   ))}
-                  <span className="ml-1 text-xs font-medium text-gray-400">{hotel.stars} stars</span>
+                  <span className="ml-1 text-xs font-medium text-gray-400">
+                    {hotel.stars} stars
+                  </span>
                 </div>
               )}
             </div>
@@ -81,10 +97,14 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
                 {hotel.reviewScore}
               </span>
               {hotel.reviewScoreWord && (
-                <span className="text-sm font-bold text-gray-800">{hotel.reviewScoreWord}</span>
+                <span className="text-sm font-bold text-gray-800">
+                  {hotel.reviewScoreWord}
+                </span>
               )}
               {hotel.reviewsCount > 0 && (
-                <span className="text-xs font-medium text-gray-400">({hotel.reviewsCount} reviews)</span>
+                <span className="text-xs font-medium text-gray-400">
+                  ({hotel.reviewsCount} reviews)
+                </span>
               )}
             </div>
           )}
@@ -93,7 +113,10 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
           {hotel.amenities && hotel.amenities.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {hotel.amenities.slice(0, 5).map((amenity, index) => (
-                <span key={index} className="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200/50">
+                <span
+                  key={index}
+                  className="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200/50"
+                >
                   {amenity}
                 </span>
               ))}
@@ -118,9 +141,13 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
           {hotel.distanceFromCenterKm != null ? (
             <div className="flex items-center text-gray-400">
               <span className="mr-1">📍</span>
-              <span>{hotel.distanceFromCenterKm.toFixed(1)} km from city center</span>
+              <span>
+                {hotel.distanceFromCenterKm.toFixed(1)} km from city center
+              </span>
             </div>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           {hotel.freeCancellationUntil ? (
             <div className="flex items-center text-emerald-600">
               <span className="mr-1">✓</span>
@@ -139,13 +166,19 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
       <div className="flex flex-row items-center justify-between w-full p-5 border-t border-gray-100 md:w-48 md:border-t-0 md:border-l md:flex-col md:justify-center shrink-0 bg-gray-50/50 md:bg-white">
         <div className="w-full text-left md:text-right md:mb-5">
           <div className="flex items-baseline md:justify-end">
-            <span className="text-2xl font-black text-gray-900">{hotel.currency} {hotel.pricePerNight}</span>
-            <span className="ml-1 text-xs font-medium text-gray-400">/night</span>
+            <span className="text-2xl font-black text-gray-900">
+              {hotel.currency} {hotel.pricePerNight}
+            </span>
+            <span className="ml-1 text-xs font-medium text-gray-400">
+              /night
+            </span>
           </div>
           <div className="text-xs font-bold text-gray-700 mt-0.5">
             {hotel.currency} {calculatedTotalPrice} total
           </div>
-          <div className="text-3xs text-gray-400 font-medium">({nightsCount} {nightsCount === 1 ? 'night' : 'nights'})</div>
+          <div className="font-medium text-gray-400 text-3xs">
+            ({nightsCount} {nightsCount === 1 ? "night" : "nights"})
+          </div>
         </div>
 
         <div className="flex w-auto gap-2 md:flex-col md:w-full shrink-0">
@@ -163,7 +196,6 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
           </button>
         </div>
       </div>
-
     </div>
   );
 }
@@ -172,31 +204,39 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
 // 2. MAIN HOTELS PAGE COMPONENT
 // ============================================================================
 export default function HotelsPage() {
+  const navigate = useNavigate();
+
   // --- Search Bar States ---
-  const [location, setLocation] = useState('Colombo, Sri Lanka');
-  const [checkIn, setCheckIn] = useState('2026-07-17');
-  const [checkOut, setCheckOut] = useState('2026-07-19');
-  const [adults, setAdults] = useState('1 Adult');
-  const [rooms, setRooms] = useState('1 Room');
-  const [currency, setCurrency] = useState('USD');
+  const [location, setLocation] = useState("Colombo, Sri Lanka");
+  const [checkIn, setCheckIn] = useState("2026-07-17");
+  const [checkOut, setCheckOut] = useState("2026-07-19");
+  const [adults, setAdults] = useState("1 Adult");
+  const [rooms, setRooms] = useState("1 Room");
+  const [currency, setCurrency] = useState("USD");
 
   // --- Live Data States ---
   const [allHotels, setAllHotels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   // --- Details Panel State ---
   const [selectedHotel, setSelectedHotel] = useState(null);
 
   // --- Sidebar Filter States ---
   const [maxPrice, setMaxPrice] = useState(500);
-  const [stars, setStars] = useState({ 5: false, 4: false, 3: false, 2: false, 1: false });
-  const [guestRating, setGuestRating] = useState('');
+  const [stars, setStars] = useState({
+    5: false,
+    4: false,
+    3: false,
+    2: false,
+    1: false,
+  });
+  const [guestRating, setGuestRating] = useState("");
   const [localPicksOnly, setLocalPicksOnly] = useState(false);
 
   // --- View & Sort States ---
-  const [viewType, setViewType] = useState('List');
-  const [sortBy, setSortBy] = useState('Best Match');
+  const [viewType, setViewType] = useState("List");
+  const [sortBy, setSortBy] = useState("Best Match");
 
   // --- DYNAMIC CALCULATION FOR NIGHTS COUNT ---
   const calculateNights = (start, end) => {
@@ -211,21 +251,21 @@ export default function HotelsPage() {
 
   // --- DYNAMIC DATE FORMATTING FOR TEXT (e.g., "Jul 17 – Jul 19") ---
   const formatDateText = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   // --- Extract adults count as a number for the API call ---
-  const adultsCount = parseInt(adults.split(' ')[0], 10) || 1;
-  const roomsCount = parseInt(rooms.split(' ')[0], 10) || 1;
+  const adultsCount = parseInt(adults.split(" ")[0], 10) || 1;
+  const roomsCount = parseInt(rooms.split(" ")[0], 10) || 1;
 
   // ══════════════════════════════════════════════════════════════
   // FETCH HOTELS FROM BACKEND (live RapidAPI data via Spring Boot)
   // ══════════════════════════════════════════════════════════════
   const fetchHotels = useCallback(async () => {
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
     try {
       const results = await searchHotels({
         location,
@@ -237,8 +277,8 @@ export default function HotelsPage() {
       });
       setAllHotels(Array.isArray(results) ? results : []);
     } catch (err) {
-      console.error('Hotel search failed:', err);
-      setErrorMessage('Hotels load karaganna baruwa. Try again karanna.');
+      console.error("Hotel search failed:", err);
+      setErrorMessage("Hotels load karaganna baruwa. Try again karanna.");
       setAllHotels([]);
     } finally {
       setIsLoading(false);
@@ -263,16 +303,16 @@ export default function HotelsPage() {
   };
 
   const handleClearAll = () => {
-    setLocation('Colombo, Sri Lanka');
-    setCheckIn('2026-07-17');
-    setCheckOut('2026-07-19');
-    setRooms('1 Room');
-    setAdults('1 Adult');
-    setCurrency('USD');
+    setLocation("Colombo, Sri Lanka");
+    setCheckIn("2026-07-17");
+    setCheckOut("2026-07-19");
+    setRooms("1 Room");
+    setAdults("1 Adult");
+    setCurrency("USD");
 
     setMaxPrice(500);
     setStars({ 5: false, 4: false, 3: false, 2: false, 1: false });
-    setGuestRating('');
+    setGuestRating("");
     setLocalPicksOnly(false);
   };
 
@@ -297,11 +337,11 @@ export default function HotelsPage() {
   // ══════════════════════════════════════════════════════════════
   const sortedHotels = [...filteredHotels].sort((a, b) => {
     switch (sortBy) {
-      case 'Price: Low to High':
+      case "Price: Low to High":
         return a.pricePerNight - b.pricePerNight;
-      case 'Price: High to Low':
+      case "Price: High to Low":
         return b.pricePerNight - a.pricePerNight;
-      case 'Top Rated':
+      case "Top Rated":
         return (b.reviewScore || 0) - (a.reviewScore || 0);
       default:
         return 0; // Best Match — keep backend's popularity order
@@ -310,29 +350,62 @@ export default function HotelsPage() {
 
   return (
     <div className="w-full min-h-screen pb-12 font-sans bg-gray-100">
-
       {/* Hero Section */}
-      <div className="bg-[#1a2b49] pt-16 pb-28 px-4 text-center">
-        <h1 className="mb-3 text-3xl sm:text-4xl font-bold text-white">
-          Find Your Perfect Stay in Sri Lanka
-        </h1>
-        <h2 className="text-xl text-blue-300">
-          Best rates from top Sri Lanka hotels
-        </h2>
+      <div
+        className="bg-[#1a2b49] bg-cover bg-center pt-10 pb-28"
+        style={{
+          backgroundImage: `linear-gradient(to top, rgba(26,43,73,0.9), rgba(26,43,73,0.55)), url(${bannerImage})`,
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-1 mb-3 text-sm text-blue-200">
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={() => navigate("/")}
+            >
+              Home
+            </span>
+            <ChevronRight size={14} />
+            <span>Hotels</span>
+          </div>
+          <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
+            Find Your Perfect Stay in Sri Lanka
+          </h1>
+          <h2 className="mb-5 text-sm text-blue-300">
+            Best rates from top Sri Lanka hotels
+          </h2>
+          <div className="flex flex-wrap gap-5 text-sm font-medium text-blue-100">
+            <span>🏨 {allHotels.length} Hotels Available</span>
+            <span>📍 All Districts Covered</span>
+          </div>
+        </div>
       </div>
 
       {/* Search Container Wrapper */}
       <div className="relative z-10 max-w-6xl px-4 mx-auto -mt-16">
         <div className="p-6 mb-8 bg-white shadow-xl rounded-2xl">
-
           {/* Main Search Grid */}
           <div className="grid items-center grid-cols-1 gap-3 md:grid-cols-12">
-
             {/* Location Input */}
             <div className="flex items-center p-3 transition-colors bg-white border border-gray-200 md:col-span-3 rounded-xl focus-within:border-emerald-600">
-              <svg className="w-5 h-5 mr-2 text-gray-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-5 h-5 mr-2 text-gray-400 shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
               <input
                 type="text"
@@ -365,8 +438,19 @@ export default function HotelsPage() {
 
             {/* Rooms Dropdown */}
             <div className="relative flex items-center p-3 transition-colors bg-white border border-gray-200 md:col-span-1.5 rounded-xl focus-within:border-emerald-600">
-              <svg className="w-5 h-5 mr-2 text-gray-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              <svg
+                className="w-5 h-5 mr-2 text-gray-400 shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                />
               </svg>
               <select
                 value={rooms}
@@ -377,13 +461,26 @@ export default function HotelsPage() {
                 <option value="2 Rooms">2 R</option>
                 <option value="3 Rooms">3 R</option>
               </select>
-              <span className="absolute text-3xs text-gray-400 pointer-events-none right-2">▼</span>
+              <span className="absolute text-gray-400 pointer-events-none text-3xs right-2">
+                ▼
+              </span>
             </div>
 
             {/* Guests Dropdown */}
             <div className="relative flex items-center p-3 transition-colors bg-white border border-gray-200 md:col-span-2 rounded-xl focus-within:border-emerald-600">
-              <svg className="w-5 h-5 mr-2 text-gray-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              <svg
+                className="w-5 h-5 mr-2 text-gray-400 shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                />
               </svg>
               <select
                 value={adults}
@@ -395,7 +492,9 @@ export default function HotelsPage() {
                 <option value="3 Adults">3 Adults</option>
                 <option value="4 Adults">4 Adults</option>
               </select>
-              <span className="absolute text-xs text-gray-400 pointer-events-none right-3">▼</span>
+              <span className="absolute text-xs text-gray-400 pointer-events-none right-3">
+                ▼
+              </span>
             </div>
 
             {/* Search Button */}
@@ -405,13 +504,23 @@ export default function HotelsPage() {
                 disabled={isLoading}
                 className="w-full bg-[#115e3b] hover:bg-[#0c4a2e] disabled:opacity-60 text-white p-3 rounded-xl flex items-center justify-center transition-colors shadow-md font-bold text-sm"
               >
-                <svg className="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="w-4 h-4 mr-1.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
-                <span>{isLoading ? 'Searching...' : 'Search'}</span>
+                <span>{isLoading ? "Searching..." : "Search"}</span>
               </button>
             </div>
-
           </div>
 
           {/* Divider Line */}
@@ -421,35 +530,46 @@ export default function HotelsPage() {
           <div className="flex items-center space-x-3 text-sm">
             <span className="text-gray-400">Currency:</span>
             <div className="flex overflow-hidden bg-white border border-gray-200 rounded-lg">
-              {['USD', 'LKR', 'EUR', 'GBP'].map((curr) => (
+              {["USD", "LKR", "EUR", "GBP"].map((curr) => (
                 <button
                   key={curr}
                   onClick={() => setCurrency(curr)}
                   className={`px-3 py-1 font-medium text-xs transition-colors ${
                     currency === curr
-                      ? 'bg-[#115e3b] text-white'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? "bg-[#115e3b] text-white"
+                      : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   {curr}
                 </button>
               ))}
             </div>
-            <span className="text-2xs text-gray-400">(currency wenas kalama "Search" click karanna)</span>
+            <span className="text-gray-400 text-2xs">
+              (currency wenas kalama "Search" click karanna)
+            </span>
           </div>
-
         </div>
 
         {/* Layout Grid Layout for Sidebar & Content Area */}
         <div className="grid items-start grid-cols-1 gap-8 lg:grid-cols-12">
-
           {/* --- SIDEBAR FILTERS PANEL --- */}
           <div className="w-full max-w-sm p-6 mx-auto bg-white shadow-md lg:col-span-4 rounded-2xl lg:mx-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2 text-lg font-bold text-gray-800">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                <svg
+                  className="w-5 h-5 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
                 </svg>
                 <span>Filter Results</span>
               </div>
@@ -463,7 +583,9 @@ export default function HotelsPage() {
 
             {/* Price Per Night Component */}
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-bold text-gray-800">Price per Night</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">
+                Price per Night
+              </h3>
               <input
                 type="range"
                 min="0"
@@ -474,26 +596,35 @@ export default function HotelsPage() {
               />
               <div className="flex items-center justify-between mt-2 text-xs font-medium text-gray-400">
                 <span>{currency} 0</span>
-                <span className="text-sm font-bold text-gray-800">Max: {currency} {maxPrice}</span>
+                <span className="text-sm font-bold text-gray-800">
+                  Max: {currency} {maxPrice}
+                </span>
                 <span>{currency} 500</span>
               </div>
             </div>
 
             {/* Star Rating Component */}
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-bold text-gray-800">Star Rating</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">
+                Star Rating
+              </h3>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((starCount) => (
-                  <label key={starCount} className="flex items-center cursor-pointer group">
+                  <label
+                    key={starCount}
+                    className="flex items-center cursor-pointer group"
+                  >
                     <input
                       type="checkbox"
                       checked={stars[starCount] || false}
-                      onChange={(e) => setStars({ ...stars, [starCount]: e.target.checked })}
+                      onChange={(e) =>
+                        setStars({ ...stars, [starCount]: e.target.checked })
+                      }
                       className="w-4 h-4 mr-3 border-gray-400 rounded cursor-pointer text-emerald-700 focus:ring-emerald-600 accent-emerald-700"
                     />
                     <div className="flex items-center mr-2 space-x-1 text-xs text-amber-400">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i}>{i < starCount ? '★' : '☆'}</span>
+                        <span key={i}>{i < starCount ? "★" : "☆"}</span>
                       ))}
                     </div>
                     <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
@@ -506,21 +637,25 @@ export default function HotelsPage() {
 
             {/* Guest Rating Component */}
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-bold text-gray-800">Guest Rating</h3>
+              <h3 className="mb-3 text-sm font-bold text-gray-800">
+                Guest Rating
+              </h3>
               <div className="space-y-2">
                 {[
-                  { id: '9+', label: 'Superb (9+)', icon: '😍' },
-                  { id: '8+', label: 'Very Good (8+)', icon: '😊' },
-                  { id: '7+', label: 'Good (7+)', icon: '🙂' }
+                  { id: "9+", label: "Superb (9+)", icon: "😍" },
+                  { id: "8+", label: "Very Good (8+)", icon: "😊" },
+                  { id: "7+", label: "Good (7+)", icon: "🙂" },
                 ].map((rating) => (
                   <button
                     key={rating.id}
                     type="button"
-                    onClick={() => setGuestRating(guestRating === rating.id ? '' : rating.id)}
+                    onClick={() =>
+                      setGuestRating(guestRating === rating.id ? "" : rating.id)
+                    }
                     className={`w-full flex items-center px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
                       guestRating === rating.id
-                        ? 'border-emerald-600 bg-emerald-50/50 text-emerald-800'
-                        : 'border-gray-100 hover:border-gray-200 text-gray-700 bg-white'
+                        ? "border-emerald-600 bg-emerald-50/50 text-emerald-800"
+                        : "border-gray-100 hover:border-gray-200 text-gray-700 bg-white"
                     }`}
                   >
                     <span className="mr-2 text-base">{rating.icon}</span>
@@ -539,18 +674,22 @@ export default function HotelsPage() {
                   <span className="text-sm text-amber-500">☆</span>
                   <span>Show Local Picks Only</span>
                 </div>
-                <p className="text-2xs text-gray-400 font-medium">Recommended by ExploreCeylon</p>
+                <p className="font-medium text-gray-400 text-2xs">
+                  Recommended by ExploreCeylon
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => setLocalPicksOnly(!localPicksOnly)}
                 className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 focus:outline-none ${
-                  localPicksOnly ? 'bg-emerald-600' : 'bg-gray-300'
+                  localPicksOnly ? "bg-emerald-600" : "bg-gray-300"
                 }`}
               >
-                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
-                  localPicksOnly ? 'translate-x-5' : 'translate-x-0'
-                }`} />
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                    localPicksOnly ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
               </button>
             </div>
 
@@ -562,25 +701,24 @@ export default function HotelsPage() {
             >
               Apply Filters
             </button>
-
           </div>
 
           {/* Right Side: Main Hotel List Content Area */}
           <div className="w-full space-y-6 lg:col-span-8">
-
             {/* Header Control Row */}
             <div className="flex flex-col w-full pt-2 pb-5 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between">
-
               {/* Left Side: Title, Sub-details */}
               <div className="space-y-3">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
                     {isLoading
-                      ? 'Searching hotels...'
+                      ? "Searching hotels..."
                       : `Showing ${sortedHotels.length} hotels in ${location}`}
                   </h2>
                   <p className="text-sm font-medium text-gray-500 mt-0.5">
-                    {formatDateText(checkIn)} – {formatDateText(checkOut)} • {nightsCount} {nightsCount === 1 ? 'night' : 'nights'} • {adults.toLowerCase()}
+                    {formatDateText(checkIn)} – {formatDateText(checkOut)} •{" "}
+                    {nightsCount} {nightsCount === 1 ? "night" : "nights"} •{" "}
+                    {adults.toLowerCase()}
                   </p>
                 </div>
 
@@ -614,22 +752,25 @@ export default function HotelsPage() {
 
               {/* Right Side: List/Map Controls & Sort Selector */}
               <div className="flex items-center self-start mt-4 space-x-4 sm:mt-0 sm:self-center">
-
                 {/* List / Map Toggle Buttons */}
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg p-0.5 shadow-sm text-sm font-medium text-gray-600">
                   <button
-                    onClick={() => setViewType('List')}
+                    onClick={() => setViewType("List")}
                     className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                      viewType === 'List' ? 'bg-gray-100 text-gray-900 font-bold' : 'hover:bg-gray-50'
+                      viewType === "List"
+                        ? "bg-gray-100 text-gray-900 font-bold"
+                        : "hover:bg-gray-50"
                     }`}
                   >
                     <span className="text-xs">☰</span>
                     <span>List</span>
                   </button>
                   <button
-                    onClick={() => setViewType('Map')}
+                    onClick={() => setViewType("Map")}
                     className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                      viewType === 'Map' ? 'bg-gray-100 text-gray-900 font-bold' : 'hover:bg-gray-50'
+                      viewType === "Map"
+                        ? "bg-gray-100 text-gray-900 font-bold"
+                        : "hover:bg-gray-50"
                     }`}
                   >
                     <span className="text-xs">🗺️</span>
@@ -639,7 +780,9 @@ export default function HotelsPage() {
 
                 {/* Sort Dropdown Selector */}
                 <div className="flex items-center space-x-2 text-sm">
-                  <span className="font-medium text-gray-400 whitespace-nowrap">Sort:</span>
+                  <span className="font-medium text-gray-400 whitespace-nowrap">
+                    Sort:
+                  </span>
                   <div className="relative border border-gray-200 rounded-xl bg-white px-3 py-2 shadow-sm font-semibold text-gray-800 min-w-[120px]">
                     <select
                       value={sortBy}
@@ -647,20 +790,25 @@ export default function HotelsPage() {
                       className="w-full pr-5 text-xs bg-transparent outline-none appearance-none cursor-pointer"
                     >
                       <option value="Best Match">Best Match</option>
-                      <option value="Price: Low to High">Price: Low to High</option>
-                      <option value="Price: High to Low">Price: High to Low</option>
+                      <option value="Price: Low to High">
+                        Price: Low to High
+                      </option>
+                      <option value="Price: High to Low">
+                        Price: High to Low
+                      </option>
                       <option value="Top Rated">Top Rated</option>
                     </select>
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-3xs text-gray-400 pointer-events-none">▼</span>
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-3xs text-gray-400 pointer-events-none">
+                      ▼
+                    </span>
                   </div>
                 </div>
-
               </div>
             </div>
 
             {/* ERROR STATE */}
             {errorMessage && (
-              <div className="p-4 text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+              <div className="p-4 text-sm font-medium border text-rose-700 bg-rose-50 border-rose-200 rounded-xl">
                 {errorMessage}
               </div>
             )}
@@ -669,7 +817,9 @@ export default function HotelsPage() {
             {isLoading && (
               <div className="flex flex-col items-center justify-center w-full py-20 text-gray-400">
                 <div className="w-8 h-8 mb-3 border-4 border-gray-200 rounded-full border-t-emerald-600 animate-spin" />
-                <span className="text-sm font-medium">Fetching live hotel rates...</span>
+                <span className="text-sm font-medium">
+                  Fetching live hotel rates...
+                </span>
               </div>
             )}
 
@@ -677,8 +827,12 @@ export default function HotelsPage() {
             {!isLoading && !errorMessage && sortedHotels.length === 0 && (
               <div className="flex flex-col items-center justify-center w-full py-20 text-center text-gray-400">
                 <span className="mb-2 text-3xl">🏨</span>
-                <span className="text-sm font-medium">No hotels matched your search/filters.</span>
-                <span className="text-xs">Try widening your filters or searching a different location.</span>
+                <span className="text-sm font-medium">
+                  No hotels matched your search/filters.
+                </span>
+                <span className="text-xs">
+                  Try widening your filters or searching a different location.
+                </span>
               </div>
             )}
 
@@ -690,17 +844,19 @@ export default function HotelsPage() {
                     key={hotelItem.hotelId}
                     hotel={hotelItem}
                     nightsCount={nightsCount}
-                    searchParams={{ checkIn, checkOut, adults: adultsCount, rooms: roomsCount }}
+                    searchParams={{
+                      checkIn,
+                      checkOut,
+                      adults: adultsCount,
+                      rooms: roomsCount,
+                    }}
                     onViewDetails={setSelectedHotel}
                   />
                 ))}
               </div>
             )}
-
           </div>
-
         </div>
-
       </div>
 
       {/* HOTEL DETAILS PANEL — opens when "View Details" is clicked */}
@@ -708,7 +864,12 @@ export default function HotelsPage() {
         <HotelDetailsPanel
           hotel={selectedHotel}
           nightsCount={nightsCount}
-          searchParams={{ checkIn, checkOut, adults: adultsCount, rooms: roomsCount }}
+          searchParams={{
+            checkIn,
+            checkOut,
+            adults: adultsCount,
+            rooms: roomsCount,
+          }}
           onClose={() => setSelectedHotel(null)}
         />
       )}
