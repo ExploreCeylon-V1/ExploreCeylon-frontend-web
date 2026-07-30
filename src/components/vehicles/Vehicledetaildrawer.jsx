@@ -11,7 +11,6 @@ const SPEC_ICONS = {
   category: { icon: "🏷", label: "Category" },
   seats: { icon: "👥", label: "Seats" },
   ac: { icon: "❄️", label: "AC" },
-  airportTransfer: { icon: "✈️", label: "Airport Transfer" },
   driverIncluded: { icon: "🧑", label: "Driver" },
 };
 
@@ -78,7 +77,6 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const features = [
     vehicle?.driverIncluded && "Driver Included",
     ["CAR", "VAN", "MINIVAN"].includes(vehicle?.type) && "AC",
-    vehicle?.airportTransfer && "Airport Transfer",
     "City Tours",
     "Day Trips",
     "Luggage Space",
@@ -231,11 +229,6 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                       value: ["CAR", "VAN", "MINIVAN"].includes(vehicle.type)
                         ? "Yes ✓"
                         : "No",
-                    },
-                    {
-                      icon: "✈️",
-                      label: "Airport Transfer",
-                      value: vehicle.airportTransfer ? "Yes ✓" : "No",
                     },
                     {
                       icon: "🧑",

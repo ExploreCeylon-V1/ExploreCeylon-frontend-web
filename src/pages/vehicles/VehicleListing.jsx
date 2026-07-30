@@ -11,7 +11,6 @@ import Footer from "../../components/Footer";
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
   { key: "TUKTUK", label: "🛺 Tuk-Tuks" },
-  //{ key: "AIRPORT", label: "✈ Airport Transfers" },
   { key: "CAR", label: "🚗 Cars" },
   { key: "VAN", label: "🚐 Vans" },
 ];
@@ -73,7 +72,6 @@ export default function VehicleListing() {
     total: 0,
     available: 0,
     tuktuks: 0,
-    airportTransfers: 0,
   });
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
@@ -87,8 +85,6 @@ export default function VehicleListing() {
           : undefined;
       let data;
       if (activeTab === "TUKTUK") data = await vehicleService.getTukTuks(range);
-      else if (activeTab === "AIRPORT")
-        data = await vehicleService.getAirportTransfers(range);
       else data = await vehicleService.getAllVehicles(range);
       setVehicles(data);
       if (activeTab === "ALL") {
@@ -96,7 +92,6 @@ export default function VehicleListing() {
           total: data.length,
           available: data.filter((v) => v.available).length,
           tuktuks: data.filter((v) => v.type === "TUKTUK").length,
-          airportTransfers: data.filter((v) => v.airportTransfer).length,
         });
       }
     } catch {
@@ -363,11 +358,6 @@ export default function VehicleListing() {
               { icon: "🚗", num: stats.total, label: "Total Vehicles" },
               { icon: "✅", num: stats.available, label: "Available Now" },
               { icon: "🛺", num: stats.tuktuks, label: "Tuk-Tuks Ready" },
-              {
-                icon: "✈",
-                num: stats.airportTransfers,
-                label: "Airport Transfers",
-              },
             ].map(({ icon, num, label }) => (
               <div
                 key={label}
