@@ -48,7 +48,7 @@ const AUTO_BASE = [
     amount: 120, date: "Jun 5, 2026",   note: '"Day 2 — Colombo"' },
   { id: "a3", auto: true, category: "VEHICLE", title: "Colombo City Tuk-Tuk (3 days)",
     amount: 45,  date: "Jun 4–6, 2026", note: "Driver: Kamal Silva", reference: "#VB-002" },
-  { id: "a4", auto: true, category: "VEHICLE", title: "Airport Transfer Van (1 day)",
+  { id: "a4", auto: true, category: "VEHICLE", title: "Colombo City Van (1 day)",
     amount: 60,  date: "Jun 4, 2026",   note: "Driver: Nimal Perera" },
 ];
 
