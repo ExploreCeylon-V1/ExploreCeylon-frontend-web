@@ -30,7 +30,6 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
     driverName,
     driverLanguages,
     driverIncluded,
-    airportTransfer,
     pricePerDay,
     available,
     imageUrls,
@@ -52,11 +51,6 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
       {driverIncluded && (
         <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
           ✔ Driver Included
-        </span>
-      )}
-      {airportTransfer && (
-        <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
-          ✔ Airport Transfer
         </span>
       )}
       {hasAC && (

@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import VehicleCard from "../../components/vehicles/VehicleCard";
+import bannerImage from "../../assets/Banner.jpg";
 import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
@@ -8,7 +11,6 @@ import Footer from "../../components/Footer";
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
   { key: "TUKTUK", label: "🛺 Tuk-Tuks" },
-  //{ key: "AIRPORT", label: "✈ Airport Transfers" },
   { key: "CAR", label: "🚗 Cars" },
   { key: "VAN", label: "🚐 Vans" },
 ];
@@ -50,6 +52,7 @@ const PRICE_RANGES = [
 ];
 
 export default function VehicleListing() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,7 +72,6 @@ export default function VehicleListing() {
     total: 0,
     available: 0,
     tuktuks: 0,
-    airportTransfers: 0,
   });
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
@@ -77,11 +79,12 @@ export default function VehicleListing() {
     setLoading(true);
     setError(null);
     try {
-      const range = startDate && endDate && !dateRangeInvalid ? { startDate, endDate } : undefined;
+      const range =
+        startDate && endDate && !dateRangeInvalid
+          ? { startDate, endDate }
+          : undefined;
       let data;
       if (activeTab === "TUKTUK") data = await vehicleService.getTukTuks(range);
-      else if (activeTab === "AIRPORT")
-        data = await vehicleService.getAirportTransfers(range);
       else data = await vehicleService.getAllVehicles(range);
       setVehicles(data);
       if (activeTab === "ALL") {
@@ -89,7 +92,6 @@ export default function VehicleListing() {
           total: data.length,
           available: data.filter((v) => v.available).length,
           tuktuks: data.filter((v) => v.type === "TUKTUK").length,
-          airportTransfers: data.filter((v) => v.airportTransfer).length,
         });
       }
     } catch {
@@ -153,9 +155,24 @@ export default function VehicleListing() {
       <Navbar />
       <div className="min-h-screen font-sans bg-gray-100">
         {/* Hero */}
-        <div className="py-10 bg-green-800">
+        <div
+          className="h-64 py-10 bg-green-800 bg-cover bg-center"
+          style={{
+            backgroundImage: `linear-gradient(to top, rgba(22,101,52,0.9), rgba(22,101,52,0.55)), url(${bannerImage})`,
+          }}
+        >
           <div className="px-6 mx-auto max-w-7xl">
-            <h1 className="mb-2 text-2xl sm:text-3xl font-bold text-white">
+            <div className="flex items-center gap-1 mb-3 text-sm text-green-200">
+              <span
+                className="cursor-pointer hover:underline"
+                onClick={() => navigate("/")}
+              >
+                Home
+              </span>
+              <ChevronRight size={14} />
+              <span>Vehicles</span>
+            </div>
+            <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
               Find Your Perfect Ride in Sri Lanka
             </h1>
             <p className="mb-5 text-sm text-green-200">
@@ -169,10 +186,11 @@ export default function VehicleListing() {
         </div>
 
         {/* Chat-before-payment notice */}
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
-          <p className="max-w-7xl mx-auto text-sm text-amber-800 flex items-center gap-2">
+        <div className="px-6 py-3 border-b bg-amber-50 border-amber-200">
+          <p className="flex items-center gap-2 mx-auto text-sm max-w-7xl text-amber-800">
             <span className="text-base">💬</span>
-            Chat with the vehicle owner on WhatsApp and confirm availability before you pay.
+            Chat with the vehicle owner on WhatsApp and confirm availability
+            before you pay.
           </p>
         </div>
 
@@ -198,7 +216,9 @@ export default function VehicleListing() {
           {/* Date range — only show vehicles free for these dates */}
           <div className="flex flex-wrap items-end gap-3 px-4 py-3 mb-4 bg-white border border-gray-200 rounded-xl">
             <div>
-              <label className="block mb-1 text-xs text-gray-500">📅 From</label>
+              <label className="block mb-1 text-xs text-gray-500">
+                📅 From
+              </label>
               <input
                 type="date"
                 value={startDate}
@@ -217,17 +237,27 @@ export default function VehicleListing() {
               />
             </div>
             {dateRangeInvalid ? (
-              <p className="text-xs text-red-600 pb-2">End date must be after start date.</p>
+              <p className="pb-2 text-xs text-red-600">
+                End date must be after start date.
+              </p>
             ) : startDate && endDate ? (
-              <p className="text-xs text-gray-500 pb-2">
+              <p className="pb-2 text-xs text-gray-500">
                 Showing vehicles free for these dates.{" "}
-                <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }}
-                  className="text-green-700 font-semibold underline">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                  className="font-semibold text-green-700 underline"
+                >
                   Clear
                 </button>
               </p>
             ) : (
-              <p className="text-xs text-gray-400 pb-2">Set dates to only show available vehicles.</p>
+              <p className="pb-2 text-xs text-gray-400">
+                Set dates to only show available vehicles.
+              </p>
             )}
           </div>
 
@@ -328,11 +358,6 @@ export default function VehicleListing() {
               { icon: "🚗", num: stats.total, label: "Total Vehicles" },
               { icon: "✅", num: stats.available, label: "Available Now" },
               { icon: "🛺", num: stats.tuktuks, label: "Tuk-Tuks Ready" },
-              {
-                icon: "✈",
-                num: stats.airportTransfers,
-                label: "Airport Transfers",
-              },
             ].map(({ icon, num, label }) => (
               <div
                 key={label}

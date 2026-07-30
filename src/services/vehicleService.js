@@ -23,11 +23,6 @@ export const vehicleService = {
     if (!res.ok) throw new Error("Failed to fetch tuk-tuks");
     return res.json();
   },
-  getAirportTransfers: async (range) => {
-    const res = await fetch(`${BASE_URL}/airport-transfers${dateRangeQuery(range)}`);
-    if (!res.ok) throw new Error("Failed to fetch airport transfers");
-    return res.json();
-  },
   searchVehicles: async (filters) => {
     const res = await fetch(`${BASE_URL}/search`, {
       method: "POST",

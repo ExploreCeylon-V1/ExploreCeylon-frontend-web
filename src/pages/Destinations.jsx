@@ -1,17 +1,19 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import destinationsService from '../services/destinationsService';
-import DestinationCard from '../components/DestinationCard';
-import FeaturedCarousel from '../components/FeaturedCarousel';
-import { DESTINATION_CATEGORIES } from '../components/destinationCategories';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import destinationsService from "../services/destinationsService";
+import bannerImage from "../assets/Banner.jpg";
+import DestinationCard from "../components/DestinationCard";
+import FeaturedCarousel from "../components/FeaturedCarousel";
+import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const SORT_OPTIONS = [
-  { value: 'rating_desc', label: 'Highest Rated' },
-  { value: 'rating_asc', label: 'Lowest Rated' },
-  { value: 'reviews_desc', label: 'Most Reviewed' },
-  { value: 'name_asc', label: 'Name (A-Z)' },
+  { value: "rating_desc", label: "Highest Rated" },
+  { value: "rating_asc", label: "Lowest Rated" },
+  { value: "reviews_desc", label: "Most Reviewed" },
+  { value: "name_asc", label: "Name (A-Z)" },
 ];
 
 const Destinations = () => {
@@ -22,10 +24,10 @@ const Destinations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [activeCategory, setActiveCategory] = useState('ALL');
-  const [provinceFilter, setProvinceFilter] = useState('ALL');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('rating_desc');
+  const [activeCategory, setActiveCategory] = useState("ALL");
+  const [provinceFilter, setProvinceFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("rating_desc");
 
   useEffect(() => {
     fetchData();
@@ -42,8 +44,8 @@ const Destinations = () => {
       setDestinations(allData || []);
       setFeatured(featuredData || []);
     } catch (err) {
-      console.error('Failed to load destinations:', err);
-      setError('Could not load destinations. Please try again.');
+      console.error("Failed to load destinations:", err);
+      setError("Could not load destinations. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,7 +59,9 @@ const Destinations = () => {
   const categoryCounts = useMemo(() => {
     const counts = {};
     DESTINATION_CATEGORIES.forEach((c) => {
-      counts[c.value] = destinations.filter((d) => d.category === c.value).length;
+      counts[c.value] = destinations.filter(
+        (d) => d.category === c.value,
+      ).length;
     });
     return counts;
   }, [destinations]);
@@ -65,11 +69,11 @@ const Destinations = () => {
   const filteredDestinations = useMemo(() => {
     let result = [...destinations];
 
-    if (activeCategory !== 'ALL') {
+    if (activeCategory !== "ALL") {
       result = result.filter((d) => d.category === activeCategory);
     }
 
-    if (provinceFilter !== 'ALL') {
+    if (provinceFilter !== "ALL") {
       result = result.filter((d) => d.province === provinceFilter);
     }
 
@@ -80,21 +84,21 @@ const Destinations = () => {
           d.name?.toLowerCase().includes(term) ||
           d.description?.toLowerCase().includes(term) ||
           d.district?.toLowerCase().includes(term) ||
-          d.province?.toLowerCase().includes(term)
+          d.province?.toLowerCase().includes(term),
       );
     }
 
     switch (sortBy) {
-      case 'rating_asc':
+      case "rating_asc":
         result.sort((a, b) => (a.rating ?? 0) - (b.rating ?? 0));
         break;
-      case 'reviews_desc':
+      case "reviews_desc":
         result.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
         break;
-      case 'name_asc':
-        result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case "name_asc":
+        result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
         break;
-      case 'rating_desc':
+      case "rating_desc":
       default:
         result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
         break;
@@ -112,30 +116,50 @@ const Destinations = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-100">
         {/* Hero */}
-        <header className="bg-gradient-to-br from-[#2D6A4F] to-[#1B4332] text-white px-6 sm:px-10 py-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold mb-1.5">
-            Explore Sri Lanka's Finest Destinations
-          </h1>
-          <p className="text-base opacity-90">
-            From ancient kingdoms to pristine beaches
-          </p>
+        <header
+          className="h-64 bg-[#1B4332] bg-cover bg-center text-white py-8 flex flex-col justify-center"
+          style={{
+            backgroundImage: `linear-gradient(to top, rgba(27,67,50,0.9), rgba(45,106,79,0.55)), url(${bannerImage})`,
+          }}
+        >
+          <div className="max-w-7xl mx-auto w-full px-4 sm:px-10">
+            <div className="flex items-center gap-1 text-sm text-gray-200 mb-3">
+              <span
+                className="cursor-pointer hover:underline"
+                onClick={() => navigate("/")}
+              >
+                Home
+              </span>
+              <ChevronRight size={14} />
+              <span>Destinations</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold mb-1.5">
+              Explore Sri Lanka's Finest Destinations
+            </h1>
+            <p className="text-base opacity-90">
+              From ancient kingdoms to pristine beaches
+            </p>
+          </div>
         </header>
 
         <div className="px-4 py-6 mx-auto max-w-7xl sm:px-10 pb-14">
           {/* Featured carousel */}
           {!loading && !error && (
-            <FeaturedCarousel destinations={featured} onExplore={handleExplore} />
+            <FeaturedCarousel
+              destinations={featured}
+              onExplore={handleExplore}
+            />
           )}
 
           {/* Category tabs */}
           <div className="flex gap-2.5 flex-wrap mb-5">
             <button
               type="button"
-              onClick={() => setActiveCategory('ALL')}
+              onClick={() => setActiveCategory("ALL")}
               className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
-                activeCategory === 'ALL'
-                  ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]'
+                activeCategory === "ALL"
+                  ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
+                  : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
               }`}
             >
               ☀️ All ({destinations.length})
@@ -147,8 +171,8 @@ const Destinations = () => {
                 onClick={() => setActiveCategory(cat.value)}
                 className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
                   activeCategory === cat.value
-                    ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]'
+                    ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
                 }`}
               >
                 {cat.icon} {cat.label} ({categoryCounts[cat.value] || 0})
