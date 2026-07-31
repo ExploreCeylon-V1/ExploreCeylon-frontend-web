@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
+import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../hooks/useCart";
 import userService from "../services/userService";
 import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
@@ -47,6 +47,7 @@ function Toast({ msg, type = "success", onClose }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only auto-dismiss timer; onClose is often a fresh inline function from the parent, so including it would reset the timer on every parent re-render
   }, []);
   return (
     <div
@@ -302,7 +303,7 @@ function PhotoModal({ currentPhoto, onClose, onUploaded, onToast }) {
 }
 
 // ── Nav Item ───────────────────────────────────────────────
-function NavItem({ icon, label, tabKey, active, onClick, badge }) {
+function NavItem({ icon, label, active, onClick, badge }) {
   return (
     <button
       onClick={onClick}
@@ -563,7 +564,6 @@ function SectionPassword({ user, onToast, onUpdateUser }) {
             ? 4
             : 3;
 
-  const strengthLabels = ["", "Weak", "Medium", "Strong", "Very Strong"];
   const strengthColors = [
     "",
     "bg-red-400",
@@ -882,7 +882,7 @@ function SectionTrips({ token }) {
       .then(setTrips)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   const STATUS_META = {
     DRAFT: { label: "Draft", color: "bg-gray-100 text-gray-600" },
@@ -1088,7 +1088,7 @@ function SectionBookings({ token, user, onToast }) {
         setVB(vb);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   const BK_META = {
     PENDING_PAYMENT: {
@@ -1777,7 +1777,7 @@ export default function ProfilePage() {
   // Redirect unauthenticated users (in an effect, not during render)
   useEffect(() => {
     if (!user) navigate("/login");
-  }, [user]);
+  }, [user, navigate]);
 
   // Keep the active tab in sync with ?tab=… (e.g. navbar cart icon while already on /profile)
   useEffect(() => {
@@ -1815,6 +1815,7 @@ export default function ProfilePage() {
         bookings: (gb || []).length + (vb || []).length,
       });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateUser (from AuthContext) is a new function identity on every AuthProvider render and builds a new user object each call; including it would re-trigger this fetch repeatedly instead of only on token change
   }, [token]);
 
   if (!user) return null;

@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../hooks/useAuth";
+import { AuthPromptContext } from "../hooks/useRequireAuth";
 
 /**
  * App-wide "you must be logged in to do this" gate.
@@ -16,8 +17,6 @@ import { useAuth } from "./AuthContext";
  * single shared modal appears offering Sign in / Create account, both of
  * which carry the current location so the user is returned here afterwards.
  */
-const AuthPromptContext = createContext(null);
-
 export function AuthPromptProvider({ children }) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -95,11 +94,4 @@ export function AuthPromptProvider({ children }) {
       )}
     </AuthPromptContext.Provider>
   );
-}
-
-export function useRequireAuth() {
-  const ctx = useContext(AuthPromptContext);
-  if (!ctx)
-    throw new Error("useRequireAuth must be used within AuthPromptProvider");
-  return ctx;
 }

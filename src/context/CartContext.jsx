@@ -1,7 +1,6 @@
 // CartContext.jsx — Global cart state for vehicles + guides
-import { createContext, useContext, useState, useEffect } from "react";
-
-const CartContext = createContext(null);
+import { useState, useEffect } from "react";
+import { CartContext } from "../hooks/useCart";
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
@@ -58,10 +57,4 @@ export function CartProvider({ children }) {
       {children}
     </CartContext.Provider>
   );
-}
-
-export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
 }

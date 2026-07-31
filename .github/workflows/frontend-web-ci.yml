@@ -22,10 +22,6 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
-        # 61 pre-existing lint errors/warnings predate this branch (confirmed via
-        # git stash against baseline dev) — soft-failing so test/build/docker-build
-        # still run and give a real signal. Follow-up: clean these up separately.
-        continue-on-error: true
       - run: npm run test
       - run: npm run build
 

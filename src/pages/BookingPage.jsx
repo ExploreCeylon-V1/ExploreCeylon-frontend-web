@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
+import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../hooks/useCart";
 import { payGuide, payVehicle, calcAdvanceAmount, calcFinalAmount } from "../services/paymentService";
 import apiClient from "../services/api";
 import Navbar from "../components/Navbar";
@@ -393,7 +393,7 @@ function Step3Confirm({ item, type, startDate, endDate,
 // ══════════════════════════════════════════════════════════
 // STEP 4 — Pay 20%
 // ══════════════════════════════════════════════════════════
-function Step4Pay({ item, type, booking, startDate, endDate,
+function Step4Pay({ item, booking, startDate, endDate,
   onBack, onPay, paying }) {
 
   const days  = calcDays(startDate, endDate);
@@ -493,7 +493,7 @@ export default function BookingPage() {
         .then(r => setItem(r.data))
         .catch(() => setError("Failed to load details"));
     }
-  }, [type, id]);
+  }, [type, id, item]);
 
   if (!user) { navigate("/login"); return null; }
 

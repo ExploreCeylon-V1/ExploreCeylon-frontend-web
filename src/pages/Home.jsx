@@ -1,5 +1,5 @@
 // 🚨 වැදගත්: useState සහ useEffect මෙතනට අලුතින් එකතු කර ඇත
-import React, { useState, useEffect } from "react"; // 👈 මේ පේළිය තමයි අඩු වෙලා තිබුණේ
+import { useState, useEffect } from "react"; // 👈 මේ පේළිය තමයි අඩු වෙලා තිබුණේ
 import { Link, useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import heroImage from "../assets/hero-bg.webp";
@@ -11,7 +11,7 @@ import hiddenGemsService from "../services/Hiddengemsservice";
 import { vehicleService } from "../services/vehicleService";
 import userService from "../services/userService";
 import DestinationCard from "../components/DestinationCard";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useCountUp } from "../hooks/useCountUp";
 
 // ─── Category filter pills (DestinationCategory enum values ekata match wenna oni) ───

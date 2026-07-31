@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
+import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../hooks/useCart";
 import {
   getMyNotifications,
   getUnreadCount,
@@ -131,6 +131,7 @@ export default function Navbar() {
 
   // Close the mobile menu on navigation (covers link clicks, back/forward, etc.)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing UI state to route changes, not derivable at render time
     setMobileMenuOpen(false);
   }, [location.pathname]);
 

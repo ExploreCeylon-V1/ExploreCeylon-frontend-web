@@ -449,7 +449,7 @@ export default function AboutPage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {VALUES.map((v, i) => (
+            {VALUES.map((v) => (
               <div
                 key={v.title}
                 className="bg-white rounded-2xl border border-gray-200 p-6

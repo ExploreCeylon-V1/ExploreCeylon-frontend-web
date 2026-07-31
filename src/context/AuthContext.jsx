@@ -1,8 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { saveAuth, getToken, getStoredUser, clearAuth, updateStoredUser } from "../utils/authStorage";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "../hooks/useAuth";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -15,6 +14,7 @@ export function AuthProvider({ children }) {
     const u = getStoredUser();
 
     if (t && u) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration of auth state from storage on mount
       setToken(t);
       setUser(u);
     } else if (t || u) {
@@ -50,10 +50,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
 }

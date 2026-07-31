@@ -60,7 +60,7 @@ export function updateStoredUser(partial) {
       ? sessionStorage
       : null;
   if (!store) return null;
-  let current = {};
+  let current;
   try {
     current = JSON.parse(store.getItem(USER_KEY)) || {};
   } catch {
