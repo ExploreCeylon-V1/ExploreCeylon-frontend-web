@@ -7,6 +7,8 @@ import GemCard from "../components/GemCard";
 import { GEM_CATEGORIES } from "../components/gemCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -103,6 +105,19 @@ const HiddenGems = () => {
 
     return result;
   }, [approvedGems, activeCategory, districtFilter, searchTerm, sortBy]);
+
+  // Grid view is `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`; list view is a
+  // single stacked column at every width.
+  const {
+    pageItems: pagedGems,
+    page,
+    totalPages,
+    setPage,
+    listRef,
+  } = usePagination(filteredGems, {
+    columns:
+      viewMode === "grid" ? { base: 1, md: 2, lg: 3 } : { base: 1 },
+  });
 
   const handleViewDetails = (gem) => {
     navigate(`/hidden-gems/${gem.id}`);
@@ -247,7 +262,7 @@ const HiddenGems = () => {
           </div>
 
           {/* Result count */}
-          <p className="mb-4 text-sm text-gray-500">
+          <p ref={listRef} className="mb-4 text-sm text-gray-500">
             Showing <strong>{filteredGems.length}</strong> approved gems
           </p>
 
@@ -277,22 +292,31 @@ const HiddenGems = () => {
           )}
 
           {!loading && !error && filteredGems.length > 0 && (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                  : "flex flex-col gap-4"
-              }
-            >
-              {filteredGems.map((gem) => (
-                <GemCard
-                  key={gem.id}
-                  gem={gem}
-                  viewMode={viewMode}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
+            <>
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    : "flex flex-col gap-4"
+                }
+              >
+                {pagedGems.map((gem) => (
+                  <GemCard
+                    key={gem.id}
+                    gem={gem}
+                    viewMode={viewMode}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Hidden gems"
+              />
+            </>
           )}
         </div>
       </div>

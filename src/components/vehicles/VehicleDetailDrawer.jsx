@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import { vehicleService } from "../../services/vehicleService";
 import { useCart } from "../../hooks/useCart";
 import VehicleReviews from "../VehicleReviews";
@@ -79,12 +80,13 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 transition-opacity bg-black/40"
+        className="fixed inset-0 z-[1000] transition-opacity bg-black/40"
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed top-0 right-0 z-50 flex flex-col w-full h-full max-w-xl overflow-hidden bg-white shadow-2xl">
+      {/* Drawer — z-[1001] because Navbar is sticky at z-[1000] and would
+          otherwise render on top of (and hide) this panel's header. */}
+      <div className="fixed top-0 right-0 z-[1001] flex flex-col w-full h-full max-w-xl overflow-hidden bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -92,9 +94,10 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
           </h2>
           <button
             onClick={onClose}
-            className="text-2xl leading-none text-gray-400 hover:text-gray-700"
+            aria-label="Close"
+            className="flex items-center justify-center w-8 h-8 text-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-700 transition-colors"
           >
-            ×
+            <X size={20} />
           </button>
         </div>
 

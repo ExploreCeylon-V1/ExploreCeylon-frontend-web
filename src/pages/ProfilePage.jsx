@@ -636,9 +636,20 @@ function SectionPassword({ user, onToast, onUpdateUser }) {
       <div className="space-y-4 mb-5">
         {fields.map(([label, key]) => (
           <div key={key}>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-              {label}
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-gray-500">
+                {label}
+              </label>
+              {key === "current" && (
+                <Link
+                  to="/forgot-password"
+                  state={{ email: user?.email }}
+                  className="text-xs font-semibold text-[#2D6A4F] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <input
               type="password"
               value={form[key]}

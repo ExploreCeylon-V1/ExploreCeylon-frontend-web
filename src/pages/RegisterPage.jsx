@@ -226,7 +226,7 @@ export default function RegisterPage() {
             {/* Terms */}
             <label className="mt-1 flex cursor-pointer items-start gap-2.5 text-sm leading-[1.5] text-slate-600">
               <input type="checkbox" className="mt-[2px] h-4 w-4 shrink-0 cursor-pointer accent-emerald-600" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
-              <span>I agree to the <Link to="#" className="font-semibold text-emerald-600 hover:text-emerald-700">Terms of Service</Link> and <Link to="#" className="font-semibold text-emerald-600 hover:text-emerald-700">Privacy Policy</Link></span>
+              <span>I agree to the <Link to="/terms" target="_blank" rel="noreferrer" className="font-semibold text-emerald-600 hover:text-emerald-700">Terms of Service</Link> and <Link to="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-emerald-600 hover:text-emerald-700">Privacy Policy</Link></span>
             </label>
 
             {/* Error */}
