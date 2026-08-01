@@ -38,6 +38,7 @@ import PaymentCancelPage   from "./pages/PaymentCancelPage";
 import AboutPage from "./pages/AboutPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import MaintenanceGate from "./components/MaintenanceGate";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -56,6 +57,7 @@ function MainLayout() {
 
 function App() {
   return (
+    <MaintenanceGate>
     <Router>
       <AuthProvider>
         <AuthPromptProvider>
@@ -107,6 +109,7 @@ function App() {
         </AuthPromptProvider>
       </AuthProvider>
     </Router>
+    </MaintenanceGate>
   );
 }
 
