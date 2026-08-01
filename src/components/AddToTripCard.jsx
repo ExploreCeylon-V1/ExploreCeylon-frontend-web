@@ -26,21 +26,6 @@ const AddToTripCard = ({ item, itemType = 'GEM', title, heading = 'Add to Your T
 
   const isLoggedIn = Boolean(getToken());
 
-  useEffect(() => {
-    if (isLoggedIn) fetchTrips();
-    else setLoadingTrips(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (selectedTripId) fetchTripDetail(selectedTripId);
-    else {
-      setSelectedTrip(null);
-      setSelectedDayId('');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTripId]);
-
   const fetchTrips = async () => {
     try {
       setLoadingTrips(true);
@@ -66,6 +51,22 @@ const AddToTripCard = ({ item, itemType = 'GEM', title, heading = 'Add to Your T
       setLoadingTripDetail(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchTrips sets loading state synchronously before its await; intentional fetch-on-mount pattern. The else branch resets the same flag for logged-out visitors.
+    if (isLoggedIn) fetchTrips();
+    else setLoadingTrips(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchTripDetail sets loading state synchronously before its await; intentional fetch-on-selection pattern. The else branch clears dependent selection state.
+    if (selectedTripId) fetchTripDetail(selectedTripId);
+    else {
+      setSelectedTrip(null);
+      setSelectedDayId('');
+    }
+  }, [selectedTripId]);
 
   const handleAddToTrip = async () => {
     if (!selectedTripId || !selectedDayId) return;

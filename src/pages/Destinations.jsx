@@ -29,10 +29,6 @@ const Destinations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("rating_desc");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -50,6 +46,11 @@ const Destinations = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchData sets loading state synchronously before its await; intentional fetch-on-mount pattern
+    fetchData();
+  }, []);
 
   const provinces = useMemo(() => {
     const unique = new Set(destinations.map((d) => d.province).filter(Boolean));

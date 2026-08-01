@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import hiddenGemsService from '../services/Hiddengemsservice';
 import uploadService from '../services/Uploadservice';
 import { GEM_CATEGORIES, getCategoryMeta } from '../components/gemCategories';
-import { SRI_LANKA_DISTRICTS } from '../components/sriLankaDistricts';
+import { SRI_LANKA_DISTRICTS } from '../components/SriLankaDistricts';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 

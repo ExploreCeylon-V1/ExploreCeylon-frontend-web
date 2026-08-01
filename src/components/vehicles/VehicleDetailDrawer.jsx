@@ -1,18 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { vehicleService } from "../../services/vehicleService";
-import { useCart } from "../../context/CartContext";
+import { useCart } from "../../hooks/useCart";
 import VehicleReviews from "../VehicleReviews";
 
 const BOOKING_BASE = "http://localhost:8080/api/v1/vehicle-bookings";
-
-const SPEC_ICONS = {
-  type: { icon: "🚗", label: "Type" },
-  category: { icon: "🏷", label: "Category" },
-  seats: { icon: "👥", label: "Seats" },
-  ac: { icon: "❄️", label: "AC" },
-  driverIncluded: { icon: "🧑", label: "Driver" },
-};
 
 export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const navigate = useNavigate();
@@ -32,6 +24,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
 
   useEffect(() => {
     if (!vehicleId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting drawer state for the newly selected vehicle before fetching
     setLoading(true);
     setImgIndex(0);
     setAvail(null);

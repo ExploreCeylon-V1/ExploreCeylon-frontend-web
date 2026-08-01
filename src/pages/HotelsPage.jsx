@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
 import { buildBookingComUrl } from "../utils/hotelLinks";
-import { useRequireAuth } from "../context/AuthPromptContext";
-import myImage from "../assets/newTripBanner.png";
+import { useRequireAuth } from "../hooks/useRequireAuth";
 import bannerImage from "../assets/Banner.jpg";
 
 // ============================================================================
@@ -29,14 +28,6 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
         message: "Please sign in or create a free account to book this hotel.",
       },
     );
-  };
-
-  const divStyle = {
-    backgroundImage: `url(${myImage})`,
-    backgroundSize: "cover", // Image එක div එකට හරියටම fit වෙන්න
-    backgroundPosition: "center", // Center වෙන්න
-    width: "100%",
-    height: "200px", // Div එකට height එකක් අනිවාර්යයෙන් දෙන්න
   };
 
   return (
@@ -288,6 +279,7 @@ export default function HotelsPage() {
 
   // Initial load
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchHotels sets loading/error state synchronously before its await; intentional fetch-on-mount pattern
     fetchHotels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

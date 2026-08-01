@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Headset } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useChat } from "../context/ChatContext";
+import { useAuth } from "../hooks/useAuth";
+import { useChat } from "../hooks/useChat";
 
 function formatTime(iso) {
   if (!iso) return "";

@@ -128,16 +128,15 @@ function mapApiItem(item) {
 function CategoryDonut({ perCategory, totalSpent }) {
   const R = 70, STROKE = 30;
   const C = 2 * Math.PI * R;
-  let offset = 0;
 
   const segments = perCategory
     .filter(c => c.spent > 0)
-    .map(c => {
+    .reduce((acc, c) => {
       const frac = totalSpent > 0 ? c.spent / totalSpent : 0;
-      const seg = { color: c.color, dash: frac * C, offset };
-      offset += frac * C;
-      return seg;
-    });
+      const dash = frac * C;
+      acc.segments.push({ color: c.color, dash, offset: acc.offset });
+      return { segments: acc.segments, offset: acc.offset + dash };
+    }, { segments: [], offset: 0 }).segments;
 
   return (
     <div className="relative w-48 h-48 flex-shrink-0">
@@ -418,6 +417,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting form/loading state when the trip or mode changes; not derivable at render time
     setShowForm(false);
     if (isLive) {
       if (trip?.id) loadLive();
@@ -490,8 +490,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     });
 
     return { daily: buckets, unscheduledSpend: unscheduled };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLive, mode, expenses, tripDays, trip?.startDate]);
+  }, [isLive, mode, expenses, tripDays, trip]);
 
   const level = pctUsed > 100 ? "OVER" : pctUsed >= 80 ? "WARNING" : "ON_TRACK";
 
