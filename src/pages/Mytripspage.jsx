@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import {
   fetchMyTrips,
   deleteTrip,
@@ -325,7 +325,8 @@ export default function MyTripsPage() {
   useEffect(() => {
     if (!isAuthenticated) { navigate("/login"); return; }
     loadTrips();
-  }, [isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadTrips is a plain function redefined every render; adding it would refetch trips on every render
+  }, [isAuthenticated, navigate]);
 
   async function loadTrips() {
     setLoading(true);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { login as loginUser, googleLogin as googleLoginApi } from "../services/authService";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useGoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {

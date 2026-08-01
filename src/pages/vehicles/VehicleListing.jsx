@@ -102,6 +102,7 @@ export default function VehicleListing() {
   }, [activeTab, startDate, endDate, dateRangeInvalid]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchVehicles sets loading/error state synchronously before its await; intentional fetch-on-filter-change pattern
     fetchVehicles();
   }, [fetchVehicles]);
 

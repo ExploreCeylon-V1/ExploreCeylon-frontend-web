@@ -50,6 +50,7 @@ export default function EventsPage() {
 
   // Reset page when date selection changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting pagination when the date filter changes, not derivable at render time
     setPage(1);
   }, [selectedDate]);
 

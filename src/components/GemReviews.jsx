@@ -67,10 +67,6 @@ const GemReviews = ({ gemId, onReviewAdded }) => {
 
   const isLoggedIn = Boolean(getToken());
 
-  useEffect(() => {
-    fetchReviews();
-  }, [gemId]);
-
   const fetchReviews = async () => {
     try {
       setLoading(true);
@@ -84,6 +80,12 @@ const GemReviews = ({ gemId, onReviewAdded }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchReviews sets loading state synchronously before its await; intentional fetch-on-id-change pattern
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchReviews is a plain function redefined every render; adding it would refetch on every render since it itself updates state
+  }, [gemId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

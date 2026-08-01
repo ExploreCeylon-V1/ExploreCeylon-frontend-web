@@ -27,10 +27,6 @@ const HiddenGems = () => {
   const [sortBy, setSortBy] = useState("rating_desc");
   const [viewMode, setViewMode] = useState("grid");
 
-  useEffect(() => {
-    fetchGems();
-  }, []);
-
   const fetchGems = async () => {
     try {
       setLoading(true);
@@ -44,6 +40,11 @@ const HiddenGems = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchGems sets loading state synchronously before its await; intentional fetch-on-mount pattern
+    fetchGems();
+  }, []);
 
   // Only approved gems should ever show on the public traveler page
   const approvedGems = useMemo(() => gems.filter((g) => g.approved), [gems]);

@@ -1,7 +1,5 @@
 import apiClient from "./api";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-
 // ── Guide Payment ──────────────────────────────────────────
 
 export async function initiateGuidePayment(bookingId, paymentPhase, userInfo = {}) {
@@ -81,9 +79,6 @@ export async function confirmVehiclePayment(orderId) {
 // PayHere page ට redirect කරන්නේ hidden form submit ෙකෙන්
 
 export function submitToPayHere(formData) {
-  // Remove fields not needed by PayHere form
-  const excluded = ["action"];
-
   const form = document.createElement("form");
   form.method = "POST";
   form.action = formData.action;  // sandbox.payhere.lk/pay/checkout

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
@@ -302,6 +302,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- early-exit guard clearing suggestions when there's no map center; not derivable at render time
     if (!center) { setSuggestions([]); return; }
     let cancelled = false;
     setLoading(true);
@@ -349,7 +350,6 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
   useEffect(() => {
     if (rowRef.current) rowRef.current.scrollLeft = 0;
     updateScrollArrows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggestions]);
 
   async function handleAdd(suggestion) {
@@ -980,11 +980,6 @@ export default function TripDetailPage() {
   const [regenerating,  setRegenerating]  = useState(false);
   const [regenError,    setRegenError]    = useState(null);
 
-  useEffect(() => {
-    if (!isAuthenticated) { navigate("/login"); return; }
-    loadTrip();
-  }, [id, isAuthenticated]);
-
   async function loadTrip() {
     setLoading(true);
     setError(null);
@@ -1006,6 +1001,13 @@ export default function TripDetailPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!isAuthenticated) { navigate("/login"); return; }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loadTrip sets loading state synchronously before its await; intentional fetch-on-id-change pattern
+    loadTrip();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadTrip is a plain function redefined every render; adding it would refetch the trip on every render
+  }, [id, isAuthenticated, navigate]);
 
   async function handleConfirm() {
     setConfirming(true);

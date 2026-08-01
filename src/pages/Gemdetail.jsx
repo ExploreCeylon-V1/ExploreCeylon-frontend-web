@@ -23,11 +23,6 @@ const GemDetail = () => {
   const [activePhoto, setActivePhoto] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 
-  useEffect(() => {
-    fetchGem();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
   const fetchGem = async () => {
     try {
       setLoading(true);
@@ -48,6 +43,12 @@ const GemDetail = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchGem sets loading state synchronously before its await; intentional fetch-on-id-change pattern
+    fetchGem();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (loading) {
     return (

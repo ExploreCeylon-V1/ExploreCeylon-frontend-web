@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { buildBookingComUrl, buildGoogleMapsUrl } from '../utils/hotelLinks';
-import { useRequireAuth } from '../context/AuthPromptContext';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 
 // ============================================================================
 // HOTEL DETAILS PANEL — slides in from the right when "View Details" is clicked

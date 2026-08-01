@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import {
   parseOrderId, getBookingTypeFromOrderId,
   getPhaseFromOrderId, getGuidePaymentsForBooking,
@@ -11,8 +10,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function PaymentSuccessPage() {
-  const navigate    = useNavigate();
-  const { token }   = useAuth();
   const [status,    setStatus]  = useState("loading");
   const [payment,   setPayment] = useState(null);
   const [orderId,   setOrderId] = useState(null);
@@ -23,6 +20,7 @@ export default function PaymentSuccessPage() {
     const order = parseOrderId(window.location.search);
     const type  = getBookingTypeFromOrderId(order);
     const ph    = getPhaseFromOrderId(order);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- parsing the URL's order id into state on mount, not derivable at render time
     setOrderId(order);
     setBType(type);
     setPhase(ph);
