@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import { buildBookingComUrl } from "../utils/hotelLinks";
 import { useRequireAuth } from "../hooks/useRequireAuth";
 import bannerImage from "../assets/Banner.jpg";
@@ -313,32 +315,55 @@ export default function HotelsPage() {
   // ══════════════════════════════════════════════════════════════
   const anyStarSelected = Object.values(stars).some(Boolean);
 
-  const filteredHotels = allHotels.filter((hotel) => {
-    if (hotel.pricePerNight > maxPrice) return false;
-    if (anyStarSelected && !stars[hotel.stars]) return false;
-    if (guestRating) {
-      const minScore = parseInt(guestRating, 10); // '9+' -> 9, '8+' -> 8, '7+' -> 7
-      if ((hotel.reviewScore || 0) < minScore) return false;
-    }
-    if (localPicksOnly && !hotel.isLocalPick) return false;
-    return true;
-  });
+  // Memoized so the list keeps a stable identity between renders —
+  // usePagination resets to page 1 whenever this array changes, which is
+  // exactly the filter/sort-changed signal we want (and nothing more).
+  const sortedHotels = useMemo(() => {
+    const filtered = allHotels.filter((hotel) => {
+      if (hotel.pricePerNight > maxPrice) return false;
+      if (anyStarSelected && !stars[hotel.stars]) return false;
+      if (guestRating) {
+        const minScore = parseInt(guestRating, 10); // '9+' -> 9, '8+' -> 8, '7+' -> 7
+        if ((hotel.reviewScore || 0) < minScore) return false;
+      }
+      if (localPicksOnly && !hotel.isLocalPick) return false;
+      return true;
+    });
 
-  // ══════════════════════════════════════════════════════════════
-  // CLIENT-SIDE SORTING
-  // ══════════════════════════════════════════════════════════════
-  const sortedHotels = [...filteredHotels].sort((a, b) => {
-    switch (sortBy) {
-      case "Price: Low to High":
-        return a.pricePerNight - b.pricePerNight;
-      case "Price: High to Low":
-        return b.pricePerNight - a.pricePerNight;
-      case "Top Rated":
-        return (b.reviewScore || 0) - (a.reviewScore || 0);
-      default:
-        return 0; // Best Match — keep backend's popularity order
-    }
-  });
+    // ══════════════════════════════════════════════════════════════
+    // CLIENT-SIDE SORTING
+    // ══════════════════════════════════════════════════════════════
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "Price: Low to High":
+          return a.pricePerNight - b.pricePerNight;
+        case "Price: High to Low":
+          return b.pricePerNight - a.pricePerNight;
+        case "Top Rated":
+          return (b.reviewScore || 0) - (a.reviewScore || 0);
+        default:
+          return 0; // Best Match — keep backend's popularity order
+      }
+    });
+  }, [
+    allHotels,
+    maxPrice,
+    anyStarSelected,
+    stars,
+    guestRating,
+    localPicksOnly,
+    sortBy,
+  ]);
+
+  // Hotels render as a single stacked column at every breakpoint, so a "row"
+  // is one card — 10 rows = 10 hotels per page.
+  const {
+    pageItems: pagedHotels,
+    page,
+    totalPages,
+    setPage,
+    listRef,
+  } = usePagination(sortedHotels, { columns: { base: 1 } });
 
   return (
     <div className="w-full min-h-screen pb-12 font-sans bg-gray-100">
@@ -696,7 +721,7 @@ export default function HotelsPage() {
           </div>
 
           {/* Right Side: Main Hotel List Content Area */}
-          <div className="w-full space-y-6 lg:col-span-8">
+          <div ref={listRef} className="w-full space-y-6 lg:col-span-8">
             {/* Header Control Row */}
             <div className="flex flex-col w-full pt-2 pb-5 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between">
               {/* Left Side: Title, Sub-details */}
@@ -831,7 +856,7 @@ export default function HotelsPage() {
             {/* DYNAMIC HOTEL CARDS CONTAINER */}
             {!isLoading && sortedHotels.length > 0 && (
               <div className="flex flex-col w-full gap-4">
-                {sortedHotels.map((hotelItem) => (
+                {pagedHotels.map((hotelItem) => (
                   <HotelCard
                     key={hotelItem.hotelId}
                     hotel={hotelItem}
@@ -846,6 +871,15 @@ export default function HotelsPage() {
                   />
                 ))}
               </div>
+            )}
+
+            {!isLoading && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Hotels"
+              />
             )}
           </div>
         </div>
