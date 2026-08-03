@@ -271,11 +271,11 @@ function ExpenseForm({ trip, presetCategory, onSave, onCancel }) {
                          rounded-xl text-xs font-semibold text-gray-500">USD</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
         <div>
           <p className="text-xs font-semibold text-gray-600 mb-1.5">Date</p>
           <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2
+            className="w-full min-w-0 max-w-full border border-gray-200 rounded-xl px-3 py-2
                        text-sm outline-none focus:border-green-700" />
         </div>
         <div>

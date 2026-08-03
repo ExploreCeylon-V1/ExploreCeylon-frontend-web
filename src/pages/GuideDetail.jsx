@@ -574,7 +574,7 @@ const GuideDetail = () => {
                       setStartDate(e.target.value);
                       setBookingMessage(null);
                     }}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                   />
                 </div>
 
@@ -588,7 +588,7 @@ const GuideDetail = () => {
                       setEndDate(e.target.value);
                       setBookingMessage(null);
                     }}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                   />
                 </div>
 

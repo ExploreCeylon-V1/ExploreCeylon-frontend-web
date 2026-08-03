@@ -232,7 +232,7 @@ const Guides = () => {
                 <p className="mb-2 text-sm font-semibold text-gray-700">
                   📅 Trip Dates
                 </p>
-                <div className="grid grid-cols-2 gap-2 mb-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-1">
                   <div>
                     <label className="block mb-1 text-xs text-gray-400">
                       From
@@ -241,7 +241,7 @@ const Guides = () => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                      className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                     />
                   </div>
                   <div>
@@ -253,7 +253,7 @@ const Guides = () => {
                       value={endDate}
                       min={startDate || undefined}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                      className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                     />
                   </div>
                 </div>
