@@ -399,8 +399,8 @@ function SectionProfile({ user, onToast, onUpdateUser }) {
   return (
     <div className="space-y-4">
       {/* Profile Settings Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <div className="flex items-start justify-between mb-5">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
           <div>
             <h3 className="text-base font-bold text-gray-900">
               Profile Settings
@@ -412,7 +412,7 @@ function SectionProfile({ user, onToast, onUpdateUser }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-[#1a5c2a] hover:bg-[#14471f] text-white text-sm
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#1a5c2a] hover:bg-[#14471f] text-white text-sm
                        font-semibold rounded-xl transition-colors disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save Changes"}
@@ -435,25 +435,25 @@ function SectionProfile({ user, onToast, onUpdateUser }) {
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
               Email Address
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 value={user?.email || ""}
                 readOnly
                 className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 outline-none"
               />
               {emailVerified ? (
-                <span className="flex items-center gap-1.5 px-3 py-2.5 bg-green-50 border border-green-200 rounded-xl text-xs font-semibold text-green-700 whitespace-nowrap">
+                <span className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-green-50 border border-green-200 rounded-xl text-xs font-semibold text-green-700 whitespace-nowrap">
                   ✅ Verified
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 px-3 py-2.5 bg-orange-50 border border-orange-200 rounded-xl text-xs font-semibold text-orange-700 whitespace-nowrap">
+                <span className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-orange-50 border border-orange-200 rounded-xl text-xs font-semibold text-orange-700 whitespace-nowrap">
                   Not verified
                 </span>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
                 Nationality
@@ -783,16 +783,16 @@ function SectionPhone({ user, onToast, onUpdateUser }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
       <h3 className="text-base font-bold text-gray-900 mb-5">
         📱 Phone & Verification
       </h3>
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <select
           value={countryCode}
           onChange={(e) => setCC(e.target.value)}
           disabled={phone.startsWith("+")}
-          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 w-28 outline-none disabled:bg-gray-50"
+          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 w-full sm:w-28 outline-none disabled:bg-gray-50"
         >
           <option value="+94">🇱🇰 +94</option>
           <option value="+44">🇬🇧 +44</option>
@@ -824,7 +824,7 @@ function SectionPhone({ user, onToast, onUpdateUser }) {
       )}
 
       {otpStep === "code" && !verified && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -835,7 +835,7 @@ function SectionPhone({ user, onToast, onUpdateUser }) {
           <button
             onClick={handleVerify}
             disabled={otpBusy || code.length < 6}
-            className="px-5 py-2.5 bg-[#1a5c2a] hover:bg-[#14471f] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#1a5c2a] hover:bg-[#14471f] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
           >
             {otpBusy ? "Verifying…" : "Verify"}
           </button>
@@ -843,7 +843,7 @@ function SectionPhone({ user, onToast, onUpdateUser }) {
       )}
 
       {!verified && (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleSave}
             disabled={saving}
@@ -912,19 +912,19 @@ function SectionTrips({ token }) {
     filter === "all" ? trips : trips.filter((t) => t.status === filter);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
         <h3 className="text-base font-bold text-gray-900">🗺️ My Trips</h3>
         <Link
           to="/trips/new"
-          className="px-4 py-2 bg-[#1a5c2a] hover:bg-[#14471f] text-white text-sm font-semibold rounded-xl transition-colors"
+          className="w-full sm:w-auto text-center px-4 py-2 bg-[#1a5c2a] hover:bg-[#14471f] text-white text-sm font-semibold rounded-xl transition-colors"
         >
           + New Trip
         </Link>
       </div>
 
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap">
         {[
           ["all", `All Trips (${counts.all})`],
           ["DRAFT", `Draft (${counts.DRAFT})`],
@@ -934,7 +934,7 @@ function SectionTrips({ token }) {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap
               ${
                 filter === key
                   ? "bg-[#1a5c2a] border-[#1a5c2a] text-white"
@@ -957,7 +957,7 @@ function SectionTrips({ token }) {
           <p className="text-sm">Start planning your Sri Lanka adventure!</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filtered.map((trip) => {
             const meta = STATUS_META[trip.status] || STATUS_META.DRAFT;
             const days =
@@ -967,33 +967,37 @@ function SectionTrips({ token }) {
             return (
               <div
                 key={trip.id}
-                className="flex items-center gap-4 p-4 border border-gray-100
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 border border-gray-100
                            rounded-xl hover:border-gray-200 hover:bg-gray-50 transition-colors"
               >
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
-                  🗺️
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
+                    🗺️
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {trip.title}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      📅 {fmtDate(trip.startDate)} · {days} days
+                      {trip.travelStyle && ` · ${trip.travelStyle}`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {trip.title}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    📅 {fmtDate(trip.startDate)} · {days} days
-                    {trip.travelStyle && ` · ${trip.travelStyle}`}
-                  </p>
+                <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                  <span
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${meta.color}`}
+                  >
+                    {meta.label}
+                  </span>
+                  <button
+                    onClick={() => navigate(`/trips/${trip.id}`)}
+                    className="text-xs border border-gray-200 px-3.5 py-1.5 rounded-lg text-gray-600
+                               hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors flex-shrink-0 font-semibold"
+                  >
+                    View →
+                  </button>
                 </div>
-                <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${meta.color}`}
-                >
-                  {meta.label}
-                </span>
-                <button
-                  onClick={() => navigate(`/trips/${trip.id}`)}
-                  className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600
-                             hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors flex-shrink-0"
-                >
-                  View →
-                </button>
               </div>
             );
           })}
@@ -1144,71 +1148,73 @@ function SectionBookings({ token, user, onToast }) {
 
     return (
       <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
-            {isGuide ? "👤" : "🚗"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-sm font-bold text-gray-900">{name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-                <p className="text-xs text-gray-400">📅 {dateStr}</p>
-              </div>
-              <span
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${meta.color}`}
-              >
-                {meta.label}
-              </span>
+        <div className="flex flex-col sm:flex-row items-start gap-3">
+          <div className="flex items-start gap-3 w-full sm:w-auto flex-1 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
+              {isGuide ? "👤" : "🚗"}
             </div>
-
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 flex-wrap gap-2">
-              <p className="text-xs text-gray-500">
-                Total:{" "}
-                <strong className="text-gray-800">${total.toFixed(2)}</strong>
-                {paid > 0 && (
-                  <>
-                    {" "}
-                    · Paid:{" "}
-                    <span className="text-green-700 font-semibold">
-                      ${paid.toFixed(2)}
-                    </span>
-                  </>
-                )}
-                {rem > 0 && b.status !== "CANCELLED" && (
-                  <>
-                    {" "}
-                    · Remaining:{" "}
-                    <span className="text-orange-600 font-semibold">
-                      ${rem.toFixed(2)}
-                    </span>
-                  </>
-                )}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDetailsModal(b)}
-                  className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2">
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                  <p className="text-xs text-gray-400">📅 {dateStr}</p>
+                </div>
+                <span
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-full self-start sm:self-auto flex-shrink-0 whitespace-nowrap mt-1 sm:mt-0 ${meta.color}`}
                 >
-                  View Details
-                </button>
-                {b.status === "CONFIRMED" && (
-                  <button
-                    onClick={() => setPay60Modal(b)}
-                    className="text-xs bg-[#1a5c2a] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14471f] transition-colors"
-                  >
-                    Pay 80%
-                  </button>
-                )}
-                {b.status === "COMPLETED" && (
-                  <button
-                    onClick={() => openReviewModal(b)}
-                    className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
-                  >
-                    Review
-                  </button>
-                )}
+                  {meta.label}
+                </span>
               </div>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t border-gray-100 gap-3">
+            <p className="text-xs text-gray-500">
+              Total:{" "}
+              <strong className="text-gray-800">${total.toFixed(2)}</strong>
+              {paid > 0 && (
+                <>
+                  {" "}
+                  · Paid:{" "}
+                  <span className="text-green-700 font-semibold">
+                    ${paid.toFixed(2)}
+                  </span>
+                </>
+              )}
+              {rem > 0 && b.status !== "CANCELLED" && (
+                <>
+                  {" "}
+                  · Remaining:{" "}
+                  <span className="text-orange-600 font-semibold">
+                    ${rem.toFixed(2)}
+                  </span>
+                </>
+              )}
+            </p>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setDetailsModal(b)}
+                className="flex-1 sm:flex-none text-center text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
+              >
+                View Details
+              </button>
+              {b.status === "CONFIRMED" && (
+                <button
+                  onClick={() => setPay60Modal(b)}
+                  className="flex-1 sm:flex-none text-center text-xs bg-[#1a5c2a] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14471f] transition-colors"
+                >
+                  Pay 80%
+                </button>
+              )}
+              {b.status === "COMPLETED" && (
+                <button
+                  onClick={() => openReviewModal(b)}
+                  className="flex-1 sm:flex-none text-center text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
+                >
+                  Review
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1218,12 +1224,12 @@ function SectionBookings({ token, user, onToast }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
         <h3 className="text-base font-bold text-gray-900 mb-4">
           📋 My Bookings
         </h3>
 
-        <div className="flex gap-2 mb-5 border-b border-gray-100 pb-3 flex-wrap">
+        <div className="flex gap-2 mb-5 border-b border-gray-100 pb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap">
           {[
             ["all", "All"],
             ["guide", "👤 Guides"],
@@ -1232,7 +1238,7 @@ function SectionBookings({ token, user, onToast }) {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap
                 ${
                   filter === key
                     ? "bg-[#1a5c2a] text-white"
@@ -1684,7 +1690,7 @@ function SectionCart({ onToast }) {
               </div>
 
               {/* Date inputs */}
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="text-[10px] font-semibold text-gray-400 mb-1 block">
                     {isGuide ? "Start Date" : "Pickup Date"}
@@ -1714,7 +1720,7 @@ function SectionCart({ onToast }) {
               </div>
 
               {/* Cost row */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 mb-4">
                 <p className="text-sm font-bold text-[#1a5c2a]">
                   {days > 0
                     ? `${days} day${days > 1 ? "s" : ""} · $${total.toFixed(2)}`
@@ -1890,9 +1896,91 @@ export default function ProfilePage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 pb-16">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex gap-6 items-start">
-          {/* ── LEFT SIDEBAR ── */}
-          <div className="w-72 flex-shrink-0 sticky top-24 space-y-4">
+        <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6 md:py-8 flex flex-col lg:flex-row gap-6 items-start">
+
+          {/* ── MOBILE HEADER & SCROLLABLE TAB NAVIGATION (lg:hidden) ── */}
+          <div className="w-full lg:hidden space-y-3">
+            {/* Mobile Profile Card Summary */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative flex-shrink-0">
+                  {user.profilePhoto ? (
+                    <img
+                      src={user.profilePhoto}
+                      alt={user.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-[#1a5c2a] shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-[#6b46c1] flex items-center justify-center text-white text-lg font-bold border-2 border-white shadow-sm">
+                      {initial}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setPhoto(true)}
+                    className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#1a5c2a] text-white rounded-full flex items-center justify-center text-[10px] shadow"
+                  >
+                    📷
+                  </button>
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-gray-900 truncate">
+                    {user.name}
+                  </h2>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[9px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">
+                      {user.role || "TRAVELER"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSignOut(true)}
+                className="p-2 rounded-xl text-red-600 bg-red-50 hover:bg-red-100 text-xs font-semibold flex items-center gap-1 flex-shrink-0"
+                title="Sign Out"
+              >
+                <span>🚪</span>
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            </div>
+
+            {/* Mobile Scrollable Horizontal Tab Selector */}
+            <div className="sticky top-16 z-20 bg-gray-100/95 backdrop-blur-md py-2 border-b border-gray-200/80 -mx-4 px-4">
+              <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {NAV.map((n) => {
+                  const isActive = activeTab === n.key;
+                  return (
+                    <button
+                      key={n.key}
+                      onClick={() => setTab(n.key)}
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shadow-sm ${
+                        isActive
+                          ? "bg-[#1a5c2a] text-white"
+                          : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>{n.icon}</span>
+                      <span>{n.label}</span>
+                      {n.badge > 0 && (
+                        <span
+                          className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                            isActive
+                              ? "bg-white text-[#1a5c2a]"
+                              : "bg-[#1a5c2a] text-white"
+                          }`}
+                        >
+                          {n.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── DESKTOP LEFT SIDEBAR (hidden on mobile, visible on lg+) ── */}
+          <div className="hidden lg:block w-72 flex-shrink-0 sticky top-24 space-y-4">
             {/* Profile card */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="h-20 bg-[#1a5c2a] relative">
@@ -1998,8 +2086,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* ── RIGHT CONTENT ── */}
-          <div className="flex-1 min-w-0 animate-[fadeIn_0.2s_ease]">
+          {/* ── MAIN CONTENT ── */}
+          <div className="w-full flex-1 min-w-0 animate-[fadeIn_0.2s_ease]">
             {CONTENT[activeTab]}
           </div>
         </div>

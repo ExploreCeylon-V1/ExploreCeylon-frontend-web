@@ -4,8 +4,7 @@ import { X } from "lucide-react";
 import { vehicleService } from "../../services/vehicleService";
 import { useCart } from "../../hooks/useCart";
 import VehicleReviews from "../VehicleReviews";
-
-const BOOKING_BASE = "http://localhost:8080/api/v1/vehicle-bookings";
+import apiClient from "../../services/api";
 
 export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const navigate = useNavigate();
@@ -50,9 +49,8 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
         pickupDate: fromDate,
         dropoffDate: toDate,
       });
-      const res = await fetch(`${BOOKING_BASE}/check-availability?${params}`);
-      const result = await res.json();
-      setAvail(result);
+      const res = await apiClient.get(`/api/v1/vehicle-bookings/check-availability?${params}`);
+      setAvail(res.data);
     } catch {
       setAvail(null);
     } finally {

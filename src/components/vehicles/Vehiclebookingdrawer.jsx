@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-
-const BOOKING_BASE = "http://localhost:8080/api/v1/vehicle-bookings";
-const TRIPS_BASE = "http://localhost:8080/api/v1/trips"; // adjust if different
+import apiClient from "../../services/api";
 
 export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
   const [pickupDate, setPickupDate] = useState("");
@@ -20,8 +18,8 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
 
   // Fetch user's trips for the "Link to Trip" dropdown
   useEffect(() => {
-    fetch(`${TRIPS_BASE}/my`, { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : []))
+    apiClient.get("/api/v1/trips/my")
+      .then((r) => r.data || [])
       .then(setTrips)
       .catch(() => setTrips([]));
   }, []);
@@ -55,8 +53,8 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
         pickupDate,
         dropoffDate,
       });
-      const res = await fetch(`${BOOKING_BASE}/check-availability?${params}`);
-      setAvail(await res.json());
+      const res = await apiClient.get(`/api/v1/vehicle-bookings/check-availability?${params}`);
+      setAvail(res.data);
     } catch {
       setAvail(null);
     } finally {
@@ -87,18 +85,11 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
         ...(tripId ? { tripId: Number(tripId) } : {}),
         notes,
       };
-      const res = await fetch(BOOKING_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Booking failed");
-      const booking = await res.json();
-      onSuccess?.(booking);
+      const res = await apiClient.post("/api/v1/vehicle-bookings", body);
+      onSuccess?.(res.data);
       onClose();
     } catch (e) {
-      setError(e.message || "Something went wrong. Please try again.");
+      setError(e.response?.data?.message || e.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
