@@ -13,6 +13,7 @@ export default function Footer() {
   const linkPathOverrides = {
     "Privacy Policy": "/privacy",
     "Terms of Service": "/terms",
+    "Tour Guides": "/guides",
   };
 
   return (
