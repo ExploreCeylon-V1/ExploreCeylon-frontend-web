@@ -1132,59 +1132,54 @@ function SectionBookings({ token, user, onToast }) {
       : fmtDate(b.pickupDate);
 
     return (
-      <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
+      <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 bg-white hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">
             {isGuide ? "👤" : "🚗"}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-sm font-bold text-gray-900">{name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-                <p className="text-xs text-gray-400">📅 {dateStr}</p>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+              <div className="min-w-0">
+                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900 truncate">{name}</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{sub}</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+                  <span>📅</span> {dateStr}
+                </p>
               </div>
               <span
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${meta.color}`}
+                className={`text-xs sm:text-sm font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full flex-shrink-0 whitespace-nowrap self-start sm:self-auto ${meta.color}`}
               >
                 {meta.label}
               </span>
             </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 flex-wrap gap-2">
-              <p className="text-xs text-gray-500">
-                Total:{" "}
-                <strong className="text-gray-800">${total.toFixed(2)}</strong>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                <span className="inline-flex items-center gap-1 text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+                  Total: <strong className="text-gray-900 font-bold">${total.toFixed(2)}</strong>
+                </span>
                 {paid > 0 && (
-                  <>
-                    {" "}
-                    · Paid:{" "}
-                    <span className="text-green-700 font-semibold">
-                      ${paid.toFixed(2)}
-                    </span>
-                  </>
+                  <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 font-medium">
+                    Paid: <strong className="font-bold">${paid.toFixed(2)}</strong>
+                  </span>
                 )}
                 {rem > 0 && b.status !== "CANCELLED" && (
-                  <>
-                    {" "}
-                    · Remaining:{" "}
-                    <span className="text-orange-600 font-semibold">
-                      ${rem.toFixed(2)}
-                    </span>
-                  </>
+                  <span className="inline-flex items-center gap-1 text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100 font-medium">
+                    Remaining: <strong className="font-bold">${rem.toFixed(2)}</strong>
+                  </span>
                 )}
-              </p>
-              <div className="flex gap-2">
+              </div>
+              <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap sm:flex-nowrap">
                 <button
                   onClick={() => setDetailsModal(b)}
-                  className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
+                  className="w-full sm:w-auto text-xs sm:text-sm border border-gray-200 px-3.5 py-2 rounded-xl text-gray-700 font-medium hover:border-[#1a5c2a] hover:text-[#1a5c2a] hover:bg-green-50/50 transition-all text-center"
                 >
                   View Details
                 </button>
                 {b.status === "CONFIRMED" && (
                   <button
                     onClick={() => setPay60Modal(b)}
-                    className="text-xs bg-[#1a5c2a] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14471f] transition-colors"
+                    className="w-full sm:w-auto text-xs sm:text-sm bg-[#1a5c2a] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#14471f] transition-all text-center shadow-sm hover:shadow"
                   >
                     Pay 80%
                   </button>
@@ -1192,7 +1187,7 @@ function SectionBookings({ token, user, onToast }) {
                 {b.status === "COMPLETED" && (
                   <button
                     onClick={() => openReviewModal(b)}
-                    className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
+                    className="w-full sm:w-auto text-xs sm:text-sm border border-gray-200 px-3.5 py-2 rounded-xl text-gray-700 font-medium hover:border-[#1a5c2a] hover:text-[#1a5c2a] hover:bg-green-50/50 transition-all text-center"
                   >
                     Review
                   </button>
@@ -1207,30 +1202,32 @@ function SectionBookings({ token, user, onToast }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-base font-bold text-gray-900 mb-4">
-          📋 My Bookings
-        </h3>
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 flex items-center gap-2">
+            <span>📋</span> My Bookings
+          </h3>
 
-        <div className="flex gap-2 mb-5 border-b border-gray-100 pb-3 flex-wrap">
-          {[
-            ["all", "All"],
-            ["guide", "👤 Guides"],
-            ["vehicle", "🚗 Vehicles"],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
-                ${
-                  filter === key
-                    ? "bg-[#1a5c2a] text-white"
-                    : "border border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-            >
-              {label}
-            </button>
-          ))}
+          <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none]">
+            {[
+              ["all", "All"],
+              ["guide", "👤 Guides"],
+              ["vehicle", "🚗 Vehicles"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key)}
+                className={`px-3.5 py-2 md:px-4 md:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all whitespace-nowrap
+                  ${
+                    filter === key
+                      ? "bg-[#1a5c2a] text-white shadow-sm"
+                      : "border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -1244,7 +1241,7 @@ function SectionBookings({ token, user, onToast }) {
             <p className="text-sm">Book a guide or vehicle to get started.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filtered.map((b, i) => (
               <BookingCard key={i} b={b} />
             ))}
