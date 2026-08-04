@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, CalendarX } from "lucide-react";
+import { ChevronRight, CalendarX } from "lucide-react";
 import eventService from "../services/eventService";
 import bannerImage from "../assets/Banner.jpg";
 import EventCalendar from "../components/EventCalendar";
@@ -8,8 +8,8 @@ import EventCard from "../components/EventCard";
 import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
-const PAGE_SIZE = 10;
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 
 const toKey = (date) => date.toISOString().slice(0, 10);
 
@@ -25,7 +25,6 @@ export default function EventsPage() {
   // null = no date filter active, Date = filter by that date
   const [selectedDate, setSelectedDate] = useState(null);
   const [savedIds, setSavedIds] = useState(new Set());
-  const [page, setPage] = useState(1);
 
   // Fetch all events whenever category changes
   useEffect(() => {
@@ -37,7 +36,6 @@ export default function EventsPage() {
           activeCategory !== "ALL" ? { category: activeCategory } : {};
         const data = await eventService.getAllEvents(filters);
         setEvents(data);
-        setPage(1);
       } catch (err) {
         console.error(err);
         setError("Failed to load events. Please try again.");
@@ -48,10 +46,8 @@ export default function EventsPage() {
     fetchEvents();
   }, [activeCategory]);
 
-  // Reset page when date selection changes
-  useEffect(() => {
-    setPage(1);
-  }, [selectedDate]);
+  // Page resets on category/date changes are handled by usePagination, which
+  // watches the filtered list's identity.
 
   // Event dates set for calendar dots
   const eventDates = useMemo(() => {
@@ -82,12 +78,16 @@ export default function EventsPage() {
     return list.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
   }, [events, selectedDate]);
 
-  // Paginate
-  const totalPages = Math.ceil(filteredEvents.length / PAGE_SIZE);
-  const pagedEvents = filteredEvents.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  // Events render as a single stacked column at every breakpoint, so a "row"
+  // is one card — 10 rows = 10 events per page, matching the previous
+  // hardcoded PAGE_SIZE.
+  const {
+    pageItems: pagedEvents,
+    page,
+    totalPages,
+    setPage,
+    listRef,
+  } = usePagination(filteredEvents, { columns: { base: 1 } });
 
   const toggleSave = (id) => {
     setSavedIds((prev) => {
@@ -189,10 +189,7 @@ export default function EventsPage() {
                   return (
                     <button
                       key={key}
-                      onClick={() => {
-                        setActiveCategory(key);
-                        setPage(1);
-                      }}
+                      onClick={() => setActiveCategory(key)}
                       className={`flex flex-col items-center gap-1.5 py-3 rounded-lg text-xs font-medium transition-colors
                       ${
                         active
@@ -210,7 +207,7 @@ export default function EventsPage() {
           </aside>
 
           {/* ── RIGHT: Events list ── */}
-          <div className="flex-1 min-w-0">
+          <div ref={listRef} className="flex-1 min-w-0">
             {/* Header row */}
             <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
               <div>
@@ -287,54 +284,13 @@ export default function EventsPage() {
             )}
 
             {/* Pagination */}
-            {!loading && totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-
-                {[...Array(totalPages)].map((_, i) => {
-                  const pg = i + 1;
-                  // show first, last, current ±1
-                  const show =
-                    pg === 1 || pg === totalPages || Math.abs(pg - page) <= 1;
-                  const isDot =
-                    (pg === 2 && page > 4) ||
-                    (pg === totalPages - 1 && page < totalPages - 3);
-                  if (!show) return null;
-                  if (isDot)
-                    return (
-                      <span key={pg} className="px-1 text-gray-400">
-                        …
-                      </span>
-                    );
-                  return (
-                    <button
-                      key={pg}
-                      onClick={() => setPage(pg)}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium ${
-                        pg === page
-                          ? "bg-emerald-800 text-white"
-                          : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {pg}
-                    </button>
-                  );
-                })}
-
-                <button
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+            {!loading && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Events"
+              />
             )}
           </div>
         </div>

@@ -90,7 +90,7 @@ function DateDurationPicker({ startDate, endDate, onChange, onClose }) {
             value={localStart}
             min={new Date().toISOString().split("T")[0]}
             onChange={e => setLocalStart(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2
+            className="w-full min-w-0 max-w-full border border-gray-200 rounded-xl px-3 py-2
                        text-sm text-gray-800 outline-none
                        focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100"
           />
@@ -104,7 +104,7 @@ function DateDurationPicker({ startDate, endDate, onChange, onClose }) {
             value={localEnd}
             min={localStart || new Date().toISOString().split("T")[0]}
             onChange={e => setLocalEnd(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2
+            className="w-full min-w-0 max-w-full border border-gray-200 rounded-xl px-3 py-2
                        text-sm text-gray-800 outline-none
                        focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100"
           />

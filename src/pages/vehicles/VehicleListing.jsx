@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import VehicleCard from "../../components/vehicles/VehicleCard";
@@ -7,6 +7,8 @@ import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import Pagination from "../../components/Pagination";
+import { usePagination } from "../../hooks/usePagination";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -102,39 +104,70 @@ export default function VehicleListing() {
   }, [activeTab, startDate, endDate, dateRangeInvalid]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchVehicles sets loading/error state synchronously before its await; intentional fetch-on-filter-change pattern
     fetchVehicles();
   }, [fetchVehicles]);
 
-  const displayed = vehicles
-    .filter((v) => {
-      if (activeTab === "CAR") return v.type === "CAR";
-      if (activeTab === "VAN") return v.type === "VAN" || v.type === "MINIVAN";
-      return true;
-    })
-    .filter((v) => !district || v.district === district)
-    .filter((v) => {
-      if (!priceRange.min && !priceRange.max) return true;
-      if (!priceRange.max) return v.pricePerDay >= priceRange.min;
-      if (!priceRange.min) return v.pricePerDay <= priceRange.max;
-      return v.pricePerDay >= priceRange.min && v.pricePerDay <= priceRange.max;
-    })
-    .filter((v) => !driverOnly || v.driverIncluded)
-    .filter((v) => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        v.name?.toLowerCase().includes(q) ||
-        v.district?.toLowerCase().includes(q) ||
-        v.driverName?.toLowerCase().includes(q) ||
-        v.type?.toLowerCase().includes(q)
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "price-asc") return a.pricePerDay - b.pricePerDay;
-      if (sortBy === "price-desc") return b.pricePerDay - a.pricePerDay;
-      if (sortBy === "rating") return b.rating - a.rating;
-      return 0;
-    });
+  // Memoized so the list keeps a stable identity between renders —
+  // usePagination resets to page 1 whenever this array changes, which is
+  // exactly the filter/search/sort-changed signal we want (and nothing more).
+  const displayed = useMemo(
+    () =>
+      vehicles
+        .filter((v) => {
+          if (activeTab === "CAR") return v.type === "CAR";
+          if (activeTab === "VAN")
+            return v.type === "VAN" || v.type === "MINIVAN";
+          return true;
+        })
+        .filter((v) => !district || v.district === district)
+        .filter((v) => {
+          if (!priceRange.min && !priceRange.max) return true;
+          if (!priceRange.max) return v.pricePerDay >= priceRange.min;
+          if (!priceRange.min) return v.pricePerDay <= priceRange.max;
+          return (
+            v.pricePerDay >= priceRange.min && v.pricePerDay <= priceRange.max
+          );
+        })
+        .filter((v) => !driverOnly || v.driverIncluded)
+        .filter((v) => {
+          if (!searchQuery.trim()) return true;
+          const q = searchQuery.toLowerCase();
+          return (
+            v.name?.toLowerCase().includes(q) ||
+            v.district?.toLowerCase().includes(q) ||
+            v.driverName?.toLowerCase().includes(q) ||
+            v.type?.toLowerCase().includes(q)
+          );
+        })
+        .sort((a, b) => {
+          if (sortBy === "price-asc") return a.pricePerDay - b.pricePerDay;
+          if (sortBy === "price-desc") return b.pricePerDay - a.pricePerDay;
+          if (sortBy === "rating") return b.rating - a.rating;
+          return 0;
+        }),
+    [
+      vehicles,
+      activeTab,
+      district,
+      priceRange,
+      driverOnly,
+      searchQuery,
+      sortBy,
+    ]
+  );
+
+  // Grid view is `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; list view is a
+  // single stacked column at every width.
+  const {
+    pageItems: pagedVehicles,
+    page,
+    totalPages,
+    setPage,
+    listRef,
+  } = usePagination(displayed, {
+    columns: viewMode === "grid" ? { base: 1, sm: 2, lg: 3 } : { base: 1 },
+  });
 
   const clearFilters = () => {
     setDistrict("");
@@ -214,8 +247,8 @@ export default function VehicleListing() {
           </div>
 
           {/* Date range — only show vehicles free for these dates */}
-          <div className="flex flex-wrap items-end gap-3 px-4 py-3 mb-4 bg-white border border-gray-200 rounded-xl">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap items-end gap-3 px-4 py-3 mb-4 bg-white border border-gray-200 rounded-xl">
+            <div className="w-full sm:w-auto flex-1 min-w-0">
               <label className="block mb-1 text-xs text-gray-500">
                 📅 From
               </label>
@@ -223,17 +256,17 @@ export default function VehicleListing() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
               />
             </div>
-            <div>
+            <div className="w-full sm:w-auto flex-1 min-w-0">
               <label className="block mb-1 text-xs text-gray-500">To</label>
               <input
                 type="date"
                 value={endDate}
                 min={startDate || undefined}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
               />
             </div>
             {dateRangeInvalid ? (
@@ -371,6 +404,8 @@ export default function VehicleListing() {
           </div>
           */}
 
+          <div ref={listRef} />
+
           {/* Loading */}
           {loading && (
             <div className="flex flex-col items-center justify-center gap-4 py-20 text-gray-500">
@@ -407,22 +442,31 @@ export default function VehicleListing() {
 
           {/* Grid / List */}
           {!loading && !error && displayed.length > 0 && (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-                  : "flex flex-col gap-4"
-              }
-            >
-              {displayed.map((vehicle) => (
-                <VehicleCard
-                  key={vehicle.id}
-                  vehicle={vehicle}
-                  onViewDetails={handleViewDetails}
-                  layout={viewMode}
-                />
-              ))}
-            </div>
+            <>
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+                    : "flex flex-col gap-4"
+                }
+              >
+                {pagedVehicles.map((vehicle) => (
+                  <VehicleCard
+                    key={vehicle.id}
+                    vehicle={vehicle}
+                    onViewDetails={handleViewDetails}
+                    layout={viewMode}
+                  />
+                ))}
+              </div>
+
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Vehicles"
+              />
+            </>
           )}
         </div>
       </div>

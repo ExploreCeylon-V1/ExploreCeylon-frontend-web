@@ -1,18 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import { vehicleService } from "../../services/vehicleService";
-import { useCart } from "../../context/CartContext";
+import { useCart } from "../../hooks/useCart";
 import VehicleReviews from "../VehicleReviews";
-
-const BOOKING_BASE = "http://localhost:8080/api/v1/vehicle-bookings";
-
-const SPEC_ICONS = {
-  type: { icon: "🚗", label: "Type" },
-  category: { icon: "🏷", label: "Category" },
-  seats: { icon: "👥", label: "Seats" },
-  ac: { icon: "❄️", label: "AC" },
-  driverIncluded: { icon: "🧑", label: "Driver" },
-};
+import apiClient from "../../services/api";
 
 export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const navigate = useNavigate();
@@ -32,6 +24,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
 
   useEffect(() => {
     if (!vehicleId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting drawer state for the newly selected vehicle before fetching
     setLoading(true);
     setImgIndex(0);
     setAvail(null);
@@ -56,9 +49,8 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
         pickupDate: fromDate,
         dropoffDate: toDate,
       });
-      const res = await fetch(`${BOOKING_BASE}/check-availability?${params}`);
-      const result = await res.json();
-      setAvail(result);
+      const res = await apiClient.get(`/api/v1/vehicle-bookings/check-availability?${params}`);
+      setAvail(res.data);
     } catch {
       setAvail(null);
     } finally {
@@ -86,12 +78,13 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 transition-opacity bg-black/40"
+        className="fixed inset-0 z-[1000] transition-opacity bg-black/40"
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed top-0 right-0 z-50 flex flex-col w-full h-full max-w-xl overflow-hidden bg-white shadow-2xl">
+      {/* Drawer — z-[1001] because Navbar is sticky at z-[1000] and would
+          otherwise render on top of (and hide) this panel's header. */}
+      <div className="fixed top-0 right-0 z-[1001] flex flex-col w-full h-full max-w-xl overflow-hidden bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -99,9 +92,10 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
           </h2>
           <button
             onClick={onClose}
-            className="text-2xl leading-none text-gray-400 hover:text-gray-700"
+            aria-label="Close"
+            className="flex items-center justify-center w-8 h-8 text-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-700 transition-colors"
           >
-            ×
+            <X size={20} />
           </button>
         </div>
 
@@ -323,7 +317,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                 <h4 className="mb-3 font-semibold text-gray-800">
                   🗓 Check Availability & Pricing
                 </h4>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block mb-1 text-xs text-gray-500">
                       From
@@ -335,7 +329,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                         setFromDate(e.target.value);
                         setAvail(null);
                       }}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                      className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
                     />
                   </div>
                   <div>
@@ -350,7 +344,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                         setToDate(e.target.value);
                         setAvail(null);
                       }}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                      className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
                     />
                   </div>
                 </div>

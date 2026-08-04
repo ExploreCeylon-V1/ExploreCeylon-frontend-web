@@ -36,6 +36,9 @@ import BookingPage         from "./pages/BookingPage";
 import PaymentSuccessPage  from "./pages/PaymentSuccessPage";
 import PaymentCancelPage   from "./pages/PaymentCancelPage";
 import AboutPage from "./pages/AboutPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import MaintenanceGate from "./components/MaintenanceGate";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
 // Meka athule thiyena pages walata witharai mewa apply wenne.
@@ -54,6 +57,7 @@ function MainLayout() {
 
 function App() {
   return (
+    <MaintenanceGate>
     <Router>
       <AuthProvider>
         <AuthPromptProvider>
@@ -83,6 +87,8 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* 4. Traveler-only pages (require login) */}
           <Route path="/my-trips" element={<ProtectedRoute><MyTrips /></ProtectedRoute>} />
@@ -103,6 +109,7 @@ function App() {
         </AuthPromptProvider>
       </AuthProvider>
     </Router>
+    </MaintenanceGate>
   );
 }
 

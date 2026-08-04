@@ -4,7 +4,7 @@ import guidesService from '../services/guidesService';
 import GuideReviews from '../components/GuideReviews';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 
 const PLACEHOLDER_PHOTO =
   'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=60';
@@ -67,6 +67,7 @@ const GuideDetail = () => {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchGuide sets loading/error state synchronously before its await; intentional fetch-on-mount/id-change pattern
     fetchGuide();
   }, [fetchGuide]);
 
@@ -573,7 +574,7 @@ const GuideDetail = () => {
                       setStartDate(e.target.value);
                       setBookingMessage(null);
                     }}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                   />
                 </div>
 
@@ -587,7 +588,7 @@ const GuideDetail = () => {
                       setEndDate(e.target.value);
                       setBookingMessage(null);
                     }}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                   />
                 </div>
 

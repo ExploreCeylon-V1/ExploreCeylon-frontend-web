@@ -384,6 +384,7 @@ export default function TripMapPanel({
   // Load Google + catalog (catalog cached per trip), then (re)draw the route.
   // Runs on trip change AND on any item change so edits update the map live.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- early-exit guard when maps can't load; not derivable at render time
     if (!GOOGLE_MAPS_API_KEY) { setMapStatus("nokey"); return; }
     let cancelled = false;
 
@@ -408,12 +409,12 @@ export default function TripMapPanel({
 
     run().catch(() => setMapStatus("error"));
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- drawTrip/trip are plain values recreated every render; itemsSignature + trip?.id are the deliberately curated triggers for redrawing (see comment above)
   }, [trip?.id, itemsSignature]);
 
   // Bidirectional sync (§3): re-emphasize + pan when the selected day changes.
   useEffect(() => {
     if (mapStatus === "ready") applyDayEmphasis(activeDayNumber, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDayNumber, mapStatus]);
 
   // Creates the Google map once; later redraws reuse this instance so the

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Headset } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useChat } from "../context/ChatContext";
+import { useAuth } from "../hooks/useAuth";
+import { useChat } from "../hooks/useChat";
 
 function formatTime(iso) {
   if (!iso) return "";
@@ -37,13 +37,13 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end pointer-events-none">
       {/* ── Panel ─────────────────────────────────────────── */}
       <div
         className={`mb-3 flex w-[min(23rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-black/5 bg-white shadow-2xl shadow-black/20 transition-all duration-200 origin-bottom-right ${
           isOpen
             ? "scale-100 opacity-100 pointer-events-auto"
-            : "scale-95 opacity-0 pointer-events-none"
+            : "scale-95 opacity-0 pointer-events-none hidden"
         }`}
         style={{ height: "30rem" }}
       >
@@ -136,7 +136,7 @@ export default function ChatWidget() {
       <button
         onClick={toggleChat}
         aria-label={isOpen ? "Close support chat" : "Open support chat"}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#2D6A4F] text-white shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:bg-[#235C42] hover:shadow-xl"
+        className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-[#2D6A4F] text-white shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:bg-[#235C42] hover:shadow-xl"
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
         {!isOpen && unreadCount > 0 && (

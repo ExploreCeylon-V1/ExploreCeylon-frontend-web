@@ -6,6 +6,8 @@ import bannerImage from "../assets/Banner.jpg";
 import { SRI_LANKA_DISTRICTS } from "../components/SriLankaDistricts";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 
 const RATING_OPTIONS = [
   { value: 5, label: "★★★★★", sub: "5.0" },
@@ -153,6 +155,20 @@ const Guides = () => {
     sortBy,
   ]);
 
+  // Grid view is `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; list view is a
+  // single stacked column at every width. Swapping the toggle changes the
+  // column map, so page size recomputes on the spot.
+  const {
+    pageItems: pagedGuides,
+    page,
+    totalPages,
+    setPage,
+    listRef,
+  } = usePagination(filteredGuides, {
+    columns:
+      viewMode === "grid" ? { base: 1, sm: 2, lg: 3 } : { base: 1 },
+  });
+
   const handleClearAll = () => {
     setSearchTerm("");
     setDistrict("");
@@ -216,7 +232,7 @@ const Guides = () => {
                 <p className="mb-2 text-sm font-semibold text-gray-700">
                   📅 Trip Dates
                 </p>
-                <div className="grid grid-cols-2 gap-2 mb-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-1">
                   <div>
                     <label className="block mb-1 text-xs text-gray-400">
                       From
@@ -225,7 +241,7 @@ const Guides = () => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                      className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                     />
                   </div>
                   <div>
@@ -237,7 +253,7 @@ const Guides = () => {
                       value={endDate}
                       min={startDate || undefined}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                      className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
                     />
                   </div>
                 </div>
@@ -408,7 +424,7 @@ const Guides = () => {
             </div>
 
             {/* Results */}
-            <div className="lg:col-span-3">
+            <div ref={listRef} className="lg:col-span-3">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-500">
                   Showing <strong>{filteredGuides.length}</strong> guides
@@ -474,7 +490,7 @@ const Guides = () => {
                       : "flex flex-col gap-4"
                   }
                 >
-                  {filteredGuides.map((guide) => {
+                  {pagedGuides.map((guide) => {
                     const ratingDisplay =
                       guide.rating != null ? guide.rating.toFixed(1) : "—";
                     const specialtyTags = (guide.specialties || "")
@@ -629,6 +645,15 @@ const Guides = () => {
                     );
                   })}
                 </div>
+              )}
+
+              {!loading && !error && filteredGuides.length > 0 && (
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  label="Guides"
+                />
               )}
             </div>
           </div>

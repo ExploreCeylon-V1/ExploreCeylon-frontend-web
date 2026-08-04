@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
-import { useAuth } from "./AuthContext";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { ChatContext } from "../hooks/useChat";
 import {
   getMyConversation,
   getMyMessages,
@@ -7,8 +8,6 @@ import {
   markMyConversationRead,
 } from "../services/chatService";
 import { connectChatSocket } from "../services/chatSocket";
-
-const ChatContext = createContext(null);
 
 export function ChatProvider({ children }) {
   const { isAuthenticated } = useAuth();
@@ -30,6 +29,7 @@ export function ChatProvider({ children }) {
   // Load (or lazily create) the traveler's single conversation + history once logged in.
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing chat state on logout; not derivable at render time
       setConversation(null);
       setMessages([]);
       setUnreadCount(0);
@@ -114,10 +114,4 @@ export function ChatProvider({ children }) {
       {children}
     </ChatContext.Provider>
   );
-}
-
-export function useChat() {
-  const context = useContext(ChatContext);
-  if (!context) throw new Error("useChat must be used within ChatProvider");
-  return context;
 }

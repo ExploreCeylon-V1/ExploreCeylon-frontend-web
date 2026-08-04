@@ -7,6 +7,14 @@ export default function Footer() {
   const planLinks = ["AI Trip Planner", "My Trips", "Budget Tracker", "Share Trip"];
   const supportLinks = ["About Us", "Contact", "Privacy Policy", "Terms of Service", "FAQ"];
 
+  // Auto-slugifying "Privacy Policy" / "Terms of Service" would produce
+  // /privacy-policy and /terms-of-service, but the actual routes are
+  // /privacy and /terms — override those two rather than the route names.
+  const linkPathOverrides = {
+    "Privacy Policy": "/privacy",
+    "Terms of Service": "/terms",
+  };
+
   return (
     <footer className="bg-[#0f1923] font-sans text-[#1A2035]">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-10 lg:pt-14">
@@ -48,7 +56,7 @@ export default function Footer() {
                 <li key={link}>
                   <button 
                     className="text-left text-sm leading-none text-[#8a93a2] transition-colors hover:text-white"
-                    onClick={() => navigate(`/${link.toLowerCase().replace(/ /g, '-')}`)}
+                    onClick={() => navigate(linkPathOverrides[link] || `/${link.toLowerCase().replace(/ /g, '-')}`)}
                   >
                     {link}
                   </button>

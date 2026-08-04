@@ -27,11 +27,6 @@ const DestinationDetail = () => {
   const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  useEffect(() => {
-    fetchDestination();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
   const fetchDestination = async () => {
     try {
       setLoading(true);
@@ -71,6 +66,12 @@ const DestinationDetail = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchDestination sets loading state synchronously before its await; intentional fetch-on-id-change pattern
+    fetchDestination();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (loading) {
     return (
