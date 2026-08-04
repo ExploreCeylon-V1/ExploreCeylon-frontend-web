@@ -317,7 +317,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                 <h4 className="mb-3 font-semibold text-gray-800">
                   🗓 Check Availability & Pricing
                 </h4>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block mb-1 text-xs text-gray-500">
                       From
@@ -329,7 +329,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                         setFromDate(e.target.value);
                         setAvail(null);
                       }}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                      className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
                     />
                   </div>
                   <div>
@@ -344,7 +344,7 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                         setToDate(e.target.value);
                         setAvail(null);
                       }}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                      className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
                     />
                   </div>
                 </div>

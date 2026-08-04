@@ -1701,7 +1701,7 @@ function SectionCart({ onToast }) {
                     onChange={(e) =>
                       updateDates(item.cartId, e.target.value, item.endDate)
                     }
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 outline-none focus:border-[#1a5c2a]"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 outline-none focus:border-[#1a5c2a]"
                   />
                 </div>
                 <div>
@@ -1714,7 +1714,7 @@ function SectionCart({ onToast }) {
                     onChange={(e) =>
                       updateDates(item.cartId, item.startDate, e.target.value)
                     }
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 outline-none focus:border-[#1a5c2a]"
+                    className="w-full min-w-0 max-w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 outline-none focus:border-[#1a5c2a]"
                   />
                 </div>
               </div>

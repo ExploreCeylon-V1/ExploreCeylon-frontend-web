@@ -439,7 +439,7 @@ export default function HotelsPage() {
                 type="date"
                 value={checkIn}
                 onChange={(e) => setCheckIn(e.target.value)}
-                className="w-full text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
+                className="w-full min-w-0 max-w-full text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
               />
             </div>
 
@@ -449,7 +449,7 @@ export default function HotelsPage() {
                 type="date"
                 value={checkOut}
                 onChange={(e) => setCheckOut(e.target.value)}
-                className="w-full text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
+                className="w-full min-w-0 max-w-full text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
               />
             </div>
 

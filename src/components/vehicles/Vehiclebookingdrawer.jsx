@@ -145,7 +145,7 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
           </div>
 
           {/* Dates & Times */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 Pickup Date
@@ -157,7 +157,7 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
                   setPickupDate(e.target.value);
                   setAvail(null);
                 }}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
               />
             </div>
             <div>
@@ -172,7 +172,7 @@ export default function VehicleBookingDrawer({ vehicle, onClose, onSuccess }) {
                   setDropoffDate(e.target.value);
                   setAvail(null);
                 }}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
+                className="w-full min-w-0 max-w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-600"
               />
             </div>
             <div>
