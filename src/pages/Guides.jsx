@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import guidesService from "../services/guidesService";
@@ -25,6 +25,109 @@ const SORT_OPTIONS = [
 const PLACEHOLDER_PHOTO =
   "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=60";
 
+function MultiSelectDropdown({ title, options, selected, onChange, placeholder }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleOption = (option) => {
+    if (selected.includes(option)) {
+      onChange(selected.filter((item) => item !== option));
+    } else {
+      onChange([...selected, option]);
+    }
+  };
+
+  const getLabel = () => {
+    if (selected.length === 0) return placeholder || `Select ${title}...`;
+    if (selected.length === 1) return selected[0];
+    return `${selected.length} ${title}s Selected`;
+  };
+
+  return (
+    <div className="relative mb-5" ref={dropdownRef}>
+      <p className="mb-2 text-sm font-semibold text-gray-700">{title}</p>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white text-left focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1 transition-colors"
+      >
+        <span className={selected.length > 0 ? "font-medium text-gray-900 truncate" : "text-gray-400 truncate"}>
+          {getLabel()}
+        </span>
+        <span className="ml-2 text-xs text-gray-500 transition-transform duration-200" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
+          ▼
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 max-h-60 overflow-y-auto animate-[fadeIn_0.15s_ease]">
+          {options.length > 4 && (
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Search ${title.toLowerCase()}...`}
+              className="w-full border border-gray-200 rounded-md px-2.5 py-1.5 text-xs mb-2 focus:outline-none focus:border-[#2D6A4F]"
+            />
+          )}
+
+          {selected.length > 0 && (
+            <div className="flex justify-between items-center px-2 py-1 mb-1 border-b border-gray-100 text-xs">
+              <span className="text-gray-500 font-medium">{selected.length} selected</span>
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="text-[#2D6A4F] font-semibold hover:underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {filteredOptions.length === 0 ? (
+            <p className="text-xs text-gray-400 p-2 text-center">No options found</p>
+          ) : (
+            filteredOptions.map((opt) => {
+              const isChecked = selected.includes(opt);
+              return (
+                <label
+                  key={opt}
+                  className={`flex items-center gap-2 px-2.5 py-2 text-xs rounded-md cursor-pointer transition-colors ${
+                    isChecked ? "bg-green-50 text-[#2D6A4F] font-semibold" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleOption(opt)}
+                    className="rounded border-gray-300 text-[#2D6A4F] focus:ring-[#2D6A4F] cursor-pointer"
+                  />
+                  <span className="truncate">{opt}</span>
+                </label>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const Guides = () => {
   const navigate = useNavigate();
   const [guides, setGuides] = useState([]);
@@ -33,8 +136,8 @@ const Guides = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [district, setDistrict] = useState("");
-  const [language, setLanguage] = useState("");
-  const [specialty, setSpecialty] = useState("");
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedSpecialties, setSelectedSpecialties] = useState([]);
   const [maxPrice, setMaxPrice] = useState(100);
   const [minRating, setMinRating] = useState(null);
   const [sortBy, setSortBy] = useState("rating_desc");
@@ -103,22 +206,24 @@ const Guides = () => {
       result = result.filter((g) => g.district === district);
     }
 
-    if (language) {
-      result = result.filter((g) =>
-        (g.languages || "")
+    if (selectedLanguages.length > 0) {
+      result = result.filter((g) => {
+        const gLangs = (g.languages || "")
           .split(",")
           .map((l) => l.trim())
-          .includes(language),
-      );
+          .filter(Boolean);
+        return gLangs.some((l) => selectedLanguages.includes(l));
+      });
     }
 
-    if (specialty) {
-      result = result.filter((g) =>
-        (g.specialties || "")
+    if (selectedSpecialties.length > 0) {
+      result = result.filter((g) => {
+        const gSpecs = (g.specialties || "")
           .split(",")
           .map((s) => s.trim())
-          .includes(specialty),
-      );
+          .filter(Boolean);
+        return gSpecs.some((s) => selectedSpecialties.includes(s));
+      });
     }
 
     result = result.filter((g) => (g.pricePerDay ?? 0) <= maxPrice);
@@ -148,8 +253,8 @@ const Guides = () => {
     guides,
     searchTerm,
     district,
-    language,
-    specialty,
+    selectedLanguages,
+    selectedSpecialties,
     maxPrice,
     minRating,
     sortBy,
@@ -172,8 +277,8 @@ const Guides = () => {
   const handleClearAll = () => {
     setSearchTerm("");
     setDistrict("");
-    setLanguage("");
-    setSpecialty("");
+    setSelectedLanguages([]);
+    setSelectedSpecialties([]);
     setMaxPrice(100);
     setMinRating(null);
     setSortBy("rating_desc");
@@ -310,44 +415,21 @@ const Guides = () => {
                   ))}
                 </select>
 
-                <p className="mb-2 text-sm font-semibold text-gray-700">
-                  Language
-                </p>
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {languages.map((l) => (
-                    <button
-                      key={l}
-                      type="button"
-                      onClick={() => setLanguage(language === l ? "" : l)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-colors duration-150 ${
-                        language === l
-                          ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                          : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
-                      }`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
+                <MultiSelectDropdown
+                  title="Language"
+                  options={languages}
+                  selected={selectedLanguages}
+                  onChange={setSelectedLanguages}
+                  placeholder="All Languages"
+                />
 
-                <p className="mb-2 text-sm font-semibold text-gray-700">
-                  Specialty
-                </p>
-                <div className="flex flex-col gap-1.5 mb-5">
-                  {specialties.map((s) => (
-                    <label
-                      key={s}
-                      className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={specialty === s}
-                        onChange={() => setSpecialty(specialty === s ? "" : s)}
-                      />
-                      {s}
-                    </label>
-                  ))}
-                </div>
+                <MultiSelectDropdown
+                  title="Specialty"
+                  options={specialties}
+                  selected={selectedSpecialties}
+                  onChange={setSelectedSpecialties}
+                  placeholder="All Specialties"
+                />
 
                 <p className="mb-2 text-sm font-semibold text-gray-700">
                   Max Price: ${maxPrice}/day
