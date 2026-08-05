@@ -56,7 +56,7 @@ export default function LoginPage() {
           email: data.email || "",
           role: data.role || "TRAVELER",
           avatarUrl: data.avatarUrl,
-        }, rememberMe);
+        }, rememberMe, data.refreshToken);
         navigate(redirectTo, { replace: true });
       } catch (err) {
         setError(err?.message || "Google Sign in failed.");
