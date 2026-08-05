@@ -13,11 +13,13 @@ export const REFRESH_TOKEN_KEY = "ec_traveler_refresh_token";
 
 /** Persist token + user (+ optional refresh token) in the chosen store, clearing any previous copy first. */
 export function saveAuth(token, user, remember = true, refreshToken = null) {
+  const existingRefreshToken = getRefreshToken();
+  const tokenToKeep = refreshToken || existingRefreshToken;
   clearAuth();
   const store = remember ? localStorage : sessionStorage;
   store.setItem(TOKEN_KEY, token);
   store.setItem(USER_KEY, JSON.stringify(user));
-  if (refreshToken) store.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (tokenToKeep) store.setItem(REFRESH_TOKEN_KEY, tokenToKeep);
 }
 
 /** Token from whichever store holds it (localStorage wins if both somehow set). */
