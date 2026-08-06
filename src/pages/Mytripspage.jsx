@@ -467,11 +467,17 @@ export default function MyTripsPage() {
                   onDelete={(id) =>
                     setTrips((p) => p.filter((t) => t.id !== id))
                   }
-                  onStatusChange={(updated) =>
+                  onStatusChange={(updated) => {
+                    const targetId = updated.id || updated.tripId;
                     setTrips((p) =>
-                      p.map((t) => (t.id === updated.id ? updated : t))
-                    )
-                  }
+                      p.map((t) =>
+                        t.id === targetId
+                          ? { ...t, status: updated.status || t.status }
+                          : t
+                      )
+                    );
+                    loadTrips();
+                  }}
                 />
               ))}
             </div>

@@ -86,11 +86,16 @@ export function filterTrips(trips, { activeFilter, search }) {
 }
 
 export function countByStatus(trips) {
+  if (!trips) return {};
   return {
     All: trips.length,
     DRAFT: trips.filter((t) => t.status === "DRAFT").length,
+    GENERATED: trips.filter((t) => t.status === "GENERATED").length,
+    PLANNING: trips.filter((t) => t.status === "PLANNING").length,
     CONFIRMED: trips.filter((t) => t.status === "CONFIRMED").length,
+    ACTIVE: trips.filter((t) => t.status === "ACTIVE").length,
     COMPLETED: trips.filter((t) => t.status === "COMPLETED").length,
+    CANCELLED: trips.filter((t) => t.status === "CANCELLED").length,
   };
 }
 
