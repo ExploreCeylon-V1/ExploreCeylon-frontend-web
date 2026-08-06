@@ -734,131 +734,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
   );
 }
 
-//  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
-function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
-  const [customPrompt, setCustomPrompt] = useState("");
 
-  const presets = [
-    { label: "✏️ Replace Stop", prompt: "Replace Temple of the Tooth with Ambuluwawa" },
-    { label: "➕ Add Sigiriya", prompt: "Add Sigiriya on Day 2" },
-    { label: "➖ Remove Pinnawala", prompt: "Remove Pinnawala" },
-    { label: "📅 Shift Schedule", prompt: "Move Gregory Lake to Day 3" },
-    { label: "⏰ Start 9:00 AM", prompt: "Start the trip at 9:00 AM instead of 8:00 AM" },
-    { label: "🚗 Less Driving", prompt: "Reduce driving time and optimize route" },
-    { label: "👨‍👩‍👧 Family Friendly", prompt: "Make the trip family friendly with light walking" },
-    { label: "💰 Reduce Budget", prompt: "Reduce budget target to LKR 50,000" },
-  ];
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!customPrompt.trim()) return;
-    onApplyEdit(customPrompt);
-    setCustomPrompt("");
-  }
-
-  return (
-    <div className="bg-gradient-to-r from-green-900 to-emerald-800 rounded-2xl p-5 shadow-md text-white mb-6">
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <Sparkles size={18} className="text-emerald-300 animate-pulse" />
-        <h2 className="text-sm sm:text-base font-bold text-white">Editable Trip Intelligence Engine</h2>
-        <span className="ml-auto text-3xs font-semibold bg-emerald-700/70 border border-emerald-500/40 px-2.5 py-1 rounded-full text-emerald-200">
-          AI Pipeline 13.0
-        </span>
-      </div>
-      <p className="text-xs text-emerald-100/90 mb-3 leading-relaxed">
-        Edit &amp; re-plan your trip seamlessly. Select a quick action or type custom edits below to recalculate affected day segments.
-      </p>
-
-      {/* Quick Action Presets */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {presets.map((p) => (
-          <button
-            key={p.label}
-            onClick={() => setCustomPrompt(p.prompt)}
-            disabled={disabled}
-            className="text-3xs font-semibold px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20
-                       border border-white/15 text-emerald-100 transition-colors disabled:opacity-50 text-left"
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap sm:flex-nowrap">
-        <input
-          type="text"
-          value={customPrompt}
-          onChange={(e) => setCustomPrompt(e.target.value)}
-          placeholder="e.g. Replace Temple of Tooth with Ambuluwawa, or Add Sigiriya on Day 2..."
-          disabled={disabled}
-          className="flex-1 px-3.5 py-2 rounded-xl bg-white/95 text-gray-900 placeholder-gray-400
-                     text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-400 border-none min-w-[200px]"
-        />
-        <button
-          type="submit"
-          disabled={disabled || !customPrompt.trim()}
-          className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-green-950
-                     font-bold text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-        >
-          <Sparkles size={14} /> Apply AI Edits
-        </button>
-      </form>
-    </div>
-  );
-}
-
-//  AI Narrative Card (Positioned ABOVE Trip Overview)
-function AiNarrativeCard({ trip }) {
-  const festivalDay = (trip.days || []).find(d =>
-    d.items?.some(i => i.title?.startsWith("Festival:"))
-  );
-  const gemDays = (trip.days || []).filter(d =>
-    d.items?.some(i => i.type === "GEM")
-  );
-
-  const tips = [
-    festivalDay && `Day ${festivalDay.dayNumber} is a festival day in ${festivalDay.region}! Local celebrations are active along your route.`,
-    gemDays.length > 0 && `${gemDays.length} hidden gem${gemDays.length > 1 ? "s" : ""} included along your corridor — off the beaten path favorites!`,
-    trip.travelStyle && `Itinerary optimized for ${trip.travelStyle} travel style with minimal backtracking.`,
-    "AI Engine pipeline dynamically calculated road distance matrix, time slots, and travel duration."
-  ].filter(Boolean);
-
-  return (
-    <div className="bg-white rounded-2xl border border-green-200 p-5 shadow-sm mb-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-green-50/70 rounded-bl-full opacity-60 pointer-events-none" />
-      <div className="relative z-10">
-        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-green-700" />
-            <h2 className="text-base font-bold text-gray-900">AI Narrative &amp; Travel Intelligence</h2>
-          </div>
-          <span className="text-3xs font-bold text-green-800 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-            Quality Score: 94.5 / 100
-          </span>
-        </div>
-
-        <ul className="space-y-2 mb-3">
-          {tips.map((t, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-xs text-gray-700 leading-relaxed">
-              <span className="text-green-600 font-bold text-sm shrink-0">💡</span>
-              <span>{t}</span>
-            </li>
-          ))}
-        </ul>
-
-        {gemDays.length > 0 && (
-          <Link
-            to="/hidden-gems"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-800 hover:text-green-900 underline"
-          >
-            Explore Hidden Gems details →
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-}
 
 //  Share Panel
 function SharePanel({ trip }) {
@@ -1512,17 +1388,7 @@ export default function TripDetailPage() {
 
           {activeTab === "itinerary" && (
             <>
-              {/* Editable Trip Intelligence Panel (Phase 8 & 10 Integration) */}
-              <EditableTripIntelligencePanel
-                onApplyEdit={(promptText) => {
-                  setRegenFeedback(promptText);
-                  doRegenerateWithPrompt(promptText);
-                }}
-                disabled={regenerating}
-              />
 
-              {/* AI Narrative Section (Positioned ABOVE Trip Overview) */}
-              <AiNarrativeCard trip={trip} />
 
               {/* Updated Trip Overview Section */}
               <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
