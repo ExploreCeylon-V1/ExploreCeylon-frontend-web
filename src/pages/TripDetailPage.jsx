@@ -759,7 +759,7 @@ function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
   }
 
   return (
-    <div className="bg-gradient-to-r from-green-900 to-emerald-800 rounded-2xl p-5 shadow-md text-white mb-6">
+    <div className="bg-gradient-to-r from-green-900 to-emerald-800 rounded-2xl p-5 shadow-md text-white h-full flex flex-col justify-between">
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <Sparkles size={18} className="text-emerald-300 animate-pulse" />
         <h2 className="text-sm sm:text-base font-bold text-white">Editable Trip Intelligence Engine</h2>
@@ -914,7 +914,7 @@ function TripOverviewSection({ trip, detailCatalog }) {
   byDay.sort((a, b) => a.dayNumber - b.dayNumber);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-full flex flex-col justify-between">
       <div className="flex items-center gap-2 mb-3">
         <Route size={17} className="text-green-700" />
         <h2 className="text-base font-bold text-gray-900">Trip Overview</h2>
@@ -1462,18 +1462,20 @@ export default function TripDetailPage() {
 
           {activeTab === "itinerary" && (
             <>
-              {/* Editable Trip Intelligence Panel (Phase 8 & 10 Integration) */}
-              <EditableTripIntelligencePanel
-                onApplyEdit={(promptText) => {
-                  setRegenFeedback(promptText);
-                  doRegenerateWithPrompt(promptText);
-                }}
-                disabled={regenerating}
-              />
+              {/* Responsive 2-column layout on desktop (lg), 1-column on mobile & tablet */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
+                {/* Editable Trip Intelligence Panel (Phase 8 & 10 Integration) */}
+                <EditableTripIntelligencePanel
+                  onApplyEdit={(promptText) => {
+                    setRegenFeedback(promptText);
+                    doRegenerateWithPrompt(promptText);
+                  }}
+                  disabled={regenerating}
+                />
 
-
-              {/* Updated Trip Overview Section */}
-              <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
+                {/* Updated Trip Overview Section */}
+                <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
+              </div>
 
               {/*  Mobile Itinerary/Map switch — hidden on desktop  */}
               <div className="lg:hidden sticky top-[60px] z-30 -mx-4 sm:-mx-6
