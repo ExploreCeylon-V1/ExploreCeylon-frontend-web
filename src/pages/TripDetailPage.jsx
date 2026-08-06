@@ -1387,7 +1387,7 @@ export default function TripDetailPage() {
                 </button>
               )}
 
-              {trip.status === "DRAFT" && (
+              {trip.status !== "CONFIRMED" && trip.status !== "COMPLETED" && trip.status !== "CANCELLED" && (
                 <button
                   onClick={handleConfirm}
                   disabled={confirming}

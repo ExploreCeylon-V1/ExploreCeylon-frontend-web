@@ -118,13 +118,17 @@ function TripCard({ trip, onDelete, onStatusChange }) {
                     label: "👁 View Trip",
                     onClick: () => { navigate(`/trips/${trip.id}`); setMenuOpen(false); },
                   },
-                  trip.status === "DRAFT" && {
+                  (trip.status === "DRAFT" || trip.status === "GENERATED" || trip.status === "PLANNING") && {
                     label: "✅ Mark Confirmed",
                     onClick: () => handleStatusChange("CONFIRMED"),
                   },
                   trip.status === "CONFIRMED" && {
                     label: "🏁 Mark Completed",
                     onClick: () => handleStatusChange("COMPLETED"),
+                  },
+                  (trip.status !== "CANCELLED" && trip.status !== "COMPLETED") && {
+                    label: "🚫 Cancel Trip",
+                    onClick: () => handleStatusChange("CANCELLED"),
                   },
                   { label: "🔗 Copy Share Link", onClick: handleShare },
                   {

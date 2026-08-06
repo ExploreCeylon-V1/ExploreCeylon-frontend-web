@@ -96,18 +96,28 @@ export function countByStatus(trips) {
 
 // ─── Static lookup maps ───────────────────────────────────────────────────────
 
-export const STATUS_FILTERS = ["All", "DRAFT", "CONFIRMED", "COMPLETED"];
+export const STATUS_FILTERS = ["All", "DRAFT", "GENERATED", "PLANNING", "CONFIRMED", "ACTIVE", "COMPLETED", "CANCELLED"];
 
 export const STATUS_META = {
-  DRAFT:     { label: "Draft",     emoji: "📝", color: "text-gray-500",  bg: "bg-gray-100"  },
+  DRAFT:     { label: "Draft",     emoji: "📝", color: "text-gray-600",  bg: "bg-gray-100"  },
+  GENERATED: { label: "Generated", emoji: "⚡", color: "text-amber-800", bg: "bg-amber-100" },
+  PLANNING:  { label: "Planning",  emoji: "✏️", color: "text-emerald-800", bg: "bg-emerald-100" },
   CONFIRMED: { label: "Confirmed", emoji: "✅", color: "text-green-800", bg: "bg-green-100" },
-  COMPLETED: { label: "Completed", emoji: "✔️", color: "text-blue-800",  bg: "bg-blue-100"  },
+  STARTED:   { label: "Started",   emoji: "🚗", color: "text-purple-800", bg: "bg-purple-100" },
+  ACTIVE:    { label: "Active",    emoji: "🚗", color: "text-purple-800", bg: "bg-purple-100" },
+  COMPLETED: { label: "Completed", emoji: "🏁", color: "text-blue-800",  bg: "bg-blue-100"  },
+  CANCELLED: { label: "Cancelled", emoji: "🚫", color: "text-red-800",   bg: "bg-red-100"   },
+  ARCHIVED:  { label: "Archived",  emoji: "📦", color: "text-gray-500",  bg: "bg-gray-100"  },
 };
 
 export const FILTER_LABEL = {
   DRAFT: "Draft",
+  GENERATED: "Generated",
+  PLANNING: "Planning",
   CONFIRMED: "Confirmed",
   COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
 };
 
 export const STYLE_EMOJI = {
