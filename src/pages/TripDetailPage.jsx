@@ -736,6 +736,80 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
 
 
+//  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
+function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
+  const [customPrompt, setCustomPrompt] = useState("");
+
+  const presets = [
+    { label: "✏️ Replace Stop", prompt: "Replace Temple of the Tooth with Ambuluwawa" },
+    { label: "➕ Add Sigiriya", prompt: "Add Sigiriya on Day 2" },
+    { label: "➖ Remove Pinnawala", prompt: "Remove Pinnawala" },
+    { label: "📅 Shift Schedule", prompt: "Move Gregory Lake to Day 3" },
+    { label: "⏰ Start 9:00 AM", prompt: "Start the trip at 9:00 AM instead of 8:00 AM" },
+    { label: "🚗 Less Driving", prompt: "Reduce driving time and optimize route" },
+    { label: "👨‍👩‍👧 Family Friendly", prompt: "Make the trip family friendly with light walking" },
+    { label: "💰 Reduce Budget", prompt: "Reduce budget target to LKR 50,000" },
+  ];
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!customPrompt.trim()) return;
+    onApplyEdit(customPrompt);
+    setCustomPrompt("");
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-green-900 to-emerald-800 rounded-2xl p-5 shadow-md text-white mb-6">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <Sparkles size={18} className="text-emerald-300 animate-pulse" />
+        <h2 className="text-sm sm:text-base font-bold text-white">Editable Trip Intelligence Engine</h2>
+        <span className="ml-auto text-3xs font-semibold bg-emerald-700/70 border border-emerald-500/40 px-2.5 py-1 rounded-full text-emerald-200">
+          AI Pipeline 13.0
+        </span>
+      </div>
+      <p className="text-xs text-emerald-100/90 mb-3 leading-relaxed">
+        Edit &amp; re-plan your trip seamlessly. Select a quick action or type custom edits below to recalculate affected day segments.
+      </p>
+
+      {/* Quick Action Presets */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            onClick={() => setCustomPrompt(p.prompt)}
+            disabled={disabled}
+            className="text-3xs font-semibold px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20
+                       border border-white/15 text-emerald-100 transition-colors disabled:opacity-50 text-left"
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap sm:flex-nowrap">
+        <input
+          type="text"
+          value={customPrompt}
+          onChange={(e) => setCustomPrompt(e.target.value)}
+          placeholder="e.g. Replace Temple of Tooth with Ambuluwawa, or Add Sigiriya on Day 2..."
+          disabled={disabled}
+          className="flex-1 px-3.5 py-2 rounded-xl bg-white/95 text-gray-900 placeholder-gray-400
+                     text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-400 border-none min-w-[200px]"
+        />
+        <button
+          type="submit"
+          disabled={disabled || !customPrompt.trim()}
+          className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-green-950
+                     font-bold text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+        >
+          <Sparkles size={14} /> Apply AI Edits
+        </button>
+      </form>
+    </div>
+  );
+}
+
 //  Share Panel
 function SharePanel({ trip }) {
   function handleShare() {
@@ -1388,6 +1462,14 @@ export default function TripDetailPage() {
 
           {activeTab === "itinerary" && (
             <>
+              {/* Editable Trip Intelligence Panel (Phase 8 & 10 Integration) */}
+              <EditableTripIntelligencePanel
+                onApplyEdit={(promptText) => {
+                  setRegenFeedback(promptText);
+                  doRegenerateWithPrompt(promptText);
+                }}
+                disabled={regenerating}
+              />
 
 
               {/* Updated Trip Overview Section */}
