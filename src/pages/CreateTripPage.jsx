@@ -6,6 +6,8 @@ import tipImg from "../assets/trip_img_2.png";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripGenerationLoader from '../components/TripGenerationLoader';
+import plannerService from '../services/plannerService';
+import PlannerResultView from '../components/PlannerResultView';
 
 // ── Constants ──────────────────────────────────────────────
 const TRAVEL_STYLES = [
@@ -229,32 +231,39 @@ export default function CreateTripPage() {
     setGenError(null);
     setAiGenerating(true);
     try {
-      let tripId = pendingTripId;
-      if (!tripId) {
-        const trip = await createTrip(buildPayload(true));
-        tripId = trip.id;
-        setPendingTripId(tripId);
-      }
+      const tripDays = startDate && endDate
+        ? Math.round(Math.abs(new Date(endDate) - new Date(startDate)) / 86400000) + 1
+        : 2;
 
-      const { generateAiItinerary } = await import("../services/tripService");
-      await generateAiItinerary(tripId, {
-        startDate,
-        endDate,
-        travelStyle:   travelStyle[0],
-        travelStyles:  travelStyle,
-        budgetRange,
-        groupSize,
-        regions:       [toLocation.trim()],
-        interests:     [],
-        startingPoint: fromLocation.trim(),
-        fromLocation:  fromLocation.trim(),
-        toLocation:    toLocation.trim(),
-        specialNotes:  specialNotes.trim() || null,
+      const plannerReq = {
+        origin: fromLocation.trim(),
+        destination: toLocation.trim(),
+        tripDays,
+        budget: budgetRange,
+        travelStyle: travelStyle[0] || 'RELAXED',
+        groupSize: Number(groupSize) || 2,
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        preferences: travelStyle,
+        specialNotes: specialNotes.trim() || null,
+      };
+
+      const result = await plannerService.generateAndSavePlanner({
+        plannerRequest: plannerReq,
+        customTripTitle: `${fromLocation.trim()} to ${toLocation.trim()} Trip`,
+        autoConfirm: true,
       });
-      navigate(`/trips/${tripId}`);
+
+      if (result && result.tripId) {
+        navigate(`/trips/${result.tripId}`);
+      } else {
+        setAiGenerating(false);
+      }
     } catch (e) {
-      // Keep the overlay mounted and show the real reason with a retry.
-      setGenError(e.message || "AI generation failed. Please try again.");
+      setGenError(
+        e.response?.data?.message ||
+        e.message ||
+        "Unable to generate itinerary. Please try again."
+      );
     }
   }
 
