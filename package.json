@@ -17,9 +17,11 @@
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.18.0",
     "jspdf": "^4.2.1",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.21.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.17.0",
     "sockjs-client": "^1.6.1"
   },
