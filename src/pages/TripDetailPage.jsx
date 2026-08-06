@@ -1,7 +1,7 @@
 // TripDetailPage.jsx
 // Shows full AI-generated itinerary with day cards, map sidebar, stats
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
@@ -736,7 +736,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
 //  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
 function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
-  const [customPrompt, setCustomPrompt] = React.useState("");
+  const [customPrompt, setCustomPrompt] = useState("");
 
   const presets = [
     { label: "✏️ Replace Stop", prompt: "Replace Temple of the Tooth with Ambuluwawa" },
