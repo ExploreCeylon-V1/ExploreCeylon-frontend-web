@@ -7,7 +7,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripGenerationLoader from '../components/TripGenerationLoader';
 import plannerService from '../services/plannerService';
-import PlannerResultView from '../components/PlannerResultView';
 
 // ── Constants ──────────────────────────────────────────────
 const TRAVEL_STYLES = [
