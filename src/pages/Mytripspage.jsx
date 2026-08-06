@@ -8,6 +8,7 @@ import {
   fetchMyTrips,
   deleteTrip,
   updateTripStatus,
+  restoreTrip,
   buildShareUrl,
   formatDateRange,
   countDays,
@@ -61,6 +62,16 @@ function TripCard({ trip, onDelete, onStatusChange }) {
       onStatusChange(updated);
     } catch {
       alert("Status update failed");
+    }
+    setMenuOpen(false);
+  }
+
+  async function handleRestore() {
+    try {
+      const updated = await restoreTrip(trip.id, token);
+      onStatusChange(updated);
+    } catch {
+      alert("Restore trip failed");
     }
     setMenuOpen(false);
   }
@@ -125,6 +136,10 @@ function TripCard({ trip, onDelete, onStatusChange }) {
                   trip.status === "CONFIRMED" && {
                     label: "🏁 Mark Completed",
                     onClick: () => handleStatusChange("COMPLETED"),
+                  },
+                  trip.status === "CANCELLED" && {
+                    label: "↺ Restore Trip",
+                    onClick: handleRestore,
                   },
                   (trip.status !== "CANCELLED" && trip.status !== "COMPLETED") && {
                     label: "🚫 Cancel Trip",

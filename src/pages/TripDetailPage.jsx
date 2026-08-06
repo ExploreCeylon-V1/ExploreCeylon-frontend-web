@@ -18,11 +18,12 @@ import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
 import { downloadTripPdf } from "../utils/tripPdf";
+import { fetchTripActivityLogs } from "../services/Mytripsservice";
 import {
   Calendar, Wallet, MapPin, FileText, ChevronDown,
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
   PartyPopper, Lightbulb, Sunrise, Sun, Moon,
-  Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download,
+  Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download, History,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -1027,6 +1028,28 @@ export default function TripDetailPage() {
   const [regenerating,  setRegenerating]  = useState(false);
   const [regenError,    setRegenError]    = useState(null);
 
+  // Activity Timeline (§1)
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [loadingLogs,  setLoadingLogs]  = useState(false);
+
+  async function toggleTimeline() {
+    if (!timelineOpen) {
+      setLoadingLogs(true);
+      setTimelineOpen(true);
+      try {
+        const logs = await fetchTripActivityLogs(id, token);
+        setActivityLogs(logs);
+      } catch (err) {
+        console.error("Failed loading activity logs", err);
+      } finally {
+        setLoadingLogs(false);
+      }
+    } else {
+      setTimelineOpen(false);
+    }
+  }
+
   async function loadTrip() {
     setLoading(true);
     setError(null);
@@ -1376,6 +1399,15 @@ export default function TripDetailPage() {
                 <Download size={15} /> Download PDF
               </button>
 
+              <button
+                onClick={toggleTimeline}
+                className="flex items-center gap-1.5 px-4 py-2.5 border
+                           border-gray-200 rounded-xl text-sm font-medium
+                           text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <History size={15} /> Timeline
+              </button>
+
               {trip.aiGenerated && (
                 <button
                   onClick={() => { setRegenFeedback(""); setRegenOpen(true); }}
@@ -1549,6 +1581,60 @@ export default function TripDetailPage() {
 
         </div>
       </div>
+
+      {/* Activity Timeline Modal */}
+      {timelineOpen && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setTimelineOpen(false)} />
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+              <div className="flex items-center gap-2">
+                <History size={18} className="text-green-700" />
+                <h2 className="text-lg font-bold text-gray-900">Trip Activity Timeline</h2>
+              </div>
+              <button
+                onClick={() => setTimelineOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-4 pr-1">
+              {loadingLogs ? (
+                <p className="text-sm text-gray-500 text-center py-6">Loading activity history...</p>
+              ) : activityLogs.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <p className="text-sm">No activity recorded yet for this trip.</p>
+                </div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div key={log.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="w-8 h-8 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-xs shrink-0">
+                      ⚡
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                          {log.actionType.replace("_", " ")}
+                        </span>
+                        <span className="text-3xs text-gray-400">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-snug">{log.description}</p>
+                      {log.performedBy && (
+                        <p className="text-3xs text-gray-400 mt-1">By: {log.performedBy}</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

@@ -118,7 +118,41 @@ export const FILTER_LABEL = {
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
 };
-};
+
+export async function restoreTrip(tripId, token) {
+  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/restore`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Restore trip failed");
+  return res.json();
+}
+
+export async function fetchTripActivityLogs(tripId, token) {
+  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/activity-logs`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function revokeShareToken(tripId, token) {
+  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/share/revoke`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Revoke share failed");
+  return res.json();
+}
+
+export async function regenerateShareToken(tripId, token) {
+  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/share/regenerate`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Regenerate share failed");
+  return res.json();
+}
 
 export const STYLE_EMOJI = {
   ADVENTURE:   "🏔️",
