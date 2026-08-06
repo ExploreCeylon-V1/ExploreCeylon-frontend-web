@@ -78,8 +78,11 @@ function bucketItemsIntoSlots(items) {
 
 const STATUS_META = {
   DRAFT:     { label: "DRAFT",     color: "text-gray-500 bg-gray-100" },
+  GENERATED: { label: "GENERATED", color: "text-purple-700 bg-purple-100" },
   CONFIRMED: { label: "CONFIRMED", color: "text-green-700 bg-green-100" },
+  ACTIVE:    { label: "ACTIVE",    color: "text-amber-700 bg-amber-100" },
   COMPLETED: { label: "COMPLETED", color: "text-blue-700 bg-blue-100" },
+  CANCELLED: { label: "CANCELLED", color: "text-red-700 bg-red-100" },
 };
 
 //  Helpers 
