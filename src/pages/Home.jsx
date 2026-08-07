@@ -363,12 +363,6 @@ export default function Home() {
               >
                 🚀 Generate My Trip with AI →
               </button>
-              <button
-                onClick={() => navigate("/trips/new?mode=manual")}
-                className="px-6 py-3 text-sm font-semibold text-white border rounded-lg border-white/30 hover:bg-white/10"
-              >
-                📝 Plan Manually Instead
-              </button>
             </div>
             <p className="mt-3 text-xs text-stone-400">Free to use • No credit card required</p>
           </div>

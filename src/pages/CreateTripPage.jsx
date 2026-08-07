@@ -523,15 +523,6 @@ export default function CreateTripPage() {
                   </>
                 )}
               </button>
-
-              <button
-                type="button"
-                onClick={() => handleSubmit(false)}
-                disabled={loading || aiGenerating || !isValid()}
-                className="w-full py-3 border border-slate-200 bg-white text-slate-600 rounded-2xl text-xs font-semibold hover:border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Create Manually (Plan Yourself)
-              </button>
             </div>
 
             {!isValid() && (
