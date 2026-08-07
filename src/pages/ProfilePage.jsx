@@ -13,6 +13,7 @@ import { parseAuthError } from "../utils/authError";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SignOutModal from "../components/SignOutModal";
+import apiClient from "../services/api";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -888,9 +889,8 @@ function SectionTrips({ token }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v1/trips/my`, { headers: authHeader(token) })
-      .then((r) => r.json())
-      .then(setTrips)
+    apiClient.get("/api/v1/trips/my")
+      .then((r) => setTrips(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [token]);
@@ -1087,15 +1087,11 @@ function SectionBookings({ token, user, onToast }) {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_BASE}/api/v1/guide-bookings/my`, {
-        headers: authHeader(token),
-      })
-        .then((r) => (r.ok ? r.json() : []))
+      apiClient.get("/api/v1/guide-bookings/my")
+        .then((r) => r.data)
         .catch(() => []),
-      fetch(`${API_BASE}/api/v1/vehicle-bookings/my`, {
-        headers: authHeader(token),
-      })
-        .then((r) => (r.ok ? r.json() : []))
+      apiClient.get("/api/v1/vehicle-bookings/my")
+        .then((r) => r.data)
         .catch(() => []),
     ])
       .then(([gb, vb]) => {
@@ -1808,18 +1804,14 @@ export default function ProfilePage() {
       .catch(() => {});
 
     Promise.all([
-      fetch(`${API_BASE}/api/v1/trips/my`, { headers: authHeader(token) })
-        .then((r) => (r.ok ? r.json() : []))
+      apiClient.get("/api/v1/trips/my")
+        .then((r) => r.data)
         .catch(() => []),
-      fetch(`${API_BASE}/api/v1/guide-bookings/my`, {
-        headers: authHeader(token),
-      })
-        .then((r) => (r.ok ? r.json() : []))
+      apiClient.get("/api/v1/guide-bookings/my")
+        .then((r) => r.data)
         .catch(() => []),
-      fetch(`${API_BASE}/api/v1/vehicle-bookings/my`, {
-        headers: authHeader(token),
-      })
-        .then((r) => (r.ok ? r.json() : []))
+      apiClient.get("/api/v1/vehicle-bookings/my")
+        .then((r) => r.data)
         .catch(() => []),
     ]).then(([trips, gb, vb]) => {
       setStats({

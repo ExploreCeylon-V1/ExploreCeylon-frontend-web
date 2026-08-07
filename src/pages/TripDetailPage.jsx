@@ -384,16 +384,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
           notes: suggestion.district };
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/trips/${tripId}/days/${day.id}/items`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!res.ok) throw new Error();
-      const newItem = await res.json();
+      const newItem = await addItemToDay(tripId, day.id, payload);
       onItemAdded(day.id, newItem);
       setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
     } catch {
