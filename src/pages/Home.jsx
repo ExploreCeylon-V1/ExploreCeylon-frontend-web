@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"; // 👈 මේ පේළිය ත�
 import { Link, useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import heroImage from "../assets/hero-bg.webp";
+import homeEventBg from "../assets/home_event_background.jpg";
 
 import destinationsService from "../services/destinationsService";
 import guidesService from "../services/guidesService";
@@ -470,57 +471,101 @@ export default function Home() {
       </div>
 
       {/* ══════════════════════════ UPCOMING EVENTS ══════════════════════════ */}
-      <div className="px-4 py-16 bg-stone-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      <div className="relative my-10 mx-4 sm:mx-6 lg:mx-auto max-w-7xl overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-10 shadow-2xl">
+        {/* Background Image Layer */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
+          style={{ backgroundImage: `url(${homeEventBg})` }}
+        />
+        
+        {/* Warm Dark/Gold Overlay - Engineered for maximum visual appeal & high text contrast */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/85 via-slate-900/75 to-slate-950/85 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/60" />
+
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold text-stone-900">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/15 px-3.5 py-1 text-3xs font-bold uppercase tracking-widest text-amber-300 mb-2.5">
+                <span>✨</span> Sri Lanka Festivals & Seasons
+              </div>
+              <h2 className="flex items-center gap-2.5 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 📅 Upcoming Sri Lanka Events
               </h2>
-              <p className="mt-1 text-sm text-stone-500">Plan around festivals and seasons</p>
+              <p className="mt-1 text-xs sm:text-sm text-slate-200/90 font-medium max-w-lg">
+                Plan your AI trip around historic pageants, beach kite festivals & seasonal cultural events
+              </p>
             </div>
-            <Link to="/events" className="flex items-center text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-              View Full Calendar <span className="ml-1">›</span>
+
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-full px-4 py-2 transition-all backdrop-blur-md shadow-xs active:scale-95"
+            >
+              <span>View Full Calendar</span>
+              <span className="text-base leading-none">›</span>
             </Link>
           </div>
 
+          {/* Cards Carousel */}
           {loadingEvents ? (
-            <div className="py-12 text-center text-stone-400">Loading events...</div>
+            <div className="py-16 text-center text-slate-300 font-semibold text-xs flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+              <span>Loading upcoming Sri Lankan events...</span>
+            </div>
           ) : (
-            <div className="flex gap-4 pb-2 overflow-x-auto">
+            <div className="flex gap-5 pb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {events.map((ev) => (
-                <div key={ev.id} className="min-w-[220px] bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
-                  <div className="relative h-28">
-                    <img
-                      src={ev.imageUrls?.[0]}
-                      alt={ev.title}
-                      loading="lazy"
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://placehold.co/400x200?text=" + encodeURIComponent(ev.title || "Event");
-                      }}
-                    />
-                    <span className="absolute px-2 py-0.5 text-3xs font-semibold rounded-full top-2 left-2 bg-white/90 text-stone-700">
-                      {ev.category}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-stone-400">
-                        {ev.startDate ? new Date(ev.startDate).toLocaleDateString("en-US", { month: "short" }) : ""}
+                <div
+                  key={ev.id}
+                  className="group min-w-[240px] max-w-[260px] flex-1 flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+                >
+                  <div>
+                    {/* Image Container with Fallback */}
+                    <div className="relative h-32 w-full overflow-hidden bg-slate-100">
+                      <img
+                        src={ev.imageUrls?.[0] || "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=500&q=80"}
+                        alt={ev.title}
+                        loading="lazy"
+                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=500&q=80";
+                        }}
+                      />
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider rounded-full bg-slate-900/80 text-amber-300 border border-amber-300/30 backdrop-blur-md shadow-xs">
+                        {ev.category || "FESTIVAL"}
                       </span>
                     </div>
-                    <h3 className="mb-1 text-sm font-bold text-stone-900">{ev.title}</h3>
-                    <p className="mb-1 text-xs text-stone-500">📍 {ev.location || ev.region}</p>
-                    <p className="mb-3 text-xs text-stone-400">📆 {formatEventRange(ev.startDate, ev.endDate)}</p>
+
+                    {/* Body */}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-3xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                          {ev.startDate ? new Date(ev.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Upcoming"}
+                        </span>
+                      </div>
+                      <h3 className="mb-1.5 text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-800 transition-colors">
+                        {ev.title}
+                      </h3>
+                      <p className="mb-1 text-xs font-semibold text-slate-600 truncate">
+                        📍 {ev.location || ev.region || "Sri Lanka"}
+                      </p>
+                      <p className="mb-3 text-3xs text-slate-400 font-medium">
+                        📆 {formatEventRange(ev.startDate, ev.endDate)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Footer Action Button */}
+                  <div className="p-4 pt-0">
                     <button
                       onClick={() => navigate(`/trips/new?eventId=${ev.id}`)}
-                      className="w-full py-1.5 text-xs font-semibold border rounded-lg text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                      className="w-full py-2 px-3 text-xs font-bold rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
                     >
-                      + Add to Trip
+                      <span>+ Add to Trip</span>
                     </button>
                   </div>
+
                 </div>
               ))}
             </div>
