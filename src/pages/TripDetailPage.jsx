@@ -521,7 +521,6 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
   );
 }
 
-//  Day Card 
 function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
                    isActive, onClick, detailCatalog, dayIndex }) {
   const [deletingId, setDeletingId] = useState(null);
@@ -546,196 +545,219 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
   }
 
   return (
-    <>
-      <div className={`border rounded-2xl overflow-hidden transition-all
-                       ${isActive ? `${color.border} shadow-md` : "border-gray-200"}`}>
-
-        {/*  Day header  */}
-        <button
-          onClick={onClick}
-          className="w-full flex items-center justify-between px-5 py-4
-                     hover:bg-gray-50 transition-colors text-left"
-        >
-          <div className="flex items-center gap-4 flex-wrap">
-            {isActive ? (
-              <span className={`text-sm font-bold ${color.text}`}>
-                DAY {day.dayNumber}
-              </span>
-            ) : (
-              <span className={`text-xs font-bold text-white px-2.5 py-1
-                                rounded-full ${color.bg}`}>
-                DAY {day.dayNumber}
-              </span>
-            )}
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Calendar size={13} className="text-gray-400" />
-              <span>{formatDateShort(day.date)}</span>
+    <div
+      className={`bg-white rounded-3xl border overflow-hidden transition-all duration-300 ${
+        isActive ? `${color.border} shadow-md ring-1 ring-emerald-500/20` : "border-slate-200/90 hover:border-slate-300 shadow-2xs"
+      }`}
+    >
+      {/*  Day header  */}
+      <button
+        onClick={onClick}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50/80 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap min-w-0">
+          <span
+            className={`text-xs font-black text-white px-3 py-1 rounded-full shadow-2xs ${color.bg}`}
+          >
+            DAY {day.dayNumber}
+          </span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+            <Calendar size={13} className="text-emerald-700" />
+            <span>{formatDateShort(day.date)}</span>
+          </div>
+          {day.region && (
+            <div className="flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200/60">
+              <MapPin size={13} className="text-emerald-700" />
+              <span>{day.region}</span>
             </div>
-            {day.region && (
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <MapPin size={13} className="text-gray-400" />
-                <span className="font-medium">{day.region}</span>
-              </div>
-            )}
-            {day.theme && (
-              <div className="flex items-center gap-1 text-xs text-gray-400">
-                <span>{day.theme}</span>
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs text-gray-400">
-              {(day.items || []).length} items -{" "}
-              Day total: ${dayTotal.toFixed(2)}
+          )}
+          {day.theme && (
+            <span className="text-xs font-medium text-slate-400 hidden sm:inline-block">
+              • {day.theme}
             </span>
-            <ChevronDown size={16}
-              className={`text-gray-400 transition-transform
-                         ${isActive ? "rotate-180" : ""}`} />
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0 ml-2">
+          <span className="text-xs font-extrabold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+            ${dayTotal.toFixed(2)}
+          </span>
+          <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-emerald-100 transition-colors">
+            <ChevronDown
+              size={16}
+              className={`transition-transform duration-300 ${
+                isActive ? "rotate-180 text-emerald-800" : ""
+              }`}
+            />
           </div>
-        </button>
+        </div>
+      </button>
 
-        {/*  Day body (expanded)  */}
-        {isActive && (
-          <div className="px-5 pb-5 border-t border-gray-100">
+      {/*  Day body (expanded)  */}
+      {isActive && (
+        <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-slate-100 bg-slate-50/40">
 
-            {/* Festival banner */}
-            {day.items?.some(i => i.title?.startsWith("Festival:")) && (
-              <div className="mt-3 mb-3 flex items-center gap-1.5 bg-yellow-50
-                              border border-yellow-200 rounded-lg px-3 py-2
-                              text-xs text-yellow-800 font-medium">
-                <PartyPopper size={13} className="flex-shrink-0" />
-                {day.items.find(i => i.title?.startsWith("Festival:"))?.title
-                  .replace("Festival: ", "")} nearby!
+          {/* Festival banner */}
+          {day.items?.some(i => i.title?.startsWith("Festival:")) && (
+            <div className="mt-3 mb-4 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-3 text-xs text-amber-950 font-bold shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0">
+                <PartyPopper size={16} />
               </div>
-            )}
+              <div className="min-w-0">
+                <p className="font-extrabold text-amber-950 text-xs sm:text-sm">
+                  {day.items.find(i => i.title?.startsWith("Festival:"))?.title.replace("Festival: ", "")} nearby!
+                </p>
+                <p className="text-3xs text-amber-800/90 font-medium">
+                  Special cultural festival integrated into today's itinerary.
+                </p>
+              </div>
+            </div>
+          )}
 
-            {/* Tips */}
-            {day.tips && (
-              <p className="mt-3 mb-4 flex items-start gap-1.5 text-xs
-                            text-gray-400 italic">
-                <Lightbulb size={13} className="flex-shrink-0 mt-0.5" />
-                <span>{day.tips}</span>
-              </p>
-            )}
+          {/* Tips */}
+          {day.tips && (
+            <div className="mt-3 mb-4 flex items-start gap-2 text-xs text-slate-600 bg-emerald-50/80 border border-emerald-100 rounded-xl p-3">
+              <Lightbulb size={15} className="text-emerald-700 shrink-0 mt-0.5" />
+              <p className="italic font-medium leading-relaxed">{day.tips}</p>
+            </div>
+          )}
 
-            {/* Time-slotted items (§2): Morning / Afternoon / Evening */}
-            {(day.items || []).length > 0 && (
-              <div className="mb-4 space-y-4">
-                {TIME_SLOTS.map((slot, slotIdx) => {
-                  const slotItems = slotGroups[slotIdx] || [];
-                  if (!slotItems.length) return null;
-                  return (
-                    <div key={slot.key}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <slot.Icon size={14} className={color.text} />
-                        <p className="text-xs font-bold text-gray-600 uppercase
-                                      tracking-wide">
-                          {slot.label}
-                        </p>
-                        <span className="text-2xs text-gray-300">
-                          {slot.time}
-                        </span>
+          {/* Time-slotted items (§2): Morning / Afternoon / Evening */}
+          {(day.items || []).length > 0 && (
+            <div className="mb-5 space-y-5">
+              {TIME_SLOTS.map((slot, slotIdx) => {
+                const slotItems = slotGroups[slotIdx] || [];
+                if (!slotItems.length) return null;
+                return (
+                  <div key={slot.key}>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className={`p-1 rounded-lg bg-white shadow-2xs border border-slate-100 ${color.text}`}>
+                        <slot.Icon size={14} />
                       </div>
-                      <div className="space-y-2">
-                        {slotItems.map(item => {
-                          const meta = ITEM_TYPE_META[item.type] || ITEM_TYPE_META.ACTIVITY;
-                          const match = resolveItemMatch(item, detailCatalog);
-                          const detailLink = match?.link || null;
-                          const image = match?.image || PLACEHOLDER_ITEM_IMAGE;
-                          return (
-                            <div key={item.id}
-                              className="flex items-center gap-3 bg-gray-50
-                                         rounded-xl px-4 py-3">
-                              {/* Photo */}
-                              <img
-                                src={image}
-                                alt={item.title}
-                                className="w-14 h-14 rounded-lg object-cover
-                                           flex-shrink-0 bg-gray-200"
-                                onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
-                              />
+                      <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                        {slot.label}
+                      </p>
+                      <span className="text-3xs font-semibold text-slate-400">
+                        • {slot.time}
+                      </span>
+                    </div>
+                    <div className="space-y-2.5">
+                      {slotItems.map(item => {
+                        const meta = ITEM_TYPE_META[item.type] || ITEM_TYPE_META.ACTIVITY;
+                        const match = resolveItemMatch(item, detailCatalog);
+                        const detailLink = match?.link || null;
+                        const image = match?.image || PLACEHOLDER_ITEM_IMAGE;
+                        const isFestivalItem = item.title?.startsWith("Festival:") || match?.kind === "EVENT";
+                        const displayTitle = cleanItemTitle(item.title);
 
-                              {/* Title + type */}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-800 truncate">
-                                  {item.title}
-                                </p>
-                                <p className="text-xs text-gray-400">{meta.label}</p>
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white border border-slate-100 rounded-2xl p-3.5 shadow-2xs hover:shadow-md transition-all group"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden bg-slate-100 relative shadow-2xs">
+                                <img
+                                  src={image}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                  onError={e => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
+                                />
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                  {isFestivalItem ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200/80">
+                                      <PartyPopper size={11} /> Festival & Event
+                                    </span>
+                                  ) : match?.kind === "GEM" ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200/80">
+                                      <Gem size={11} /> Hidden Gem
+                                    </span>
+                                  ) : match?.kind === "DESTINATION" ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-200/80">
+                                      <Compass size={11} /> Destination
+                                    </span>
+                                  ) : (
+                                    <span className={`inline-block px-2.5 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider ${meta.color}`}>
+                                      {meta.label}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h4 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-emerald-800 transition-colors line-clamp-1">
+                                  {displayTitle}
+                                </h4>
+
                                 {item.notes && (
-                                  <p className="text-xs text-gray-400 mt-0.5 italic">
-                                    {item.notes}
+                                  <p className="text-xs font-semibold text-slate-500 flex items-center gap-1 mt-0.5 line-clamp-1">
+                                    <MapPin size={12} className="text-emerald-700 shrink-0" /> {item.notes}
                                   </p>
                                 )}
                               </div>
+                            </div>
 
-                              {/* Cost + details link */}
-                              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                <span className="text-sm font-medium text-gray-700
-                                                 whitespace-nowrap">
-                                  {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Free"}
-                                </span>
-                                {detailLink && (
-                                  <Link
-                                    to={detailLink}
-                                    className="text-2xs font-semibold text-green-800
-                                               hover:text-green-900 hover:underline
-                                               whitespace-nowrap"
-                                  >
-                                    View Details
-                                  </Link>
-                                )}
-                              </div>
+                            <div className="flex items-center gap-2 self-end sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end border-slate-100">
+                              <span className="text-xs sm:text-sm font-extrabold text-slate-800 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 whitespace-nowrap">
+                                {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Included"}
+                              </span>
 
-                              {/* Delete */}
+                              {detailLink && (
+                                <Link
+                                  to={detailLink}
+                                  className="text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-all whitespace-nowrap"
+                                >
+                                  View Details →
+                                </Link>
+                              )}
+
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
                                 disabled={deletingId === item.id}
-                                className="w-7 h-7 flex items-center justify-center
-                                           rounded-lg text-gray-400 hover:bg-red-50
-                                           hover:text-red-500 transition-colors
-                                           disabled:opacity-40 flex-shrink-0"
-                                title="Remove item"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                                title="Remove Item"
                               >
-                                {deletingId === item.id ? "..." : "x"}
+                                {deletingId === item.id ? (
+                                  <div className="w-4 h-4 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Trash2 size={16} />
+                                )}
                               </button>
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Nearby suggestions to add */}
-            <AddNearbySection
-              day={day}
-              trip={trip}
-              tripId={tripId}
-              token={token}
-              detailCatalog={detailCatalog}
-              onItemAdded={onItemAdded}
-            />
-
-            {/* Day total footer */}
-            <div className="mt-4 pt-3 border-t border-gray-100 flex
-                            justify-between items-center">
-              <span className="text-sm font-semibold text-gray-700">
-                Day Total:
-              </span>
-              <span className={`text-base font-bold ${color.text}`}>
-                ${dayTotal.toFixed(2)}
-              </span>
+                  </div>
+                );
+              })}
             </div>
+          )}
+
+          {/* Nearby suggestions to add */}
+          <AddNearbySection
+            day={day}
+            trip={trip}
+            tripId={tripId}
+            token={token}
+            detailCatalog={detailCatalog}
+            onItemAdded={onItemAdded}
+          />
+
+          {/* Day total footer */}
+          <div className="mt-4 pt-3 border-t border-slate-200/80 flex justify-between items-center">
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+              Day {day.dayNumber} Subtotal
+            </span>
+            <span className={`text-base font-black ${color.text}`}>
+              ${dayTotal.toFixed(2)}
+            </span>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
-
-
 
 //  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
 function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
@@ -760,51 +782,48 @@ function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
   }
 
   return (
-    <div className="bg-gradient-to-r from-green-900 to-emerald-800 rounded-2xl p-5 shadow-md text-white h-full flex flex-col justify-between">
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <Sparkles size={18} className="text-emerald-300 animate-pulse" />
-        <h2 className="text-sm sm:text-base font-bold text-white">Editable Trip Intelligence Engine</h2>
-        <span className="ml-auto text-3xs font-semibold bg-emerald-700/70 border border-emerald-500/40 px-2.5 py-1 rounded-full text-emerald-200">
-          AI Pipeline 13.0
-        </span>
-      </div>
-      <p className="text-xs text-emerald-100/90 mb-3 leading-relaxed">
-        Edit &amp; re-plan your trip seamlessly. Select a quick action or type custom edits below to recalculate affected day segments.
-      </p>
+    <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 rounded-3xl p-6 shadow-md text-white h-full flex flex-col justify-between border border-emerald-800/50">
+      <div>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <Sparkles size={18} className="text-amber-300 animate-pulse" />
+          <h2 className="text-base sm:text-lg font-black text-white">AI Itinerary Intelligence</h2>
+          <span className="ml-auto text-3xs font-extrabold uppercase tracking-wider bg-white/10 border border-white/20 px-3 py-1 rounded-full text-emerald-200">
+            Pipeline 13.0
+          </span>
+        </div>
+        <p className="text-xs text-emerald-100/90 mb-4 leading-relaxed font-medium">
+          Customize &amp; adapt your Sri Lanka journey in real time. Pick a preset or type custom edits to re-generate affected days.
+        </p>
 
-      {/* Quick Action Presets */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {presets.map((p) => (
-          <button
-            key={p.label}
-            onClick={() => setCustomPrompt(p.prompt)}
-            disabled={disabled}
-            className="text-3xs font-semibold px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20
-                       border border-white/15 text-emerald-100 transition-colors disabled:opacity-50 text-left"
-          >
-            {p.label}
-          </button>
-        ))}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {presets.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => setCustomPrompt(p.prompt)}
+              disabled={disabled}
+              className="text-3xs font-bold px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-emerald-100 transition-all disabled:opacity-50 text-left"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap sm:flex-nowrap">
+      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap sm:flex-nowrap pt-2">
         <input
           type="text"
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
-          placeholder="e.g. Replace Temple of Tooth with Ambuluwawa, or Add Sigiriya on Day 2..."
+          placeholder="e.g. Replace Temple of Tooth with Ambuluwawa..."
           disabled={disabled}
-          className="flex-1 px-3.5 py-2 rounded-xl bg-white/95 text-gray-900 placeholder-gray-400
-                     text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-400 border-none min-w-[200px]"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-white text-slate-900 placeholder-slate-400 text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-400 border-none min-w-[200px]"
         />
         <button
           type="submit"
           disabled={disabled || !customPrompt.trim()}
-          className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-green-950
-                     font-bold text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 shadow-sm"
         >
-          <Sparkles size={14} /> Apply AI Edits
+          <Sparkles size={14} /> Apply Edits
         </button>
       </form>
     </div>
@@ -815,32 +834,30 @@ function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
 function SharePanel({ trip }) {
   function handleShare() {
     const url = `${window.location.origin}/trips/share/${trip.shareToken}`;
-    navigator.clipboard.writeText(url).then(() => alert("Share link copied!"));
+    navigator.clipboard.writeText(url).then(() => alert("Share link copied to clipboard!"));
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
-        <UserPlus size={16} className="text-green-700" />
-        <span className="text-sm font-bold text-gray-800">Share Your Trip</span>
+        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold">
+          <UserPlus size={16} />
+        </div>
+        <span className="text-base font-extrabold text-slate-900">Share Your Journey</span>
       </div>
-      <p className="text-sm text-gray-500 mb-4">
-        Invite friends or family to view this itinerary.
+      <p className="text-xs text-slate-500 mb-4 font-medium leading-relaxed">
+        Invite travel companions or family members to view your live interactive itinerary.
       </p>
-      <button onClick={handleShare}
-        className="w-full flex items-center justify-center gap-1.5 py-2.5
-                   bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl
-                   text-sm font-semibold transition-colors">
-        <Share2 size={15} /> Share Trip
+      <button
+        onClick={handleShare}
+        className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 rounded-2xl text-xs font-extrabold transition-all shadow-2xs"
+      >
+        <Share2 size={15} /> Copy Shareable Link
       </button>
     </div>
   );
 }
 
-//  Trip Overview
-// Classifies every item across all days into destination / hidden gem /
-// event, then builds (a) a one-paragraph narrative summary of the whole
-// journey and (b) a flat, date-ordered list for the timeline below.
 function classifyItem(item) {
   if (item.type === "GEM") return "GEM";
   if (item.title?.startsWith("Festival:")) return "EVENT";
@@ -884,8 +901,8 @@ function buildTripSummary(trip, stops) {
 }
 
 function TripOverviewSection({ trip, detailCatalog }) {
-  const stops = (trip.days || []).flatMap(day =>
-    (day.items || []).map(item => ({
+  const stops = (trip.days || []).flatMap((day) =>
+    (day.items || []).map((item) => ({
       ...item,
       kind: classifyItem(item),
       dayNumber: day.dayNumber,
@@ -898,14 +915,13 @@ function TripOverviewSection({ trip, detailCatalog }) {
   if (stops.length === 0) return null;
 
   const summary = buildTripSummary(trip, stops);
-  const destCount = stops.filter(s => s.kind === "DESTINATION").length;
-  const gemCount = stops.filter(s => s.kind === "GEM").length;
-  const eventCount = stops.filter(s => s.kind === "EVENT").length;
+  const destCount = stops.filter((s) => s.kind === "DESTINATION").length;
+  const gemCount = stops.filter((s) => s.kind === "GEM").length;
+  const eventCount = stops.filter((s) => s.kind === "EVENT").length;
 
-  // Group the already date-ordered stops by day for the timeline.
   const byDay = [];
-  stops.forEach(s => {
-    let bucket = byDay.find(b => b.dayNumber === s.dayNumber);
+  stops.forEach((s) => {
+    let bucket = byDay.find((b) => b.dayNumber === s.dayNumber);
     if (!bucket) {
       bucket = { dayNumber: s.dayNumber, date: s.date, region: s.region, stops: [] };
       byDay.push(bucket);
@@ -915,75 +931,69 @@ function TripOverviewSection({ trip, detailCatalog }) {
   byDay.sort((a, b) => a.dayNumber - b.dayNumber);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-full flex flex-col justify-between">
-      <div className="flex items-center gap-2 mb-3">
-        <Route size={17} className="text-green-700" />
-        <h2 className="text-base font-bold text-gray-900">Trip Overview</h2>
+    <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 font-bold">
+            <Route size={18} />
+          </div>
+          <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Trip Overview & Timeline</h2>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 font-medium">{summary}</p>
+
+        <div className="flex flex-wrap gap-2 mb-5">
+          {[
+            { count: destCount, label: "Destinations", meta: OVERVIEW_KIND_META.DESTINATION },
+            { count: gemCount, label: "Hidden Gems", meta: OVERVIEW_KIND_META.GEM },
+            { count: eventCount, label: "Events", meta: OVERVIEW_KIND_META.EVENT },
+          ].filter((c) => c.count > 0).map((c) => (
+            <span
+              key={c.label}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700"
+            >
+              <c.meta.Icon size={13} className="text-emerald-700" />
+              {c.count} {c.label}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <p className="text-sm text-gray-600 leading-relaxed mb-4">{summary}</p>
-
-      <div className="flex flex-wrap gap-2 mb-5">
-        {[
-          { count: destCount,  label: "Destinations", meta: OVERVIEW_KIND_META.DESTINATION },
-          { count: gemCount,   label: "Hidden Gems",   meta: OVERVIEW_KIND_META.GEM },
-          { count: eventCount, label: "Events",        meta: OVERVIEW_KIND_META.EVENT },
-        ].filter(c => c.count > 0).map(c => (
-          <span key={c.label}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                       bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700">
-            <c.meta.Icon size={13} className="text-gray-500" />
-            {c.count} {c.label}
-          </span>
-        ))}
-      </div>
-
-      {/* Chronological timeline of every stop, grouped by day/date */}
-      <div className="space-y-4">
-        {byDay.map(bucket => (
+      {/* Timeline preview */}
+      <div className="space-y-4 pt-2 border-t border-slate-100 max-h-[220px] overflow-y-auto pr-1">
+        {byDay.map((bucket) => (
           <div key={bucket.dayNumber} className="flex gap-3">
-            <div className="flex flex-col items-center flex-shrink-0 w-16 pt-0.5">
-              <span className="text-2xs font-bold text-gray-400 uppercase tracking-wide">
+            <div className="flex flex-col items-center flex-shrink-0 w-14 pt-0.5">
+              <span className="text-3xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md uppercase tracking-wider">
                 Day {bucket.dayNumber}
               </span>
-              <span className="text-2xs text-gray-400 text-center">
+              <span className="text-3xs text-slate-400 text-center mt-0.5">
                 {formatDateShort(bucket.date)}
               </span>
             </div>
-            <div className="flex-1 min-w-0 pb-1 border-l border-gray-100 pl-4">
+            <div className="flex-1 min-w-0 pb-1 border-l-2 border-slate-100 pl-3">
               {bucket.region && (
-                <p className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                  <MapPin size={11} className="text-gray-400" /> {bucket.region}
+                <p className="text-3xs font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <MapPin size={10} className="text-emerald-700" /> {bucket.region}
                 </p>
               )}
-              <ul className="space-y-2">
-                {bucket.stops.map(s => {
+              <ul className="space-y-1.5">
+                {bucket.stops.map((s) => {
                   const meta = OVERVIEW_KIND_META[s.kind];
                   const title = cleanItemTitle(s.title);
-                  const notesText = (s.notes || "") + " " + (s.title || "");
-                  let slotBadge = <span className="text-3xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full shrink-0">⏰ SCHEDULED</span>;
-                  if (notesText.toLowerCase().includes("[morning]") || notesText.toLowerCase().includes("morning")) {
-                    slotBadge = <span className="text-3xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">🌅 MORNING</span>;
-                  } else if (notesText.toLowerCase().includes("[afternoon]") || notesText.toLowerCase().includes("afternoon")) {
-                    slotBadge = <span className="text-3xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full shrink-0">☀️ AFTERNOON</span>;
-                  } else if (notesText.toLowerCase().includes("[evening]") || notesText.toLowerCase().includes("evening")) {
-                    slotBadge = <span className="text-3xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full shrink-0">🌙 EVENING</span>;
-                  }
-
                   const content = (
-                    <span className="flex items-center gap-2 text-sm text-gray-700" title={meta.label}>
-                      {slotBadge}
-                      <meta.Icon size={13} className={`flex-shrink-0 ${meta.dot.replace("bg-", "text-")}`} />
-                      <span className="truncate font-medium">{title}</span>
+                    <span className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors">
+                      <meta.Icon size={12} className="text-emerald-700 shrink-0" />
+                      <span className="truncate">{title}</span>
                     </span>
                   );
                   return (
                     <li key={s.id}>
                       {s.match?.link ? (
-                        <Link to={s.match.link} className="hover:text-green-800 transition-colors">
-                          {content}
-                        </Link>
-                      ) : content}
+                        <Link to={s.match.link}>{content}</Link>
+                      ) : (
+                        content
+                      )}
                     </li>
                   );
                 })}
@@ -996,7 +1006,6 @@ function TripOverviewSection({ trip, detailCatalog }) {
   );
 }
 
-//  Main Page
 export default function TripDetailPage() {
   const { id }        = useParams();
   const navigate      = useNavigate();
@@ -1008,27 +1017,20 @@ export default function TripDetailPage() {
   const [activeDay,  setActiveDay]  = useState(null);
   const [activeTab,  setActiveTab]  = useState("itinerary");
   const [confirming, setConfirming] = useState(false);
-  // Real budget total from the Budget API (null = no budget yet, so the
-  // stats row falls back to the AI-estimated trip cost).
   const [budgetTotal, setBudgetTotal] = useState(null);
   const [detailCatalog, setDetailCatalog] = useState({
     destinations: [], gems: [], events: [], guides: [], vehicles: []
   });
-  // Mobile-only Itinerary/Map tab (§1). Desktop shows both panels.
   const [mobileView, setMobileView] = useState("itinerary");
-  // Refs to each day card so a map-marker click can scroll to it (§3).
   const dayRefs = useRef({});
-  // Inline title edit (§4)
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft]     = useState("");
   const [savingTitle, setSavingTitle]   = useState(false);
-  // Regenerate-with-feedback (§4 / §15)
   const [regenOpen,     setRegenOpen]     = useState(false);
   const [regenFeedback, setRegenFeedback] = useState("");
   const [regenerating,  setRegenerating]  = useState(false);
   const [regenError,    setRegenError]    = useState(null);
 
-  // Activity Timeline (§1)
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loadingLogs,  setLoadingLogs]  = useState(false);
@@ -1074,9 +1076,7 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     if (!isAuthenticated) { navigate("/login"); return; }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- loadTrip sets loading state synchronously before its await; intentional fetch-on-id-change pattern
     loadTrip();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadTrip is a plain function redefined every render; adding it would refetch the trip on every render
   }, [id, isAuthenticated, navigate]);
 
   async function handleConfirm() {
@@ -1118,9 +1118,6 @@ export default function TripDetailPage() {
     }));
   }
 
-  // The currently-expanded day drives the map focus (§3). Clicking a marker
-  // selects that day, switches the mobile view to the itinerary, and scrolls
-  // the matching day card into view.
   const activeDayNumber =
     (trip?.days || []).find(d => d.id === activeDay)?.dayNumber ?? null;
 
@@ -1134,7 +1131,6 @@ export default function TripDetailPage() {
     });
   }
 
-  // ── Inline title (§4) ──────────────────────────────────
   function beginEditTitle() {
     setTitleDraft(trip.title || "");
     setEditingTitle(true);
@@ -1154,9 +1150,6 @@ export default function TripDetailPage() {
     }
   }
 
-  // ── Regenerate with feedback (§4 / §15) ────────────────
-  // Refetch the itinerary in place without flipping the whole page back to
-  // its loading state (which would unmount the generation overlay).
   async function refreshTrip() {
     const res = await fetch(`${API_BASE}/api/v1/trips/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -1208,27 +1201,25 @@ export default function TripDetailPage() {
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-gray-400">
-          <div className="w-10 h-10 border-4 border-green-100 border-t-green-700 rounded-full animate-spin" />
-          <p className="text-sm">Loading trip...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-800 rounded-full animate-spin" />
+          <p className="text-sm font-bold text-slate-600">Loading your Ceylon journey...</p>
         </div>
       </div>
       <Footer />
     </>
   );
-  //  Error 
+
   if (error || !trip) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 flex items-center
-                      justify-center">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Notice</p>
-          <p className="text-gray-700 font-medium mb-4">{error || "Trip not found"}</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-md">
+          <p className="text-xs font-bold uppercase tracking-wider text-rose-600 mb-2">Error Loading Trip</p>
+          <p className="text-slate-700 font-medium mb-6">{error || "Trip not found"}</p>
           <Link to="/trips"
-            className="px-5 py-2.5 bg-green-800 text-white rounded-xl
-                       text-sm font-semibold hover:bg-green-900 transition-colors">
+            className="px-6 py-3 bg-emerald-800 text-white rounded-xl text-sm font-bold hover:bg-emerald-900 transition-all shadow-sm">
              Back to My Trips
           </Link>
         </div>
@@ -1244,12 +1235,11 @@ export default function TripDetailPage() {
     s + (d.estimatedDayCost || 0), 0);
   const statusMeta = STATUS_META[trip.status] || STATUS_META.DRAFT;
 
-  //  Render 
   return (
     <>
       <Navbar />
 
-      {/* §4/§15 — regeneration overlay (reuses the generation loader) */}
+      {/* Regeneration overlay */}
       {regenerating && (
         <TripGenerationLoader
           destination={trip.toLocation}
@@ -1260,19 +1250,18 @@ export default function TripDetailPage() {
         />
       )}
 
-      {/* §15 — "what would you like to change?" before regenerating */}
+      {/* Regeneration prompt modal */}
       {regenOpen && (
         <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50"
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs"
                onClick={() => setRegenOpen(false)} />
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="flex items-center gap-2 mb-1.5">
-              <RefreshCw size={17} className="text-green-700" />
-              <h2 className="text-lg font-bold text-gray-900">Regenerate itinerary</h2>
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <RefreshCw size={18} className="text-emerald-800" />
+              <h2 className="text-lg font-black text-slate-900">Regenerate Itinerary</h2>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Tell the AI what to change and it'll re-plan with your feedback.
-              Leave blank for a fresh take.
+            <p className="text-xs text-slate-500 mb-4 font-medium leading-relaxed">
+              Tell the AI what to update and it will re-plan your days with your custom preferences.
             </p>
             <textarea
               autoFocus
@@ -1280,140 +1269,155 @@ export default function TripDetailPage() {
               onChange={e => setRegenFeedback(e.target.value)}
               rows={3}
               maxLength={300}
-              placeholder="e.g. more hidden gems, fewer temples, slower pace, add a beach day…"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm
-                         outline-none focus:border-green-600 focus:ring-2
-                         focus:ring-green-100 resize-none"
+              placeholder="e.g. Add Sigiriya, more hidden gems, slower pace..."
+              className="w-full border border-slate-200 rounded-2xl p-3.5 text-xs font-semibold
+                         outline-none focus:border-emerald-700 focus:ring-2
+                         focus:ring-emerald-100 resize-none"
             />
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setRegenOpen(false)}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500
-                           hover:bg-gray-100 transition-colors"
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600
+                           hover:bg-slate-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => { setRegenOpen(false); doRegenerate(); }}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-green-800
-                           hover:bg-green-900 text-white text-sm font-semibold
-                           transition-colors"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-800
+                           hover:bg-emerald-900 text-white text-xs font-extrabold
+                           transition-all shadow-sm"
               >
-                <Sparkles size={15} /> Regenerate
+                <Sparkles size={14} /> Regenerate
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-50 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      {/* ══════════════════════════ HERO HEADER ══════════════════════════ */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-14 px-4 sm:px-6 lg:px-8 shadow-xl border-b-4 border-amber-400">
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
-          {/*  Page header  */}
-          <div className="flex items-start justify-between gap-4 mb-6
-                          flex-wrap">
-            <div>
-              <div className="flex items-center gap-3 mb-1 flex-wrap">
-                {editingTitle ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      autoFocus
-                      value={titleDraft}
-                      onChange={e => setTitleDraft(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === "Enter") saveTitle();
-                        if (e.key === "Escape") setEditingTitle(false);
-                      }}
-                      maxLength={120}
-                      className="text-2xl font-bold text-gray-900 border-b-2
-                                 border-green-700 outline-none bg-transparent
-                                 min-w-[220px]"
-                    />
-                    <button
-                      onClick={saveTitle}
-                      disabled={savingTitle}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg
-                                 bg-green-700 text-white hover:bg-green-800
-                                 disabled:opacity-50"
-                      title="Save title"
-                    >
-                      <Check size={16} />
-                    </button>
-                    <button
-                      onClick={() => setEditingTitle(false)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg
-                                 text-gray-400 hover:bg-gray-100"
-                      title="Cancel"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 group">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {trip.title}
-                    </h1>
-                    <button
-                      onClick={beginEditTitle}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg
-                                 text-gray-300 hover:text-green-700 hover:bg-green-50
-                                 transition-colors"
-                      title="Rename trip"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                  </div>
-                )}
-                <span className={`text-xs font-semibold px-2.5 py-1
-                                  rounded-full ${statusMeta.color}`}>
-                  {statusMeta.label}
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            
+            {/* Title & Info */}
+            <div className="space-y-3 max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  to="/trips"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-3xs font-extrabold uppercase tracking-widest text-emerald-200 hover:bg-white/20 transition-all"
+                >
+                  <ArrowLeft size={12} /> My Trips
+                </Link>
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-3xs font-extrabold uppercase tracking-wider shadow-2xs ${statusMeta.color}`}>
+                  ● {statusMeta.label}
                 </span>
+                {trip.aiGenerated && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-3xs font-extrabold uppercase tracking-wider shadow-2xs">
+                    <Sparkles size={12} /> AI Generated
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-gray-500">
-                {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
-                {" - "}{trip.groupSize || 1} Traveler{trip.groupSize > 1 ? "s" : ""}
-              </p>
+
+              {/* Editable Title */}
+              {editingTitle ? (
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    autoFocus
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveTitle();
+                      if (e.key === "Escape") setEditingTitle(false);
+                    }}
+                    maxLength={120}
+                    className="text-2xl sm:text-3xl font-extrabold text-white bg-emerald-950/80 border-b-2 border-amber-400 outline-none px-3 py-1 rounded-t-xl w-full"
+                  />
+                  <button
+                    onClick={saveTitle}
+                    disabled={savingTitle}
+                    className="p-2.5 rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold transition-all shrink-0"
+                    title="Save Title"
+                  >
+                    <Check size={18} />
+                  </button>
+                  <button
+                    onClick={() => setEditingTitle(false)}
+                    className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all shrink-0"
+                    title="Cancel"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 group">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight tracking-tight">
+                    {trip.title}
+                  </h1>
+                  <button
+                    onClick={beginEditTitle}
+                    className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-200 transition-all opacity-80 group-hover:opacity-100 shrink-0"
+                    title="Edit Trip Title"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-semibold text-emerald-100/90">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                  <Calendar size={14} className="text-amber-300" />
+                  {formatDate(trip.startDate)} – {formatDate(trip.endDate)} ({days} Days)
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                  <Users size={14} className="text-amber-300" />
+                  {trip.groupSize || 1} Traveler{trip.groupSize > 1 ? "s" : ""}
+                </span>
+                {(trip.fromLocation || trip.toLocation) && (
+                  <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                    <MapPin size={14} className="text-amber-300" />
+                    {trip.fromLocation || "Sri Lanka"} → {trip.toLocation || "Sri Lanka"}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Hero Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <button
                 onClick={() => {
                   const url = `${window.location.origin}/trips/share/${trip.shareToken}`;
-                  navigator.clipboard.writeText(url)
-                    .then(() => alert("Share link copied!"));
+                  navigator.clipboard.writeText(url).then(() => alert("Share link copied to clipboard!"));
                 }}
-                className="flex items-center gap-1.5 px-4 py-2.5 border
-                           border-gray-200 rounded-xl text-sm font-medium
-                           text-gray-700 hover:bg-gray-50 transition-colors"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
               >
                 <Share2 size={15} /> Share
               </button>
 
               <button
                 onClick={() => downloadTripPdf(trip)}
-                className="flex items-center gap-1.5 px-4 py-2.5 border
-                           border-gray-200 rounded-xl text-sm font-medium
-                           text-gray-700 hover:bg-gray-50 transition-colors"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
               >
-                <Download size={15} /> Download PDF
+                <Download size={15} /> PDF
               </button>
 
               <button
                 onClick={toggleTimeline}
-                className="flex items-center gap-1.5 px-4 py-2.5 border
-                           border-gray-200 rounded-xl text-sm font-medium
-                           text-gray-700 hover:bg-gray-50 transition-colors"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
               >
                 <History size={15} /> Timeline
               </button>
 
               {trip.aiGenerated && (
                 <button
-                  onClick={() => { setRegenFeedback(""); setRegenOpen(true); }}
-                  className="flex items-center gap-1.5 px-4 py-2.5 border
-                             border-gray-200 rounded-xl text-sm font-medium
-                             text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    setRegenFeedback("");
+                    setRegenOpen(true);
+                  }}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
                 >
                   <RefreshCw size={15} /> Regenerate
                 </button>
@@ -1423,69 +1427,68 @@ export default function TripDetailPage() {
                 <button
                   onClick={handleConfirm}
                   disabled={confirming}
-                  className="flex items-center gap-1.5 px-5 py-2.5 bg-green-800
-                             hover:bg-green-900 text-white rounded-xl text-sm
-                             font-semibold transition-colors disabled:opacity-60"
+                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {confirming ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30
-                                        border-t-white rounded-full animate-spin"/>
-                      Confirming...</>
-                  ) : <><CheckCircle2 size={15} /> Confirm Trip</>}
+                      <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={15} /> Confirm Trip
+                    </>
+                  )}
                 </button>
               )}
-
-              <Link to="/trips"
-                className="flex items-center gap-1.5 px-4 py-2.5 border
-                           border-gray-200 rounded-xl text-sm font-medium
-                           text-gray-600 hover:bg-gray-50 transition-colors">
-                <ArrowLeft size={15} /> Back
-              </Link>
             </div>
+
           </div>
+        </div>
+      </div>
+
+      <div className="min-h-screen bg-slate-50/70 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
           {/*  Tabs  */}
-          <div className="flex gap-0 mb-6 border-b border-gray-200">
+          <div className="flex gap-2 mb-6 border-b border-slate-200">
             {[
-              { key: "itinerary", label: "Itinerary",      Icon: FileText },
-              { key: "budget",    label: "Budget Tracker", Icon: Wallet },
+              { key: "itinerary", label: "Itinerary & Overview", Icon: FileText },
+              { key: "budget",    label: "Budget Tracker",     Icon: Wallet },
             ].map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-5 py-3 text-sm
-                            font-medium border-b-2 transition-colors -mb-px
+                className={`flex items-center gap-2 px-5 py-3 text-sm
+                            font-extrabold border-b-2 transition-all -mb-px rounded-t-xl
                             ${activeTab === tab.key
-                              ? "border-green-800 text-green-800"
-                              : "border-transparent text-gray-500 hover:text-gray-700"
+                              ? "border-emerald-800 text-emerald-800 bg-emerald-50/50"
+                              : "border-transparent text-slate-500 hover:text-slate-800"
                             }`}
               >
-                <tab.Icon size={15} /> {tab.label}
+                <tab.Icon size={16} /> {tab.label}
               </button>
             ))}
           </div>
 
-          {/*  Stats row (itinerary tab only — the budget tab has its own) */}
+          {/*  Stats row (itinerary tab only) */}
           {activeTab === "itinerary" && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {[
-              { value: days,       label: "Days",          Icon: Calendar },
-              { value: `${(budgetTotal ?? totalCost).toFixed(0)}`,
-                label: "Budgeted (USD)", Icon: Wallet },
-              { value: locations,  label: "Locations",      Icon: MapPin },
-              { value: totalItems, label: "Items Added",    Icon: FileText },
+              { value: `${days} Days`, label: "Trip Duration", Icon: Calendar, color: "text-emerald-700 bg-emerald-50 border-emerald-100" },
+              { value: `$${(budgetTotal ?? totalCost).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
+              { value: `${locations} Regions`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
+              { value: `${totalItems} Activities`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
             ].map(s => (
               <div key={s.label}
-                className="bg-white rounded-2xl border border-gray-200 p-4
-                           shadow-sm flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-green-50 text-green-800
-                                flex items-center justify-center flex-shrink-0">
-                  <s.Icon size={18} />
+                className="bg-white rounded-2xl border border-slate-100 p-4
+                           shadow-2xs hover:shadow-md transition-all flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${s.color}`}>
+                  <s.Icon size={20} />
                 </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{s.value}</p>
-                  <p className="text-xs text-gray-400">{s.label}</p>
+                <div className="min-w-0">
+                  <p className="text-base sm:text-lg font-black text-slate-900 truncate">{s.value}</p>
+                  <p className="text-3xs font-extrabold text-slate-400 uppercase tracking-wider truncate">{s.label}</p>
                 </div>
               </div>
             ))}
@@ -1496,7 +1499,6 @@ export default function TripDetailPage() {
             <>
               {/* Responsive 2-column layout on desktop (lg), 1-column on mobile & tablet */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-                {/* Editable Trip Intelligence Panel (Phase 8 & 10 Integration) */}
                 <EditableTripIntelligencePanel
                   onApplyEdit={(promptText) => {
                     setRegenFeedback(promptText);
@@ -1504,27 +1506,25 @@ export default function TripDetailPage() {
                   }}
                   disabled={regenerating}
                 />
-
-                {/* Updated Trip Overview Section */}
                 <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
               </div>
 
               {/*  Mobile Itinerary/Map switch — hidden on desktop  */}
               <div className="lg:hidden sticky top-[60px] z-30 -mx-4 sm:-mx-6
-                              mb-4 bg-gray-50/95 backdrop-blur px-4 sm:px-6 py-2">
-                <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl">
+                              mb-4 bg-slate-50/95 backdrop-blur-md px-4 sm:px-6 py-2.5 border-y border-slate-200/80">
+                <div className="grid grid-cols-2 gap-1 p-1 bg-slate-200/80 rounded-xl">
                   {[
-                    { key: "itinerary", label: "Itinerary", Icon: FileText },
-                    { key: "map",       label: "Map",       Icon: MapPin },
+                    { key: "itinerary", label: "Itinerary Days", Icon: FileText },
+                    { key: "map",       label: "Interactive Map", Icon: MapPin },
                   ].map(v => (
                     <button
                       key={v.key}
                       onClick={() => setMobileView(v.key)}
-                      className={`flex items-center justify-center gap-1.5 py-2
-                                  rounded-lg text-sm font-medium transition-colors
+                      className={`flex items-center justify-center gap-1.5 py-2.5
+                                  rounded-lg text-xs font-bold transition-all
                                   ${mobileView === v.key
-                                    ? "bg-white text-green-800 shadow-sm"
-                                    : "text-gray-500"}`}
+                                    ? "bg-white text-emerald-900 shadow-2xs font-extrabold"
+                                    : "text-slate-600 hover:text-slate-900"}`}
                     >
                       <v.Icon size={15} /> {v.label}
                     </button>
@@ -1535,7 +1535,7 @@ export default function TripDetailPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
                 {/*  Left: Day cards  */}
-                <div className={`space-y-3 ${mobileView === "itinerary" ? "" : "hidden"} lg:block`}>
+                <div className={`space-y-4 ${mobileView === "itinerary" ? "" : "hidden"} lg:block`}>
                   {(trip.days || []).map((day, dayIndex) => (
                     <div
                       key={day.id}
@@ -1561,7 +1561,7 @@ export default function TripDetailPage() {
                 </div>
 
                 {/*  Right: Leaflet Map (sticky on desktop) + Share  */}
-                <div className={`space-y-4 ${mobileView === "map" ? "" : "hidden"}
+                <div className={`space-y-6 ${mobileView === "map" ? "" : "hidden"}
                                 lg:block lg:sticky lg:top-20 lg:self-start`}>
                   <TripMapPanel
                     trip={trip}
@@ -1585,46 +1585,48 @@ export default function TripDetailPage() {
       {/* Activity Timeline Modal */}
       {timelineOpen && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setTimelineOpen(false)} />
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs" onClick={() => setTimelineOpen(false)} />
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl max-h-[80vh] flex flex-col border border-slate-100">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
-                <History size={18} className="text-green-700" />
-                <h2 className="text-lg font-bold text-gray-900">Trip Activity Timeline</h2>
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <History size={18} />
+                </div>
+                <h2 className="text-lg font-extrabold text-slate-900">Trip Activity Timeline</h2>
               </div>
               <button
                 onClick={() => setTimelineOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 space-y-4 pr-1">
+            <div className="overflow-y-auto flex-1 space-y-3 pr-1">
               {loadingLogs ? (
-                <p className="text-sm text-gray-500 text-center py-6">Loading activity history...</p>
+                <p className="text-xs font-bold text-slate-500 text-center py-6">Loading activity history...</p>
               ) : activityLogs.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <p className="text-sm">No activity recorded yet for this trip.</p>
+                <div className="text-center py-8 text-slate-400">
+                  <p className="text-xs font-semibold">No activity recorded yet for this trip.</p>
                 </div>
               ) : (
                 activityLogs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="w-8 h-8 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  <div key={log.id} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
                       ⚡
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                        <span className="text-3xs font-extrabold text-slate-800 uppercase tracking-wider">
                           {log.actionType.replace("_", " ")}
                         </span>
-                        <span className="text-3xs text-gray-400">
+                        <span className="text-3xs text-slate-400 font-semibold">
                           {new Date(log.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 leading-snug">{log.description}</p>
+                      <p className="text-xs text-slate-600 leading-snug font-medium">{log.description}</p>
                       {log.performedBy && (
-                        <p className="text-3xs text-gray-400 mt-1">By: {log.performedBy}</p>
+                        <p className="text-3xs text-slate-400 mt-1 font-semibold">By: {log.performedBy}</p>
                       )}
                     </div>
                   </div>
