@@ -168,13 +168,13 @@ export default function Home() {
           {/* Main Title Hierarchy */}
           <div className="space-y-1 sm:space-y-2 max-w-full">
             <h1
-              className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.15] tracking-tight text-white drop-shadow-lg animate-fade-in-up"
+              className="text-4xl xs:text-[2.75rem] sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.15] tracking-tight text-white drop-shadow-lg animate-fade-in-up"
               style={{ animationDelay: "0.08s" }}
             >
               Discover Sri Lanka
             </h1>
             <h2
-              className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-md animate-fade-in-up"
+              className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-md animate-fade-in-up"
               style={{ animationDelay: "0.18s" }}
             >
               Like Never Before
@@ -183,7 +183,7 @@ export default function Home() {
 
           {/* Narrative Subtitle */}
           <p
-            className="max-w-xs sm:max-w-xl md:max-w-2xl mt-2 sm:mt-3 text-xs sm:text-base md:text-lg font-medium leading-relaxed text-slate-200/95 animate-fade-in-up drop-shadow-xs"
+            className="max-w-sm sm:max-w-xl md:max-w-2xl mt-2 sm:mt-3 text-sm sm:text-base md:text-lg font-medium leading-relaxed text-slate-200/95 animate-fade-in-up drop-shadow-xs"
             style={{ animationDelay: "0.28s" }}
           >
             <span className="block font-medium">AI-powered travel planning with real local data.</span>
