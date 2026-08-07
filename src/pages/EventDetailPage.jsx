@@ -12,6 +12,9 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 
+import { useAuth } from "../hooks/useAuth";
+import { isEventSaved, toggleSavedEventId } from "../utils/eventBookmarks";
+
 /* ── Helpers ─────────────────────────────────────────────── */
 const fmtDate = (str) =>
   new Date(str).toLocaleDateString("en-LK", {
@@ -111,6 +114,7 @@ function Skeleton() {
 export default function EventDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [event, setEvent] = useState(null);
   const [related, setRelated] = useState([]);
@@ -119,6 +123,25 @@ export default function EventDetailPage() {
   const [lightbox, setLightbox] = useState(null); // index or null
   const [saved, setSaved] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+
+  // Sync bookmark state with storage & custom event
+  useEffect(() => {
+    if (id) {
+      setSaved(isEventSaved(user, id));
+    }
+    const handleUpdate = () => {
+      if (id) setSaved(isEventSaved(user, id));
+    };
+    window.addEventListener("event-bookmarks-updated", handleUpdate);
+    return () => window.removeEventListener("event-bookmarks-updated", handleUpdate);
+  }, [user, id]);
+
+  const handleToggleSave = () => {
+    if (id) {
+      const updatedSet = toggleSavedEventId(user, id);
+      setSaved(updatedSet.has(id));
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -195,10 +218,15 @@ export default function EventDetailPage() {
               <Share2 size={18} />
             </button>
             <button
-              onClick={() => setSaved((s) => !s)}
-              className="bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white p-2 rounded-full transition-all"
+              onClick={handleToggleSave}
+              className={`backdrop-blur-sm p-2 rounded-full transition-all ${
+                saved
+                  ? "bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-md"
+                  : "bg-black/30 hover:bg-black/50 text-white"
+              }`}
+              title={saved ? "Remove from Bookmarks" : "Save Event to Bookmarks"}
             >
-              <Bookmark size={18} fill={saved ? "white" : "none"} />
+              <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
             </button>
           </div>
 
