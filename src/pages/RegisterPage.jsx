@@ -376,6 +376,7 @@ export default function RegisterPage() {
         isOpen={showSuccessModal}
         title="Account Created!"
         message="Welcome to ExploreCeylon! Your journey to discovering Sri Lanka's wonders begins now."
+        onButtonClick={handleSuccessModalAction}
         onClose={handleSuccessModalAction}
       />
     </div>
