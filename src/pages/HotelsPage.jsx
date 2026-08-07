@@ -367,33 +367,31 @@ export default function HotelsPage() {
 
   return (
     <div className="w-full min-h-screen pb-12 font-sans bg-gray-100">
-      {/* Hero Section */}
-      <div
-        className="bg-[#1a2b49] bg-cover bg-center pt-10 pb-28"
-        style={{
-          backgroundImage: `linear-gradient(to top, rgba(26,43,73,0.9), rgba(26,43,73,0.55)), url(${bannerImage})`,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-1 mb-3 text-sm text-blue-200">
-            <span
-              className="cursor-pointer hover:underline"
-              onClick={() => navigate("/")}
-            >
-              Home
-            </span>
-            <ChevronRight size={14} />
-            <span>Hotels</span>
-          </div>
-          <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
-            Find Your Perfect Stay in Sri Lanka
-          </h1>
-          <h2 className="mb-5 text-sm text-blue-300">
-            Best rates from top Sri Lanka hotels
-          </h2>
-          <div className="flex flex-wrap gap-5 text-sm font-medium text-blue-100">
-            <span>🏨 {allHotels.length} Hotels Available</span>
-            <span>📍 All Districts Covered</span>
+      {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-12 sm:py-16 px-4 sm:px-6 shadow-xl pb-24">
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
+          <div className="max-w-2xl text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300 mb-3">
+              <span>🏨</span> Premium Accommodation
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-3">
+              Find Your Perfect Stay in <span className="text-amber-300">Sri Lanka</span>
+            </h1>
+            <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
+              Discover boutique villas, beach resorts, and luxury heritage stays across all island districts with real-time availability.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-semibold text-emerald-200">
+              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                ✨ {allHotels.length} Stays Listed
+              </span>
+              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                📍 All Districts Covered
+              </span>
+            </div>
           </div>
         </div>
       </div>

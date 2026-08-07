@@ -290,31 +290,34 @@ const Guides = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100">
-        <header
-          className="relative h-64 bg-cover bg-center flex flex-col justify-center"
-          style={{
-            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2)), url(${bannerImage})`,
-          }}
-        >
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-10 text-white">
-            <div className="flex items-center gap-1 text-sm text-gray-200 mb-3">
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <ChevronRight size={14} />
-              <span>Guides</span>
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-12 sm:py-16 px-4 sm:px-6 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+          <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
+            <div className="max-w-2xl text-left">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300 mb-3">
+                <span>🧑‍💼</span> Certified Tour Experts
+              </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-3">
+                Find Your Local Guide in <span className="text-amber-300">Sri Lanka</span>
+              </h1>
+              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
+                Verified local tour guides specializing in wildlife, ancient heritage, trekking, street food & photography.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  ✨ {guides.length} Verified Guides
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  🌐 Multi-Language Support
+                </span>
+              </div>
             </div>
-            <h1 className="mb-2 text-3xl font-bold sm:text-4xl">
-              Find Your Local Guide
-            </h1>
-            <p className="max-w-xl text-gray-200">
-              Verified guides for every region and interest in Sri Lanka
-            </p>
           </div>
-        </header>
+        </div>
 
         {/* Chat-before-payment notice */}
         <div className="px-6 py-3 bg-amber-50 border-y border-amber-200 sm:px-10">

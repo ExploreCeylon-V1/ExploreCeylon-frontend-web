@@ -112,31 +112,32 @@ export default function EventsPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50">
-        {/* Hero */}
-        <div
-          className="relative h-48 sm:h-64 bg-cover bg-center flex flex-col justify-end"
-          style={{
-            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2)), url(${bannerImage})`,
-          }}
-        >
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-8 text-white">
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-200 mb-2 sm:mb-3">
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <ChevronRight size={14} />
-              <span>Events</span>
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-12 sm:py-16 px-4 sm:px-6 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+          <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
+            <div className="max-w-2xl text-left">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300 mb-3">
+                <span>✨</span> Festivals & Seasons
+              </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-3">
+                Events & Festivals in <span className="text-amber-300">Sri Lanka</span>
+              </h1>
+              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
+                Experience historic pageants, coastal kite festivals, and seasonal celebrations that make Sri Lanka truly unique.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  📅 {events.length} Upcoming Events
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  🐘 Historic Pageants & Rituals
+                </span>
+              </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
-              Events in Sri Lanka
-            </h1>
-            <p className="text-sm sm:text-base text-gray-200 max-w-xl">
-              Experience the vibrant culture, traditions and celebrations that
-              make Sri Lanka truly unique.
-            </p>
           </div>
         </div>
 

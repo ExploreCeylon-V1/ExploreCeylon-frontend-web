@@ -127,43 +127,37 @@ const HiddenGems = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100">
-        {/* Hero */}
-        <header
-          className="h-64 bg-[#0C6780] bg-cover bg-center text-white py-8"
-          style={{
-            backgroundImage: `linear-gradient(to top, rgba(12,103,128,0.9), rgba(12,103,128,0.55)), url(${bannerImage})`,
-          }}
-        >
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-10">
-            <div className="flex items-center gap-1 text-sm text-gray-200 mb-3">
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <ChevronRight size={14} />
-              <span>Hidden Gems</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold mb-1.5">
-              Discover Hidden Gems of Sri Lanka
-            </h1>
-            <p className="mb-4 text-base opacity-90">
-              Insider spots only locals know about
-            </p>
-            <div className="flex flex-wrap gap-6 text-sm">
-              <span className="inline-flex items-center gap-1.5">
-                💎 {approvedGems.length} Verified Gems
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                🗂️ {GEM_CATEGORIES.length} Categories
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                ✅ Community Approved
-              </span>
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-12 sm:py-16 px-4 sm:px-6 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+          <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
+            <div className="max-w-2xl text-left">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300 mb-3">
+                <span>💎</span> Secret Spots & Treasures
+              </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-3">
+                Discover Hidden Gems of <span className="text-amber-300">Sri Lanka</span>
+              </h1>
+              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
+                Off-the-beaten-path waterfalls, secluded beaches & insider locations curated by local explorers.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  💎 {approvedGems.length} Verified Gems
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  🗂️ {GEM_CATEGORIES.length} Categories
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                  ✅ Community Approved
+                </span>
+              </div>
             </div>
           </div>
-        </header>
+        </div>
 
         <div className="px-4 py-6 mx-auto max-w-7xl sm:px-10 pb-14">
           {/* Category tabs */}
