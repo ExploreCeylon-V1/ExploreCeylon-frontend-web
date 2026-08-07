@@ -613,7 +613,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
               </div>
               <div className="min-w-0">
                 <p className="font-extrabold text-amber-950 text-xs sm:text-sm">
-                  {day.items.find(i => i.title?.startsWith("Festival:"))?.title.replace("Festival: ", "")} nearby!
+                  {(day.items.find(i => i.title?.startsWith("Festival:"))?.title || "").replace(/^Festival:\s*/i, "")} nearby!
                 </p>
                 <p className="text-3xs text-amber-800/90 font-medium">
                   Special cultural festival integrated into today's itinerary.
@@ -1480,7 +1480,7 @@ export default function TripDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {[
               { value: `${days} Days`, label: "Trip Duration", Icon: Calendar, color: "text-emerald-700 bg-emerald-50 border-emerald-100" },
-              { value: `$${(budgetTotal ?? totalCost).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
+              { value: `$${Number(budgetTotal ?? (totalCost || 0)).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
               { value: `${locations} Regions`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
               { value: `${totalItems} Activities`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
             ].map(s => (
@@ -1622,7 +1622,7 @@ export default function TripDetailPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <span className="text-3xs font-extrabold text-slate-800 uppercase tracking-wider">
-                          {log.actionType.replace("_", " ")}
+                          {(log.actionType || "").replace(/_/g, " ")}
                         </span>
                         <span className="text-3xs text-slate-400 font-semibold">
                           {new Date(log.createdAt).toLocaleString()}
