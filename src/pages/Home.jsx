@@ -471,28 +471,28 @@ export default function Home() {
       </div>
 
       {/* ══════════════════════════ UPCOMING EVENTS ══════════════════════════ */}
-      <div className="relative my-10 mx-4 sm:mx-6 lg:mx-auto max-w-7xl overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-10 shadow-2xl">
-        {/* Background Image Layer */}
+      <div className="relative w-full px-4 py-16 lg:py-20 overflow-hidden bg-slate-950">
+        {/* Full-Width Background Image Layer */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
           style={{ backgroundImage: `url(${homeEventBg})` }}
         />
         
-        {/* Warm Dark/Gold Overlay - Engineered for maximum visual appeal & high text contrast */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/85 via-slate-900/75 to-slate-950/85 backdrop-blur-[1px]" />
-        <div className="absolute inset-0 z-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/60" />
+        {/* Lighter, Natural Glow Overlay - Designed to mirror Hidden Gems & AI Hero section full-width treatments */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/60 via-slate-900/40 to-slate-950/60 backdrop-blur-[0.5px]" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/40" />
 
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/15 px-3.5 py-1 text-3xs font-bold uppercase tracking-widest text-amber-300 mb-2.5">
-                <span>✨</span> Sri Lanka Festivals & Seasons
-              </div>
-              <h2 className="flex items-center gap-2.5 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <p className="mb-2 text-xs font-bold tracking-widest text-amber-400 uppercase">
+                FESTIVALS & SEASONS
+              </p>
+              <h2 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl tracking-tight">
                 📅 Upcoming Sri Lanka Events
               </h2>
-              <p className="mt-1 text-xs sm:text-sm text-slate-200/90 font-medium max-w-lg">
+              <p className="mt-2 text-xs sm:text-sm text-stone-200 leading-relaxed max-w-lg">
                 Plan your AI trip around historic pageants, beach kite festivals & seasonal cultural events
               </p>
             </div>
@@ -509,7 +509,7 @@ export default function Home() {
           {/* Cards Carousel */}
           {loadingEvents ? (
             <div className="py-16 text-center text-slate-300 font-semibold text-xs flex items-center justify-center gap-2">
-              <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
               <span>Loading upcoming Sri Lankan events...</span>
             </div>
           ) : (
@@ -517,7 +517,7 @@ export default function Home() {
               {events.map((ev) => (
                 <div
                   key={ev.id}
-                  className="group min-w-[240px] max-w-[260px] flex-1 flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+                  className="group min-w-[240px] max-w-[260px] flex-1 flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
                 >
                   <div>
                     {/* Image Container with Fallback */}
