@@ -27,12 +27,12 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Destinations", path: "/destinations" },
-    { name: "Hidden Gems", path: "/hidden-gems" },
-    { name: "Events", path: "/events" },
-    { name: "Guides", path: "/guides" },
-    { name: "Vehicles", path: "/vehicles" },
     { name: "Hotels", path: "/hotels" },
+    { name: "Vehicles", path: "/vehicles" },
+    { name: "Guides", path: "/guides" },
+    { name: "Destinations", path: "/destinations" },
+    { name: "Events", path: "/events" },
+    { name: "Hidden Gems", path: "/hidden-gems" },
     { name: "About Us", path: "/about" },
   ];
 
@@ -69,8 +69,8 @@ export default function Navbar() {
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "U");
 
   return (
-    <nav className="sticky top-0 z-[1000] border-b border-slate-200/80 bg-white/95 backdrop-blur-md font-sans shadow-2xs">
-      <div className="flex h-[62px] items-center justify-between px-4 sm:px-6 max-w-7xl mx-auto">
+    <nav className="sticky top-0 z-[1000] border-b border-gray-200 bg-white font-sans">
+      <div className="flex h-[60px] items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <button
           type="button"
@@ -90,10 +90,10 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <li key={link.name}>
               <button
-                className={`relative whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition-colors hover:text-emerald-800 ${
+                className={`relative whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition-colors hover:text-[#2D6A4F] ${
                   isNavLinkActive(location.pathname, link.path)
-                    ? "font-semibold text-emerald-900 after:absolute after:-bottom-0.5 after:left-2.5 after:right-2.5 after:h-0.5 after:rounded-full after:bg-emerald-800"
-                    : "font-medium text-slate-600"
+                    ? "font-semibold text-[#2D6A4F] after:absolute after:-bottom-0.5 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-[#2D6A4F]"
+                    : "font-medium text-gray-600"
                 }`}
                 onClick={() => navigate(link.path)}
               >
@@ -214,15 +214,15 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="hidden items-center gap-2 xl:flex">
+            <div className="hidden items-center gap-2.5 xl:flex">
               <button
-                className="rounded-xl border border-slate-300 px-4 py-1.5 text-xs font-bold text-slate-800 transition-all hover:border-emerald-700 hover:bg-emerald-50/50 hover:text-emerald-800"
+                className="rounded-lg border-[1.5px] border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-900 transition-colors hover:border-[#2D6A4F] hover:bg-[#f6faf8] hover:text-[#2D6A4F]"
                 onClick={() => navigate("/login")}
               >
                 Login
               </button>
               <button
-                className="rounded-xl bg-emerald-800 px-4 py-1.5 text-xs font-extrabold text-white transition-all hover:bg-emerald-900 shadow-xs"
+                className="rounded-lg bg-[#2D6A4F] px-5 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#235C42]"
                 onClick={() => navigate("/register")}
               >
                 Register →
