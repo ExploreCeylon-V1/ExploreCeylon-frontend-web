@@ -170,14 +170,14 @@ const Destinations = () => {
           )}
 
           {/* Category tabs */}
-          <div className="flex gap-2.5 flex-wrap mb-5">
+          <div className="flex gap-2 flex-wrap mb-5">
             <button
               type="button"
               onClick={() => setActiveCategory("ALL")}
-              className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
+              className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap border transition-all ${
                 activeCategory === "ALL"
-                  ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
+                  ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
               }`}
             >
               ☀️ All ({destinations.length})
@@ -187,10 +187,10 @@ const Destinations = () => {
                 key={cat.value}
                 type="button"
                 onClick={() => setActiveCategory(cat.value)}
-                className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
+                className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap border transition-all ${
                   activeCategory === cat.value
-                    ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
+                    ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
                 }`}
               >
                 {cat.icon} {cat.label} ({categoryCounts[cat.value] || 0})

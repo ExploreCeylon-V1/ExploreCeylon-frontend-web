@@ -496,13 +496,13 @@ const Guides = () => {
                   <button
                     type="button"
                     onClick={handleClearAll}
-                    className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    className="flex-1 border border-slate-200 rounded-xl py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all"
                   >
                     Clear All
                   </button>
                   <button
                     type="button"
-                    className="flex-1 bg-[#2D6A4F] hover:bg-[#1B4332] text-white rounded-lg py-2.5 text-sm font-semibold transition-colors duration-150"
+                    className="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl py-2.5 text-xs font-bold transition-all shadow-sm"
                   >
                     Apply
                   </button>
@@ -513,18 +513,18 @@ const Guides = () => {
             {/* Results */}
             <div ref={listRef} className="lg:col-span-3">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-500">
-                  Showing <strong>{filteredGuides.length}</strong> guides
+                <p className="text-xs font-semibold text-slate-500">
+                  Showing <strong className="text-slate-900">{filteredGuides.length}</strong> verified guides
                 </p>
-                <div className="flex overflow-hidden bg-white border border-gray-200 rounded-lg">
+                <div className="flex overflow-hidden bg-white border border-slate-200 rounded-xl shadow-2xs">
                   <button
                     type="button"
                     onClick={() => setViewMode("list")}
                     aria-label="List view"
-                    className={`px-3.5 py-2.5 text-base transition-colors duration-150 ${
+                    className={`px-3.5 py-2 text-sm font-bold transition-colors ${
                       viewMode === "list"
-                        ? "bg-[#2D6A4F] text-white"
-                        : "text-gray-700"
+                        ? "bg-emerald-800 text-white"
+                        : "text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     ☰
@@ -533,10 +533,10 @@ const Guides = () => {
                     type="button"
                     onClick={() => setViewMode("grid")}
                     aria-label="Grid view"
-                    className={`px-3.5 py-2.5 text-base transition-colors duration-150 ${
+                    className={`px-3.5 py-2 text-sm font-bold transition-colors ${
                       viewMode === "grid"
-                        ? "bg-[#2D6A4F] text-white"
-                        : "text-gray-700"
+                        ? "bg-emerald-800 text-white"
+                        : "text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     ▦

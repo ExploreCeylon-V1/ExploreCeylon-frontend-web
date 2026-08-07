@@ -521,7 +521,7 @@ export default function HotelsPage() {
               <button
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="w-full bg-[#115e3b] hover:bg-[#0c4a2e] disabled:opacity-60 text-white p-3 rounded-xl flex items-center justify-center transition-colors shadow-md font-bold text-sm"
+                className="w-full bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 text-white p-3 rounded-xl flex items-center justify-center transition-all shadow-md font-extrabold text-sm gap-1.5"
               >
                 <svg
                   className="w-4 h-4 mr-1.5"

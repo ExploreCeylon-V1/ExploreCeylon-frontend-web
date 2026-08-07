@@ -235,10 +235,10 @@ export default function VehicleListing() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
                   activeTab === tab.key
-                    ? "bg-green-800 text-white border-green-800"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-green-700 hover:text-green-700"
+                    ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
                 }`}
               >
                 {tab.label}

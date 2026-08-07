@@ -193,11 +193,11 @@ export default function EventsPage() {
                     <button
                       key={key}
                       onClick={() => setActiveCategory(key)}
-                      className={`flex flex-col items-center gap-1.5 py-3 rounded-lg text-xs font-medium transition-colors
+                      className={`flex flex-col items-center gap-1.5 py-3 rounded-xl text-3xs font-extrabold uppercase tracking-wider transition-all
                       ${
                         active
-                          ? "bg-emerald-800 text-white"
-                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                          ? "bg-emerald-800 text-white shadow-xs"
+                          : "bg-slate-50 text-slate-700 hover:bg-slate-100/80 border border-slate-100"
                       }`}
                     >
                       <Icon size={20} />
