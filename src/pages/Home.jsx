@@ -150,31 +150,31 @@ export default function Home() {
     <div>
       {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
       <div
-        className="relative flex flex-col items-center justify-center w-full min-h-screen px-4 overflow-hidden text-center bg-center bg-cover"
+        className="relative flex flex-col items-center justify-center w-full min-h-[90vh] sm:min-h-screen px-4 py-16 sm:py-20 md:py-24 overflow-hidden text-center bg-center bg-cover"
         style={{
           backgroundImage: `linear-gradient(180deg, rgba(3,18,12,0.72) 0%, rgba(4,20,14,0.45) 45%, rgba(3,18,12,0.85) 100%), url(${heroImage})`,
         }}
       >
-        <div className="flex flex-col items-center max-w-4xl mx-auto mt-10 space-y-6">
+        <div className="flex flex-col items-center max-w-4xl mx-auto my-auto space-y-4 sm:space-y-6">
           {/* Ambient Feature Pill Badge */}
           <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/70 border border-amber-400/35 backdrop-blur-md text-amber-300 text-3xs sm:text-xs font-bold tracking-widest uppercase shadow-sm animate-fade-in-up"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-emerald-950/70 border border-amber-400/35 backdrop-blur-md text-amber-300 text-[10px] sm:text-xs font-bold tracking-wider sm:tracking-widest uppercase shadow-sm animate-fade-in-up"
             style={{ animationDelay: "0.02s" }}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
             <span>AI-Powered Ceylon Travel Experience</span>
           </div>
 
           {/* Main Title Hierarchy */}
-          <div className="space-y-2">
+          <div className="space-y-1 sm:space-y-2 max-w-full">
             <h1
-              className="text-4xl sm:text-6xl md:text-8xl font-black leading-tight tracking-tight text-white drop-shadow-lg animate-fade-in-up"
+              className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.15] tracking-tight text-white drop-shadow-lg animate-fade-in-up"
               style={{ animationDelay: "0.08s" }}
             >
               Discover Sri Lanka
             </h1>
             <h2
-              className="text-2xl sm:text-4xl md:text-6xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-md animate-fade-in-up"
+              className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-md animate-fade-in-up"
               style={{ animationDelay: "0.18s" }}
             >
               Like Never Before
@@ -183,41 +183,41 @@ export default function Home() {
 
           {/* Narrative Subtitle */}
           <p
-            className="max-w-2xl mt-3 text-sm font-medium leading-relaxed sm:text-base md:text-lg text-slate-200/95 animate-fade-in-up drop-shadow-xs"
+            className="max-w-xs sm:max-w-xl md:max-w-2xl mt-2 sm:mt-3 text-xs sm:text-base md:text-lg font-medium leading-relaxed text-slate-200/95 animate-fade-in-up drop-shadow-xs"
             style={{ animationDelay: "0.28s" }}
           >
-            AI-powered travel planning with real local data. <br className="hidden sm:inline" />
-            <span className="text-slate-100 font-normal">
+            <span className="block font-medium">AI-powered travel planning with real local data.</span>
+            <span className="block mt-1 sm:mt-1.5 text-slate-100 font-normal opacity-95">
               From ancient kingdoms to hidden tropical beaches — your perfect Sri Lanka trip starts here.
             </span>
           </p>
 
           {/* Action Buttons */}
           <div
-            className="flex flex-col items-center w-full gap-4 pt-6 sm:flex-row sm:w-auto animate-fade-in-up"
+            className="flex flex-col items-center justify-center w-full max-w-xs sm:max-w-none gap-3 sm:gap-4 pt-4 sm:pt-6 sm:flex-row sm:w-auto animate-fade-in-up"
             style={{ animationDelay: "0.38s" }}
           >
             <button
               onClick={() => navigate("/trips/new")}
-              className="group w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold px-8 py-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/40 hover:-translate-y-1 text-sm md:text-base border border-emerald-400/30 cursor-pointer"
+              className="group w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-300 shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/40 hover:-translate-y-0.5 text-sm md:text-base border border-emerald-400/30 cursor-pointer text-center whitespace-nowrap"
             >
-              <Sparkles className="w-5 h-5 text-amber-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
               <span>Generate AI Trip — Free</span>
             </button>
 
             <Link
               to="/destinations"
-              className="group w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-bold px-8 py-4 rounded-2xl transition-all duration-300 shadow-lg border border-white/25 hover:border-white/50 hover:-translate-y-1 text-sm md:text-base text-center flex items-center justify-center gap-2 hover:text-amber-300"
+              className="group w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-bold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg border border-white/25 hover:border-white/50 hover:-translate-y-0.5 text-sm md:text-base text-center flex items-center justify-center gap-2 hover:text-amber-300 whitespace-nowrap"
             >
-              <Compass className="w-5 h-5 text-amber-300/90 group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300/90 group-hover:rotate-45 transition-transform duration-300 shrink-0" />
               <span>Browse Destinations</span>
             </Link>
           </div>
         </div>
 
         {/* Scroll Cue */}
-        <div className="absolute z-10 hidden -translate-x-1/2 sm:block left-1/2 bottom-20 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="absolute z-10 hidden -translate-x-1/2 sm:block left-1/2 bottom-8 sm:bottom-12 md:bottom-16 animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
