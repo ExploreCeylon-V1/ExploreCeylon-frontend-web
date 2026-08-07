@@ -9,7 +9,7 @@ import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
 import BudgetTracker from "../components/BudgetTracker";
 import TripGenerationLoader from "../components/TripGenerationLoader";
-import { updateTripTitle, generateAiItinerary } from "../services/tripService";
+import { getTripById, updateTripTitle, updateTripStatus, generateAiItinerary, removeItemFromDay } from "../services/tripService";
 import budgetService from "../services/budgetService";
 import destinationsService from "../services/destinationsService";
 import hiddenGemsService from "../services/Hiddengemsservice";
@@ -88,29 +88,40 @@ const STATUS_META = {
 
 //  Helpers 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString("en-US", {
+  if (!d) return "";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
     month: "long", day: "numeric", year: "numeric",
   });
 }
 function formatDateShort(d) {
-  return new Date(d).toLocaleDateString("en-US", {
+  if (!d) return "";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
   });
 }
 function countDays(start, end) {
-  return Math.round(Math.abs(new Date(end) - new Date(start)) / 86400000) + 1;
+  if (!start || !end) return 1;
+  const s = new Date(start);
+  const e = new Date(end);
+  if (isNaN(s.getTime()) || isNaN(e.getTime())) return 1;
+  return Math.max(1, Math.round(Math.abs(e - s) / 86400000) + 1);
 }
 function getTotalItems(trip) {
-  return (trip.days || []).reduce((s, d) => s + (d.items || []).length, 0);
+  return ((trip && trip.days) || []).reduce((s, d) => s + ((d && d.items) || []).length, 0);
 }
 function getUniqueRegions(trip) {
-  const regions = (trip.days || [])
-    .map(d => d.region)
+  const regions = ((trip && trip.days) || [])
+    .map(d => d && d.region)
     .filter(Boolean);
   return [...new Set(regions)].length;
 }
-function normalizeName(value = "") {
-  return value
+function normalizeName(value) {
+  if (!value) return "";
+  return String(value)
     .toLowerCase()
     .replace(/^hidden gem:\s*/i, "")
     .replace(/^festival:\s*/i, "")
@@ -119,8 +130,9 @@ function normalizeName(value = "") {
     .trim();
 }
 
-function cleanItemTitle(title = "") {
-  return title
+function cleanItemTitle(title) {
+  if (!title) return "";
+  return String(title)
     .replace(/^Hidden Gem:\s*/i, "")
     .replace(/^Festival:\s*/i, "")
     .split(" - ")[0]
@@ -532,10 +544,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
   async function handleDeleteItem(itemId) {
     setDeletingId(itemId);
     try {
-      await fetch(
-        `${API_BASE}/api/v1/trips/${tripId}/days/${day.id}/items/${itemId}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
-      );
+      await removeItemFromDay(tripId, day.id, itemId);
       onItemDeleted(day.id, itemId);
     } catch {
       alert("Failed to delete item");
@@ -1056,19 +1065,17 @@ export default function TripDetailPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/trips/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Trip not found");
-      const data = await res.json();
+      const data = await getTripById(id);
       setTrip(data);
-      loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
+      if (data.startDate && data.endDate) {
+        loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
+      }
       budgetService.getBudgetByTrip(data.id)
-        .then(b => setBudgetTotal(b.totalBudget))
+        .then(b => setBudgetTotal(b?.totalBudget ?? null))
         .catch(() => setBudgetTotal(null));
       if (data.days?.length > 0) setActiveDay(data.days[0].id);
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "Trip not found");
     } finally {
       setLoading(false);
     }
@@ -1082,12 +1089,7 @@ export default function TripDetailPage() {
   async function handleConfirm() {
     setConfirming(true);
     try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/trips/${id}/status?status=CONFIRMED`,
-        { method: "PATCH", headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error();
-      const updated = await res.json();
+      const updated = await updateTripStatus(id, "CONFIRMED");
       setTrip(updated);
     } catch {
       alert("Failed to confirm trip");
@@ -1151,17 +1153,19 @@ export default function TripDetailPage() {
   }
 
   async function refreshTrip() {
-    const res = await fetch(`${API_BASE}/api/v1/trips/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setTrip(data);
-    if (data.days?.length) setActiveDay(data.days[0].id);
-    loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
-    budgetService.getBudgetByTrip(data.id)
-      .then(b => setBudgetTotal(b.totalBudget))
-      .catch(() => {});
+    try {
+      const data = await getTripById(id);
+      setTrip(data);
+      if (data.days?.length) setActiveDay(data.days[0].id);
+      if (data.startDate && data.endDate) {
+        loadDetailCatalog(data.startDate, data.endDate).then(setDetailCatalog);
+      }
+      budgetService.getBudgetByTrip(data.id)
+        .then(b => setBudgetTotal(b?.totalBudget ?? null))
+        .catch(() => {});
+    } catch (err) {
+      console.error("Failed to refresh trip", err);
+    }
   }
 
   async function doRegenerateWithPrompt(overridePrompt) {
