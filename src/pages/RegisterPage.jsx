@@ -80,27 +80,27 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-950 p-4 sm:p-6 md:p-10 font-sans selection:bg-emerald-500 selection:text-white overflow-hidden">
-      {/* ── Background Ambient Glows ── */}
-      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-emerald-600/20 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-teal-600/20 blur-[120px]" />
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-slate-100 p-4 sm:p-6 md:p-10 font-sans selection:bg-emerald-600 selection:text-white overflow-hidden">
+      {/* ── Background Ambient Light Orbs ── */}
+      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-emerald-200/40 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-teal-200/40 blur-[100px]" />
 
       {/* ── Main Container ── */}
-      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-xl lg:grid lg:grid-cols-12">
+      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-xl shadow-emerald-950/5 backdrop-blur-md lg:grid lg:grid-cols-12">
 
         {/* ── LEFT HERO PANEL ── */}
         <section className="relative flex flex-col justify-between overflow-hidden p-8 sm:p-10 text-white lg:col-span-5 min-h-[320px] lg:min-h-[680px]">
           {/* Hero Image Overlay */}
-          <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-35 transition-transform duration-1000 hover:scale-105" />
-          <div className="absolute inset-0 z-0 bg-gradient-to-t from-emerald-950 via-emerald-950/80 to-transparent" />
+          <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-40 transition-transform duration-1000 hover:scale-105" />
+          <div className="absolute inset-0 z-0 bg-gradient-to-t from-emerald-950 via-emerald-900/90 to-emerald-800/70" />
 
           {/* Header Brand */}
           <div className="relative z-10 flex items-center justify-between">
-            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 font-bold text-white text-xs shadow-md">
+            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 font-bold text-white text-xs shadow-sm">
                 🌴
               </span>
-              <span className="text-sm font-semibold tracking-wide text-white group-hover:text-emerald-300">
+              <span className="text-sm font-bold tracking-wide text-white group-hover:text-emerald-200">
                 ExploreCeylon
               </span>
             </Link>
@@ -108,13 +108,13 @@ export default function RegisterPage() {
 
           {/* Hero Main Content */}
           <div className="relative z-10 my-auto py-6">
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-2xs font-semibold uppercase tracking-widest text-emerald-300">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-white/15 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-emerald-200">
               <Sparkles className="h-3 w-3" /> Join 12,000+ Travelers
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-tight text-white mb-3">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight text-white mb-3">
               Start Your Sri Lankan Adventure
             </h1>
-            <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed max-w-sm">
+            <p className="text-xs sm:text-sm text-slate-100/90 leading-relaxed max-w-sm font-medium">
               Unlock AI-powered trip generation, direct driver & guide bookings, and exclusive hidden local gems across the island.
             </p>
 
@@ -125,11 +125,11 @@ export default function RegisterPage() {
                 { title: "Verified Local Experts", desc: "Book drivers and tour guides safely" },
                 { title: "Hidden Gems & Budgeting", desc: "Discover off-the-beaten-path locations" },
               ].map((f, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div key={i} className="flex items-start gap-3 rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-300 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-bold text-white">{f.title}</p>
-                    <p className="text-3xs text-slate-300">{f.desc}</p>
+                    <p className="text-3xs text-emerald-100 font-medium">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -137,7 +137,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Footer Badge */}
-          <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-2xs text-slate-300">
+          <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-2xs text-emerald-100 font-medium">
             <span>🇱🇰 Sri Lanka Tourism Platform</span>
             <span>Free Forever</span>
           </div>
@@ -337,7 +337,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-900 py-3.5 px-4 text-xs sm:text-sm font-semibold text-white shadow-md shadow-emerald-950/20 transition-all hover:from-emerald-900 hover:to-teal-900 hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-800 hover:bg-emerald-900 py-3.5 px-4 text-xs sm:text-sm font-semibold text-white shadow-md shadow-emerald-900/10 transition-all hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <div className="flex items-center gap-2">

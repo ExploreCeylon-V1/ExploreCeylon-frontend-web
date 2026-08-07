@@ -295,24 +295,20 @@ export default function CreateTripPage() {
     )}
     <Navbar />
     <div
-      className="min-h-screen relative bg-slate-950 font-sans text-slate-900 selection:bg-emerald-500 selection:text-white"
+      className="min-h-screen relative bg-gradient-to-br from-emerald-50/70 via-teal-50/30 to-slate-100 font-sans text-slate-900 selection:bg-emerald-600 selection:text-white"
     >
-      {/* Background Hero Layer */}
-      <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-25" />
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950 via-slate-900/90 to-slate-950" />
-
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
         {/* ── Top Hero Banner ── */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/80 p-6 sm:p-10 shadow-2xl backdrop-blur-xl mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-800 to-green-900 p-6 sm:p-10 shadow-xl text-white mb-8">
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3.5 py-1 text-3xs font-semibold uppercase tracking-widest text-emerald-300 mb-3">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-white/15 px-3.5 py-1 text-3xs font-bold uppercase tracking-widest text-emerald-200 mb-3">
               <Sparkles size={13} /> AI Travel Engine Phase 13
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
               Create Your Dream Itinerary ✨
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium">
               Tell us your starting point, destination, dates, and preferences. Our multi-engine AI will craft an optimized Sri Lanka journey in seconds.
             </p>
           </div>
@@ -321,7 +317,7 @@ export default function CreateTripPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ── Main Form Section ── */}
-          <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-10">            
+          <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-emerald-100/80 p-6 sm:p-10">            
 
             {/* Error banner */}
             {error && (
@@ -512,7 +508,7 @@ export default function CreateTripPage() {
                 type="button"
                 onClick={() => handleSubmit(true)}
                 disabled={loading || aiGenerating || !isValid()}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-900 py-4 px-6 text-xs sm:text-sm font-bold text-white shadow-lg shadow-emerald-950/20 transition-all hover:from-emerald-900 hover:to-teal-900 hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-800 hover:bg-emerald-900 py-4 px-6 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-900/10 transition-all hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -547,7 +543,7 @@ export default function CreateTripPage() {
 
           {/* ── Right Panel: Tips & Process ── */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
-            <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 p-6">
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-emerald-100 p-6">
               <div className="flex items-center gap-2 mb-3 pb-2 border-b border-emerald-50">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-950">AI Travel Tip</h3>
@@ -562,7 +558,7 @@ export default function CreateTripPage() {
               />
             </div>
 
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6">
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-slate-100 p-6">
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-4 pb-2 border-b border-slate-100">
                 What Happens Next?
               </h3>
