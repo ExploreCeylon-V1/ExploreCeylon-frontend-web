@@ -307,20 +307,20 @@ function NavItem({ icon, label, active, onClick, badge }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
-                  font-medium transition-colors text-left
-                  ${
+      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs
+                  font-semibold transition-all text-left ${
                     active
-                      ? "bg-green-50 text-[#1a5c2a] font-semibold border-l-[3px] border-[#1a5c2a] rounded-l-none"
-                      : "text-gray-600 hover:bg-gray-50"
+                      ? "bg-emerald-800 text-white font-bold shadow-sm shadow-emerald-950/20"
+                      : "text-gray-600 hover:bg-emerald-50/70 hover:text-emerald-900"
                   }`}
     >
-      <span className="text-base">{icon}</span>
-      <span className="flex-1">{label}</span>
+      <span className="text-base shrink-0">{icon}</span>
+      <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
         <span
-          className="w-5 h-5 bg-[#1a5c2a] text-white text-[10px] font-bold
-                         rounded-full flex items-center justify-center"
+          className={`px-2 py-0.5 text-3xs font-bold rounded-full transition-colors ${
+            active ? "bg-white text-emerald-900" : "bg-emerald-800 text-white"
+          }`}
         >
           {badge}
         </span>
@@ -399,21 +399,21 @@ function SectionProfile({ user, onToast, onUpdateUser }) {
   return (
     <div className="space-y-4">
       {/* Profile Settings Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+      <div className="bg-white rounded-3xl border border-gray-200/80 p-5 sm:p-7 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
           <div>
-            <h3 className="text-base font-bold text-gray-900">
+            <h3 className="text-base font-extrabold text-gray-900">
               Profile Settings
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Update your personal information
+            <p className="text-xs text-gray-500 mt-0.5">
+              Update your personal traveler information & preferences
             </p>
           </div>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#1a5c2a] hover:bg-[#14471f] text-white text-sm
-                       font-semibold rounded-xl transition-colors disabled:opacity-60"
+            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-800 to-teal-800 hover:from-emerald-900 hover:to-teal-900 text-white text-xs
+                       font-bold rounded-2xl shadow-sm transition-all active:scale-95 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save Changes"}
           </button>
