@@ -10,7 +10,7 @@ import EventCard from "../components/EventCard";
 import { CATEGORY_META } from "../utils/eventCategoryMeta";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-
+import AddToTripModal from "../components/AddToTripModal";
 
 import { useAuth } from "../hooks/useAuth";
 import { isEventSaved, toggleSavedEventId } from "../utils/eventBookmarks";
@@ -123,6 +123,8 @@ export default function EventDetailPage() {
   const [lightbox, setLightbox] = useState(null); // index or null
   const [saved, setSaved] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [isTripModalOpen, setIsTripModalOpen] = useState(false);
+  const [selectedRelEvent, setSelectedRelEvent] = useState(null);
 
   // Sync bookmark state with storage & custom event
   useEffect(() => {
@@ -439,16 +441,16 @@ export default function EventDetailPage() {
           </div>
 
           {/* Add to Trip CTA */}
-          <div className="bg-emerald-800 rounded-2xl p-4 sm:p-6 text-white">
-            <h3 className="font-semibold mb-1">Planning a trip?</h3>
-            <p className="text-emerald-200 text-sm mb-4">
-              Add this event to your Sri Lanka itinerary.
+          <div className="bg-emerald-800 rounded-2xl p-4 sm:p-6 text-white shadow-md">
+            <h3 className="font-bold text-base mb-1">Planning a trip?</h3>
+            <p className="text-emerald-200 text-xs mb-4 leading-relaxed">
+              Add this event directly to your custom Sri Lanka itinerary days.
             </p>
             <button
-              onClick={() => navigate("/create-trip")}
-              className="w-full bg-white text-emerald-800 font-semibold py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2"
+              onClick={() => setIsTripModalOpen(true)}
+              className="w-full bg-white text-emerald-900 font-extrabold text-xs py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
-              <Plus size={18} /> Add to Trip
+              <Plus size={16} /> Add to Trip
             </button>
           </div>
         </aside>
@@ -476,6 +478,7 @@ export default function EventDetailPage() {
                 saved={false}
                 onSave={() => {}}
                 onViewDetails={(rid) => navigate(`/events/${rid}`)}
+                onAddToTrip={(relEvt) => setSelectedRelEvent(relEvt)}
               />
             ))}
           </div>
@@ -490,6 +493,19 @@ export default function EventDetailPage() {
           onClose={() => setLightbox(null)}
         />
       )}
+
+      {/* Add To Trip Modals */}
+      <AddToTripModal
+        event={event}
+        isOpen={isTripModalOpen}
+        onClose={() => setIsTripModalOpen(false)}
+      />
+
+      <AddToTripModal
+        event={selectedRelEvent}
+        isOpen={!!selectedRelEvent}
+        onClose={() => setSelectedRelEvent(null)}
+      />
     </div>
     <Footer />
     </>

@@ -1,4 +1,4 @@
-import { MapPin, Bookmark } from "lucide-react";
+import { MapPin, Bookmark, Plus } from "lucide-react";
 import { CATEGORY_META } from "../utils/eventCategoryMeta";
 
 const fmt = (dateStr) => {
@@ -9,7 +9,7 @@ const fmt = (dateStr) => {
   };
 };
 
-export default function EventCard({ event, onSave, saved, onViewDetails }) {
+export default function EventCard({ event, onSave, saved, onViewDetails, onAddToTrip }) {
   const meta = CATEGORY_META[event.category] || CATEGORY_META.ALL;
   const start = fmt(event.startDate);
   const end = fmt(event.endDate);
@@ -62,10 +62,18 @@ export default function EventCard({ event, onSave, saved, onViewDetails }) {
           </p>
         </div>
 
-        <div className="flex items-center justify-end pt-3 mt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:mt-0">
+        <div className="flex items-center justify-end gap-2 pt-3 mt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:mt-0 flex-wrap sm:flex-nowrap">
+          {onAddToTrip && (
+            <button
+              onClick={() => onAddToTrip(event)}
+              className="w-full sm:w-auto bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 text-xs font-bold px-3.5 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <Plus size={14} className="text-emerald-700" /> Add to Trip
+            </button>
+          )}
           <button
             onClick={() => onViewDetails(event.id)}
-            className="w-full sm:w-auto bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md whitespace-nowrap"
+            className="w-full sm:w-auto bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md whitespace-nowrap text-center"
           >
             View Event Details →
           </button>

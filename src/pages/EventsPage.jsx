@@ -5,6 +5,7 @@ import eventService from "../services/eventService";
 import bannerImage from "../assets/Banner.jpg";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
+import AddToTripModal from "../components/AddToTripModal";
 import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -29,6 +30,7 @@ export default function EventsPage() {
   // null = no date filter active, Date = filter by that date
   const [selectedDate, setSelectedDate] = useState(null);
   const [savedIds, setSavedIds] = useState(new Set());
+  const [selectedTripEvent, setSelectedTripEvent] = useState(null);
 
   // Sync user-specific bookmarks from storage & custom event listener
   useEffect(() => {
@@ -408,6 +410,7 @@ export default function EventsPage() {
                     saved={savedIds.has(event.id)}
                     onSave={toggleSave}
                     onViewDetails={(id) => navigate(`/events/${id}`)}
+                    onAddToTrip={(evt) => setSelectedTripEvent(evt)}
                   />
                 ))}
               </div>
@@ -425,6 +428,14 @@ export default function EventsPage() {
           </div>
         </div>
       </div>
+
+      {/* Add To Trip Modal */}
+      <AddToTripModal
+        event={selectedTripEvent}
+        isOpen={!!selectedTripEvent}
+        onClose={() => setSelectedTripEvent(null)}
+      />
+
       <Footer />
     </>
   );
