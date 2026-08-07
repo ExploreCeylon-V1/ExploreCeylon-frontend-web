@@ -554,7 +554,7 @@ export default function CreateTripPage() {
               <img
                 src={tipImg}
                 alt="Travel essentials"
-                className="w-full rounded-2xl object-cover shadow-xs"
+                className="hidden lg:block w-full rounded-2xl object-cover shadow-xs"
               />
             </div>
 
