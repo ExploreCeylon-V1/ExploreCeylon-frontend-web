@@ -512,11 +512,11 @@ export default function Home() {
               <span>Loading upcoming Sri Lankan events...</span>
             </div>
           ) : (
-            <div className="flex gap-5 pb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-4 sm:gap-5 pb-4 pt-1 overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0">
               {events.map((ev) => (
                 <div
                   key={ev.id}
-                  className="group min-w-[240px] max-w-[260px] flex-1 flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+                  className="group w-[78vw] sm:w-[280px] md:w-[290px] shrink-0 snap-start flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
                 >
                   <div>
                     {/* Image Container with Fallback */}
