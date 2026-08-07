@@ -47,7 +47,7 @@ function TripCard({ trip, onDelete, onStatusChange }) {
     if (!window.confirm(`Delete "${trip.title}"?`)) return;
     setDeleting(true);
     try {
-      await deleteTrip(trip.id, token);
+      await deleteTrip(trip.id);
       onDelete(trip.id);
     } catch {
       alert("Delete failed");
@@ -59,7 +59,7 @@ function TripCard({ trip, onDelete, onStatusChange }) {
 
   async function handleStatusChange(newStatus) {
     try {
-      const updated = await updateTripStatus(trip.id, newStatus, token);
+      const updated = await updateTripStatus(trip.id, newStatus);
       onStatusChange(updated);
     } catch {
       alert("Status update failed");
@@ -69,7 +69,7 @@ function TripCard({ trip, onDelete, onStatusChange }) {
 
   async function handleRestore() {
     try {
-      const updated = await restoreTrip(trip.id, token);
+      const updated = await restoreTrip(trip.id);
       onStatusChange(updated);
     } catch {
       alert("Restore trip failed");
@@ -317,7 +317,7 @@ export default function MyTripsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchMyTrips(token);
+      const data = await fetchMyTrips();
       setTrips(data);
     } catch (e) {
       setError(e.message);

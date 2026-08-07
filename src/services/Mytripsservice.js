@@ -1,34 +1,22 @@
-// MyTripsService.js
-// All API calls and pure utility functions for the My Trips feature
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+import apiClient from "./api";
 
 // ─── Trip CRUD ────────────────────────────────────────────────────────────────
 
-export async function fetchMyTrips(token) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/my`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Failed to load trips");
-  return res.json();
+export async function fetchMyTrips() {
+  const res = await apiClient.get("/api/v1/trips/my");
+  return res.data;
 }
 
-export async function deleteTrip(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Delete failed");
+export async function deleteTrip(tripId) {
+  await apiClient.delete(`/api/v1/trips/${tripId}`);
   return true;
 }
 
-export async function updateTripStatus(tripId, newStatus, token) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/status?status=${newStatus}`,
-    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } },
+export async function updateTripStatus(tripId, newStatus) {
+  const res = await apiClient.patch(
+    `/api/v1/trips/${tripId}/status?status=${newStatus}`
   );
-  if (!res.ok) throw new Error("Status update failed");
-  return res.json();
+  return res.data;
 }
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
@@ -124,39 +112,28 @@ export const FILTER_LABEL = {
   CANCELLED: "Cancelled",
 };
 
-export async function restoreTrip(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/restore`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Restore trip failed");
-  return res.json();
+export async function restoreTrip(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/restore`);
+  return res.data;
 }
 
-export async function fetchTripActivityLogs(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/activity-logs`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return [];
-  return res.json();
+export async function fetchTripActivityLogs(tripId) {
+  try {
+    const res = await apiClient.get(`/api/v1/planner/${tripId}/activity-logs`);
+    return res.data;
+  } catch {
+    return [];
+  }
 }
 
-export async function revokeShareToken(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/share/revoke`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Revoke share failed");
-  return res.json();
+export async function revokeShareToken(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/share/revoke`);
+  return res.data;
 }
 
-export async function regenerateShareToken(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/planner/${tripId}/share/regenerate`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Regenerate share failed");
-  return res.json();
+export async function regenerateShareToken(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/share/regenerate`);
+  return res.data;
 }
 
 export const STYLE_EMOJI = {
