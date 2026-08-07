@@ -406,7 +406,7 @@ export default function AboutPage() {
             <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
             <div className="space-y-8">
               {MILESTONES.map((m, i) => (
-                <div key={m.year} className="flex gap-6 relative">
+                <div key={`${m.year}-${m.title}`} className="flex gap-6 relative">
                   <div
                     className="flex-shrink-0 w-10 h-10 rounded-full bg-[#1a5c2a]
                                   flex items-center justify-center text-white text-xs

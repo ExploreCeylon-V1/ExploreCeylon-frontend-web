@@ -24,6 +24,7 @@ import {
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
   PartyPopper, Lightbulb, Sunrise, Sun, Moon,
   Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download, History,
+  Users, Trash2,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";

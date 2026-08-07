@@ -226,7 +226,7 @@ export default function EventsPage() {
 
               {/* Responsive Category Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2 sm:gap-2.5">
-                {["ALL", "BOOKMARKS", ...CATEGORY_LIST].map((key) => {
+                {["ALL", ...CATEGORY_LIST].map((key) => {
                   const meta = CATEGORY_META[key];
                   const Icon = meta.icon;
                   const active = activeCategory === key;
