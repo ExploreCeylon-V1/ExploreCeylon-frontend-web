@@ -90,10 +90,10 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <li key={link.name}>
               <button
-                className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs transition-all ${
+                className={`relative whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition-colors hover:text-emerald-800 ${
                   isNavLinkActive(location.pathname, link.path)
-                    ? "font-extrabold text-emerald-900 bg-emerald-50/80 shadow-2xs"
-                    : "font-bold text-slate-600 hover:text-emerald-800 hover:bg-slate-50"
+                    ? "font-semibold text-emerald-900 after:absolute after:-bottom-0.5 after:left-2.5 after:right-2.5 after:h-0.5 after:rounded-full after:bg-emerald-800"
+                    : "font-medium text-slate-600"
                 }`}
                 onClick={() => navigate(link.path)}
               >
