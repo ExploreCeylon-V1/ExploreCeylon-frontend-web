@@ -27,12 +27,12 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Hotels", path: "/hotels" },
-    { name: "Vehicles", path: "/vehicles" },
-    { name: "Guides", path: "/guides" },
     { name: "Destinations", path: "/destinations" },
-    { name: "Events", path: "/events" },
     { name: "Hidden Gems", path: "/hidden-gems" },
+    { name: "Events", path: "/events" },
+    { name: "Guides", path: "/guides" },
+    { name: "Vehicles", path: "/vehicles" },
+    { name: "Hotels", path: "/hotels" },
     { name: "About Us", path: "/about" },
   ];
 
