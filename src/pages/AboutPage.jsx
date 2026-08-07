@@ -678,30 +678,31 @@ export default function AboutPage() {
                 with us? Or just want to say hello? Our team is always here.
               </p>
 
-              <div className="space-y-5 mb-8">
+              <div className="space-y-5">
                 {[
                   {
                     icon: "📧",
                     label: "Email Us",
-                    value: "hello@exploreceylon.lk",
-                    href: "mailto:hello@exploreceylon.lk",
+                    value: "exploreceylonadmin@gmail.com",
+                    href: "mailto:exploreceylonadmin@gmail.com",
                   },
                   {
                     icon: "📞",
                     label: "Call Us",
-                    value: "+94 11 234 5678",
-                    href: "tel:+94112345678",
+                    value: "+94 72 623 6519",
+                    href: "tel:+94726236519",
                   },
                   {
                     icon: "📍",
                     label: "Find Us",
-                    value: "Colombo 03, Western Province, Sri Lanka",
-                    href: null,
+                    value: "ExploreCeylon.com",
+                    href: "http://exploreceylon.me:5173",
+                    external: true,
                   },
                   {
                     icon: "🕐",
                     label: "Working Hours",
-                    value: "Mon–Fri, 9:00 AM – 6:00 PM (IST)",
+                    value: "24*7",
                     href: null,
                   },
                 ].map((c) => (
@@ -720,7 +721,9 @@ export default function AboutPage() {
                       {c.href ? (
                         <a
                           href={c.href}
-                          className="text-sm text-[#1a5c2a] font-medium hover:underline"
+                          target={c.external ? "_blank" : undefined}
+                          rel={c.external ? "noopener noreferrer" : undefined}
+                          className="text-sm text-[#1a5c2a] font-bold hover:underline"
                         >
                           {c.value}
                         </a>
@@ -732,34 +735,6 @@ export default function AboutPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Social */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-3">
-                  Follow Us
-                </p>
-                <div className="flex gap-2">
-                  {[
-                    { icon: "📘", label: "Facebook", href: "#" },
-                    { icon: "📸", label: "Instagram", href: "#" },
-                    { icon: "🐦", label: "Twitter", href: "#" },
-                    { icon: "💼", label: "LinkedIn", href: "#" },
-                    { icon: "🐙", label: "GitHub", href: "#" },
-                  ].map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      title={s.label}
-                      className="w-10 h-10 bg-white border border-gray-200
-                                 rounded-xl flex items-center justify-center
-                                 text-lg hover:border-[#1a5c2a] hover:bg-green-50
-                                 transition-colors shadow-sm"
-                    >
-                      {s.icon}
-                    </a>
-                  ))}
-                </div>
               </div>
             </div>
 
