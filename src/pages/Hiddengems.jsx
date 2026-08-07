@@ -128,30 +128,32 @@ const HiddenGems = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-100">
         {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-12 sm:py-16 px-4 sm:px-6 shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-12 px-4 sm:px-6 lg:px-8 shadow-xl">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
 
-          <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
-            <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300 mb-3">
-                <span>💎</span> Secret Spots & Treasures
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="max-w-4xl text-left space-y-2.5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300">
+                  <span>💎</span> Secret Spots & Treasures
+                </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-snug">
                 Discover Hidden Gems of <span className="text-amber-300">Sri Lanka</span>
               </h1>
-              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium max-w-3xl">
                 Off-the-beaten-path waterfalls, secluded beaches & insider locations curated by local explorers.
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 mt-5 text-xs font-semibold text-emerald-200">
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   💎 {approvedGems.length} Verified Gems
                 </span>
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   🗂️ {GEM_CATEGORIES.length} Categories
                 </span>
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   ✅ Community Approved
                 </span>
               </div>
