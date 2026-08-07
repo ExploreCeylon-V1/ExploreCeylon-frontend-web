@@ -33,30 +33,30 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
   };
 
   return (
-    <div className="flex flex-col w-full mb-4 overflow-hidden transition-shadow bg-white border border-gray-100 shadow-sm md:flex-row rounded-2xl hover:shadow-md">
+    <div className="flex flex-col w-full mb-4 overflow-hidden transition-all duration-300 bg-white border border-slate-100 shadow-sm md:flex-row rounded-2xl hover:shadow-xl group">
       {/* Left Side: Image Section */}
-      <div className="relative w-full h-48 bg-gray-100 md:w-72 md:h-auto shrink-0">
+      <div className="relative w-full h-52 bg-slate-100 md:w-72 md:h-auto shrink-0 overflow-hidden">
         <img
           src={
             hotel.photoUrl ||
             "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop"
           }
           alt={hotel.name}
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
             e.target.src =
               "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600&auto=format&fit=crop";
           }}
         />
         {/* Badges Container */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[90%]">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[90%] z-10">
           {hotel.isLocalPick && (
-            <span className="bg-[#115e3b] text-white text-2xs font-bold px-2.5 py-1 rounded-md flex items-center shadow-sm">
+            <span className="bg-emerald-900/90 backdrop-blur-md text-amber-300 text-3xs font-extrabold tracking-wider px-2.5 py-1 rounded-lg flex items-center shadow-md border border-amber-300/30">
               ★ LOCAL PICK
             </span>
           )}
           {hotel.propertyType && (
-            <span className="bg-amber-500 text-white text-2xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+            <span className="bg-amber-500 text-white text-3xs font-bold tracking-wider px-2.5 py-1 rounded-lg shadow-md">
               {hotel.propertyType}
             </span>
           )}
@@ -64,19 +64,21 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
       </div>
 
       {/* Middle Section: Content Area */}
-      <div className="flex flex-col justify-between flex-1 p-5">
+      <div className="flex flex-col justify-between flex-1 p-5 sm:p-6">
         <div>
           {/* Title & Stars */}
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">{hotel.name}</h3>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors">
+                {hotel.name}
+              </h3>
               {hotel.stars > 0 && (
                 <div className="flex items-center text-amber-400 text-xs mt-1 space-x-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <span key={i}>{i < hotel.stars ? "★" : "☆"}</span>
                   ))}
-                  <span className="ml-1 text-xs font-medium text-gray-400">
-                    {hotel.stars} stars
+                  <span className="ml-1.5 text-xs font-semibold text-slate-400">
+                    {hotel.stars} Star Stay
                   </span>
                 </div>
               )}
@@ -86,54 +88,54 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
           {/* Rating Row */}
           {hotel.reviewScore > 0 && (
             <div className="flex items-center mt-3 space-x-2">
-              <span className="bg-[#115e3b] text-white font-bold text-xs px-2 py-0.5 rounded-md">
+              <span className="bg-emerald-800 text-white font-extrabold text-xs px-2.5 py-0.5 rounded-lg shadow-xs">
                 {hotel.reviewScore}
               </span>
               {hotel.reviewScoreWord && (
-                <span className="text-sm font-bold text-gray-800">
+                <span className="text-sm font-bold text-slate-800">
                   {hotel.reviewScoreWord}
                 </span>
               )}
               {hotel.reviewsCount > 0 && (
-                <span className="text-xs font-medium text-gray-400">
-                  ({hotel.reviewsCount} reviews)
+                <span className="text-xs font-medium text-slate-400">
+                  ({hotel.reviewsCount} verified reviews)
                 </span>
               )}
             </div>
           )}
 
-          {/* Amenities Pills — only render if backend returned any */}
+          {/* Amenities Pills */}
           {hotel.amenities && hotel.amenities.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {hotel.amenities.slice(0, 5).map((amenity, index) => (
                 <span
                   key={index}
-                  className="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200/50"
+                  className="bg-emerald-50/80 text-emerald-950 text-xs font-semibold px-2.5 py-1 rounded-md border border-emerald-100/60"
                 >
                   {amenity}
                 </span>
               ))}
               {hotel.amenities.length > 5 && (
-                <span className="bg-gray-50 text-gray-400 text-xs font-medium px-2.5 py-1 rounded-md">
+                <span className="bg-slate-50 text-slate-400 text-xs font-medium px-2.5 py-1 rounded-md">
                   +{hotel.amenities.length - 5} more
                 </span>
               )}
             </div>
           )}
 
-          {/* Address (used instead of the old free-text description, which the API doesn't provide) */}
+          {/* Address */}
           {hotel.address && (
-            <p className="mt-3 text-xs font-medium leading-relaxed text-gray-500 line-clamp-2">
-              {hotel.address}
+            <p className="mt-3 text-xs font-medium leading-relaxed text-slate-500 line-clamp-2">
+              📍 {hotel.address}
             </p>
           )}
         </div>
 
         {/* Location & Cancellation Details */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-4 text-xs font-semibold border-t border-gray-50">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-4 text-xs font-semibold border-t border-slate-100">
           {hotel.distanceFromCenterKm != null ? (
-            <div className="flex items-center text-gray-400">
-              <span className="mr-1">📍</span>
+            <div className="flex items-center text-slate-500">
+              <span className="mr-1">🗺️</span>
               <span>
                 {hotel.distanceFromCenterKm.toFixed(1)} km from city center
               </span>
@@ -142,13 +144,13 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
             <span />
           )}
           {hotel.freeCancellationUntil ? (
-            <div className="flex items-center text-emerald-600">
-              <span className="mr-1">✓</span>
+            <div className="flex items-center text-emerald-700">
+              <span className="mr-1 font-bold">✓</span>
               <span>Free cancellation until {hotel.freeCancellationUntil}</span>
             </div>
           ) : (
             <div className="flex items-center text-rose-500">
-              <span className="mr-1">✕</span>
+              <span className="mr-1 font-bold">✕</span>
               <span>Non-refundable</span>
             </div>
           )}
@@ -156,20 +158,20 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
       </div>
 
       {/* Right Side: Pricing & Actions */}
-      <div className="flex flex-row items-center justify-between w-full p-5 border-t border-gray-100 md:w-48 md:border-t-0 md:border-l md:flex-col md:justify-center shrink-0 bg-gray-50/50 md:bg-white">
+      <div className="flex flex-row items-center justify-between w-full p-5 border-t border-slate-100 md:w-52 md:border-t-0 md:border-l md:flex-col md:justify-center shrink-0 bg-slate-50/50 md:bg-white">
         <div className="w-full text-left md:text-right md:mb-5">
           <div className="flex items-baseline md:justify-end">
-            <span className="text-2xl font-black text-gray-900">
+            <span className="text-2xl font-black text-slate-900">
               {hotel.currency} {hotel.pricePerNight}
             </span>
-            <span className="ml-1 text-xs font-medium text-gray-400">
+            <span className="ml-1 text-xs font-semibold text-slate-400">
               /night
             </span>
           </div>
-          <div className="text-xs font-bold text-gray-700 mt-0.5">
+          <div className="text-xs font-extrabold text-emerald-900 mt-0.5">
             {hotel.currency} {calculatedTotalPrice} total
           </div>
-          <div className="font-medium text-gray-400 text-3xs">
+          <div className="font-medium text-slate-400 text-3xs">
             ({nightsCount} {nightsCount === 1 ? "night" : "nights"})
           </div>
         </div>
@@ -177,13 +179,13 @@ function HotelCard({ hotel, nightsCount, searchParams, onViewDetails }) {
         <div className="flex w-auto gap-2 md:flex-col md:w-full shrink-0">
           <button
             onClick={() => onViewDetails(hotel)}
-            className="px-4 py-2 text-xs font-bold transition-colors border border-emerald-700 text-emerald-800 hover:bg-emerald-50 rounded-xl whitespace-nowrap"
+            className="px-4 py-2.5 text-xs font-bold transition-all border border-emerald-800/30 text-emerald-900 hover:bg-emerald-50 rounded-xl whitespace-nowrap text-center"
           >
             View Details →
           </button>
           <button
             onClick={handleBookNow}
-            className="bg-[#115e3b] hover:bg-[#0c4a2e] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap shadow-sm"
+            className="bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all whitespace-nowrap shadow-sm hover:shadow-md text-center"
           >
             Book Now ↗
           </button>

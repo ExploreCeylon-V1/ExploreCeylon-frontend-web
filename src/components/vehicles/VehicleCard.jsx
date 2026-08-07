@@ -9,13 +9,13 @@ const TYPE_LABELS = {
 };
 
 const TYPE_COLORS = {
-  TUKTUK: "bg-orange-500",
-  CAR: "bg-blue-600",
-  VAN: "bg-purple-600",
-  SUV: "bg-teal-600",
-  SCOOTER: "bg-red-600",
-  BUS: "bg-green-600",
-  MINIVAN: "bg-orange-600",
+  TUKTUK: "bg-amber-600",
+  CAR: "bg-teal-700",
+  VAN: "bg-emerald-800",
+  SUV: "bg-emerald-900",
+  SCOOTER: "bg-orange-600",
+  BUS: "bg-teal-800",
+  MINIVAN: "bg-amber-700",
 };
 
 export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" }) {
@@ -41,7 +41,7 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
       : `https://placehold.co/400x240/1a5c38/white?text=${encodeURIComponent(name)}`;
 
   const typeLabel = TYPE_LABELS[type] || type;
-  const typeBg = TYPE_COLORS[type] || "bg-gray-500";
+  const typeBg = TYPE_COLORS[type] || "bg-slate-700";
 
   const hasAC = ["CAR", "VAN", "MINIVAN"].includes(type);
   const has4WD = type === "SUV";
@@ -49,17 +49,17 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
   const badges = (
     <div className="flex flex-wrap gap-1.5">
       {driverIncluded && (
-        <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
+        <span className="text-xs font-semibold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
           ✔ Driver Included
         </span>
       )}
       {hasAC && (
-        <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
+        <span className="text-xs font-semibold text-teal-900 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-100">
           ✔ AC
         </span>
       )}
       {has4WD && (
-        <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
+        <span className="text-xs font-semibold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">
           ✔ 4WD
         </span>
       )}
@@ -68,57 +68,59 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
 
   const availabilityBadge = (
     <span
-      className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
+      className={`flex items-center gap-1.5 text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-full border shrink-0 backdrop-blur-md shadow-xs ${
         available
-          ? "bg-green-50 text-green-700 border-green-300"
-          : "bg-red-50 text-red-600 border-red-300"
+          ? "bg-emerald-500/90 text-white border-emerald-400/40"
+          : "bg-rose-500/90 text-white border-rose-400/40"
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${available ? "bg-green-500" : "bg-red-500"}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${available ? "bg-emerald-200 animate-pulse" : "bg-rose-200"}`} />
       {available ? "Available" : "Unavailable"}
     </span>
   );
 
   if (layout === "list") {
     return (
-      <div className="flex flex-col sm:flex-row bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
+      <div className="flex flex-col sm:flex-row bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group shadow-sm">
         {/* Image */}
-        <div className="relative w-full h-40 sm:w-56 sm:h-auto shrink-0 overflow-hidden">
+        <div className="relative w-full h-48 sm:w-64 sm:h-auto shrink-0 overflow-hidden bg-slate-100">
           <img
             src={imageUrl}
             alt={name}
-            className="object-cover w-full h-full"
+            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
             onError={(e) => {
               e.target.src = `https://placehold.co/400x240/1a5c38/white?text=${encodeURIComponent(name)}`;
             }}
           />
           <span
-            className={`absolute top-3 left-3 ${typeBg} text-white text-xs font-bold px-2.5 py-1 rounded`}
+            className={`absolute top-3 left-3 ${typeBg} text-white text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg shadow-md border border-white/20 z-10`}
           >
-            {typeLabel.toUpperCase()}
+            {typeLabel}
           </span>
         </div>
 
         {/* Body */}
-        <div className="flex flex-col flex-1 gap-2.5 p-4 min-w-0">
+        <div className="flex flex-col flex-1 gap-2.5 p-5 min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <h3 className="text-base font-semibold text-gray-900">{name}</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors">
+              {name}
+            </h3>
             {availabilityBadge}
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
             <span>📍 {district}</span>
-            <span>👥 {seats} seats</span>
+            <span>👥 {seats} Seats</span>
             {rating > 0 && (
-              <span>
-                ⭐ {rating.toFixed(1)}{" "}
-                <span className="text-xs text-gray-400">({reviewCount})</span>
+              <span className="flex items-center gap-1 text-slate-800">
+                <span className="text-amber-400">★</span> {rating.toFixed(1)}{" "}
+                <span className="text-slate-400">({reviewCount})</span>
               </span>
             )}
           </div>
 
           {driverName && (
-            <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
               <span>🧑 {driverName}</span>
               {driverLanguages && <span>🗣 {driverLanguages}</span>}
             </div>
@@ -126,16 +128,16 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
 
           {badges}
 
-          <div className="flex items-center justify-between gap-3 pt-3 mt-auto border-t border-gray-100 sm:justify-end">
+          <div className="flex items-center justify-between gap-3 pt-3 mt-auto border-t border-slate-100 sm:justify-end">
             <div className="flex items-baseline gap-0.5 sm:mr-auto">
-              <span className="text-xl font-bold text-gray-900">${pricePerDay}</span>
-              <span className="text-sm text-gray-400">/day</span>
+              <span className="text-2xl font-black text-slate-900">${pricePerDay}</span>
+              <span className="text-xs font-semibold text-slate-400">/day</span>
             </div>
             <button
               onClick={() => onViewDetails(id)}
-              className="px-4 py-2 text-sm font-semibold border border-green-700 text-green-700 rounded-lg hover:bg-green-700 hover:text-white transition-colors shrink-0"
+              className="px-4 py-2.5 text-xs font-bold bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl transition-all shadow-sm hover:shadow-md shrink-0"
             >
-              View Details
+              View Details →
             </button>
           </div>
         </div>
@@ -144,42 +146,44 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group shadow-sm">
       {/* Image */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-52 overflow-hidden bg-slate-100">
         <img
           src={imageUrl}
           alt={name}
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
             e.target.src = `https://placehold.co/400x240/1a5c38/white?text=${encodeURIComponent(name)}`;
           }}
         />
         <span
-          className={`absolute top-3 left-3 ${typeBg} text-white text-xs font-bold px-2.5 py-1 rounded`}
+          className={`absolute top-3 left-3 ${typeBg} text-white text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg shadow-md border border-white/20 z-10`}
         >
-          {typeLabel.toUpperCase()}
+          {typeLabel}
         </span>
-        <span className="absolute top-3 right-3">{availabilityBadge}</span>
+        <span className="absolute top-3 right-3 z-10">{availabilityBadge}</span>
       </div>
 
       {/* Body */}
-      <div className="p-4 flex flex-col gap-2.5 flex-1">
-        <h3 className="text-base font-semibold text-gray-900">{name}</h3>
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors">
+          {name}
+        </h3>
 
-        <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
           <span>📍 {district}</span>
-          <span>👥 {seats} seats</span>
+          <span>👥 {seats} Seats</span>
           {rating > 0 && (
-            <span>
-              ⭐ {rating.toFixed(1)}{" "}
-              <span className="text-xs text-gray-400">({reviewCount})</span>
+            <span className="flex items-center gap-1 text-slate-800">
+              <span className="text-amber-400">★</span> {rating.toFixed(1)}{" "}
+              <span className="text-slate-400">({reviewCount})</span>
             </span>
           )}
         </div>
 
         {driverName && (
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
             <span>🧑 {driverName}</span>
             {driverLanguages && <span>🗣 {driverLanguages}</span>}
           </div>
@@ -188,16 +192,16 @@ export default function VehicleCard({ vehicle, onViewDetails, layout = "grid" })
         {badges}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 mt-auto border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 mt-auto border-t border-slate-100">
           <div className="flex items-baseline gap-0.5">
-            <span className="text-xl font-bold text-gray-900">${pricePerDay}</span>
-            <span className="text-sm text-gray-400">/day</span>
+            <span className="text-2xl font-black text-slate-900">${pricePerDay}</span>
+            <span className="text-xs font-semibold text-slate-400">/day</span>
           </div>
           <button
             onClick={() => onViewDetails(id)}
-            className="px-4 py-2 text-sm font-semibold border border-green-700 text-green-700 rounded-lg hover:bg-green-700 hover:text-white transition-colors"
+            className="px-4 py-2.5 text-xs font-bold bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl transition-all shadow-sm hover:shadow-md"
           >
-            View Details
+            View Details →
           </button>
         </div>
       </div>

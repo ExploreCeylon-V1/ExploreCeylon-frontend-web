@@ -589,54 +589,59 @@ const Guides = () => {
                       return (
                         <div
                           key={guide.id}
-                          className="flex flex-col gap-4 p-5 bg-white rounded-xl sm:flex-row sm:items-center"
+                          className="flex flex-col gap-4 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 sm:flex-row sm:items-center group"
                         >
-                          <img
-                            src={guide.photoUrl || PLACEHOLDER_PHOTO}
-                            alt={guide.fullName}
-                            className="object-cover w-16 h-16 rounded-full shrink-0"
-                          />
+                          <div className="relative shrink-0">
+                            <img
+                              src={guide.photoUrl || PLACEHOLDER_PHOTO}
+                              alt={guide.fullName}
+                              className="object-cover w-20 h-20 rounded-full ring-4 ring-emerald-500/15 group-hover:scale-105 transition-transform duration-300 shadow-md"
+                            />
+                            {guide.available && (
+                              <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
+                            )}
+                          </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-gray-800">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h3 className="font-extrabold text-slate-900 text-lg group-hover:text-emerald-800 transition-colors">
                                 {guide.fullName}
                               </h3>
-                              <span className="text-xs font-semibold text-green-700">
+                              <span className="text-3xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
                                 ✓ Verified
                               </span>
                               <span
-                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                className={`text-3xs font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                                   guide.available
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-100 text-gray-500"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-slate-100 text-slate-500"
                                 }`}
                               >
                                 {guide.available ? "Available" : "Unavailable"}
                               </span>
                             </div>
 
-                            <p className="mb-2 text-sm text-gray-500">
+                            <p className="mb-2 text-xs font-semibold text-slate-500">
                               {guide.specialties}
                             </p>
 
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                              <span className="flex items-center gap-1 text-sm text-gray-700">
-                                <span className="text-yellow-400">★</span>
+                            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600">
+                              <span className="flex items-center gap-1 text-slate-800">
+                                <span className="text-amber-400">★</span>
                                 <strong>{ratingDisplay}</strong>
-                                <span className="text-gray-400">
-                                  ({guide.reviewCount ?? 0})
+                                <span className="text-slate-400 font-normal">
+                                  ({guide.reviewCount ?? 0} reviews)
                                 </span>
                               </span>
                               <span>📍 {guide.district}</span>
                               <span>💬 {guide.languages}</span>
                             </div>
 
-                            <div className="flex gap-1.5 flex-wrap mt-2">
+                            <div className="flex gap-1.5 flex-wrap mt-3">
                               {specialtyTags.slice(0, 3).map((tag) => (
                                 <span
                                   key={tag}
-                                  className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700"
+                                  className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200/50"
                                 >
                                   {tag}
                                 </span>
@@ -644,13 +649,13 @@ const Guides = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:gap-2 shrink-0 sm:w-36">
-                            <p className="text-lg font-bold text-[#2D6A4F]">
-                              ${guide.pricePerDay}/day
+                          <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:gap-2 shrink-0 sm:w-36 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                            <p className="text-xl font-black text-slate-900">
+                              ${guide.pricePerDay}<span className="text-xs font-semibold text-slate-400">/day</span>
                             </p>
                             <Link
                               to={`/guides/${guide.id}`}
-                              className="bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-semibold text-sm rounded-lg py-2.5 px-4 text-center whitespace-nowrap transition-colors duration-150"
+                              className="bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl py-2.5 px-4 text-center whitespace-nowrap transition-all shadow-sm hover:shadow-md"
                             >
                               View Profile →
                             </Link>
@@ -662,72 +667,74 @@ const Guides = () => {
                     return (
                       <div
                         key={guide.id}
-                        className="flex flex-col items-center p-5 text-center bg-white rounded-xl"
+                        className="flex flex-col items-center p-6 text-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                       >
-                        <div className="flex items-center justify-between w-full mb-3">
-                          <span className="text-xs font-semibold text-green-700">
+                        <div className="flex items-center justify-between w-full mb-4">
+                          <span className="text-3xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
                             ✓ Verified
                           </span>
                           <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            className={`text-3xs font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                               guide.available
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-500"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-slate-100 text-slate-500"
                             }`}
                           >
                             {guide.available ? "Available" : "Unavailable"}
                           </span>
                         </div>
 
-                        <img
-                          src={guide.photoUrl || PLACEHOLDER_PHOTO}
-                          alt={guide.fullName}
-                          className="object-cover w-20 h-20 mb-3 rounded-full"
-                        />
+                        <div className="relative mb-3">
+                          <img
+                            src={guide.photoUrl || PLACEHOLDER_PHOTO}
+                            alt={guide.fullName}
+                            className="object-cover w-24 h-24 rounded-full ring-4 ring-emerald-500/15 group-hover:scale-105 transition-transform duration-300 shadow-md"
+                          />
+                        </div>
 
-                        <h3 className="font-bold text-gray-800 mb-0.5">
+                        <h3 className="font-extrabold text-slate-900 text-lg mb-0.5 group-hover:text-emerald-800 transition-colors">
                           {guide.fullName}
                         </h3>
-                        <p className="mb-2 text-sm text-gray-500">
+                        <p className="mb-2 text-xs font-semibold text-slate-500 line-clamp-1">
                           {guide.specialties}
                         </p>
 
-                        <div className="flex items-center gap-1 mb-3 text-sm text-gray-700">
-                          <span className="text-yellow-400">★</span>
+                        <div className="flex items-center gap-1 mb-3 text-xs font-semibold text-slate-700">
+                          <span className="text-amber-400">★</span>
                           <strong>{ratingDisplay}</strong>
-                          <span className="text-gray-400">
+                          <span className="text-slate-400 font-normal">
                             ({guide.reviewCount ?? 0})
                           </span>
                         </div>
 
-                        <div className="flex gap-1.5 flex-wrap justify-center mb-3">
+                        <div className="flex gap-1.5 flex-wrap justify-center mb-4">
                           {specialtyTags.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700"
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200/50"
                             >
                               {tag}
                             </span>
                           ))}
                         </div>
 
-                        <p className="mb-1 text-xs text-gray-500">
-                          📍 {guide.district}
-                        </p>
-                        <p className="mb-3 text-xs text-gray-500">
-                          💬 {guide.languages}
-                        </p>
+                        <div className="w-full text-xs font-semibold text-slate-500 space-y-1 mb-4 pt-3 border-t border-slate-100">
+                          <p>📍 {guide.district}</p>
+                          <p className="truncate">💬 {guide.languages}</p>
+                        </div>
 
-                        <p className="text-lg font-bold text-[#2D6A4F] mb-3">
-                          ${guide.pricePerDay}/day
-                        </p>
+                        <div className="w-full pt-3 mt-auto border-t border-slate-100 flex items-center justify-between">
+                          <p className="text-xl font-black text-slate-900">
+                            ${guide.pricePerDay}<span className="text-xs font-semibold text-slate-400">/day</span>
+                          </p>
 
-                        <Link
-                          to={`/guides/${guide.id}`}
-                          className="w-full bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-semibold text-sm rounded-lg py-3 text-center transition-colors duration-150"
-                        >
-                          View Profile →
-                        </Link>
+                          <Link
+                            to={`/guides/${guide.id}`}
+                            className="bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl py-2.5 px-4 text-center transition-all shadow-sm hover:shadow-md"
+                          >
+                            View Profile →
+                          </Link>
+                        </div>
                       </div>
                     );
                   })}
