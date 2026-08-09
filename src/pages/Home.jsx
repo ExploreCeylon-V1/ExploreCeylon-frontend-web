@@ -14,6 +14,7 @@ import userService from "../services/userService";
 import DestinationCard from "../components/DestinationCard";
 import { useAuth } from "../hooks/useAuth";
 import { useCountUp } from "../hooks/useCountUp";
+import apiClient from "../services/api";
 
 // ─── Category filter pills (DestinationCategory enum values ekata match wenna oni) ───
 const CATEGORIES = [
@@ -68,6 +69,8 @@ export default function Home() {
   const [userRef, userCountDisplay] = useCountUp(totalUsers);
 
   const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
 
   // ─── Top 3 hidden gems by rating (highest first) ───
   const topGems = [...gems]
@@ -139,11 +142,44 @@ export default function Home() {
       .finally(() => setLoadingDestinations(false));
   };
 
-  const handleSubscribe = () => {
-    // 🚨 TODO: Backend eke newsletter subscribe endpoint එකක් තියෙනවනම් මෙතන connect කරන්න
-    if (!email) return;
-    console.log("Subscribe email:", email);
-    setEmail("");
+  const handleSubscribe = async (e) => {
+    if (e) e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setSubscribeMessage({ text: "Please enter your email address.", type: "error" });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setSubscribeMessage({ text: "Please enter a valid email address.", type: "error" });
+      return;
+    }
+
+    setSubscribing(true);
+    setSubscribeMessage(null);
+
+    try {
+      await apiClient.post("/api/subscribe", { email: cleanEmail });
+      setSubscribeMessage({
+        text: "✨ Thank you for subscribing! We'll send you the best Sri Lanka travel tips.",
+        type: "success",
+      });
+      setEmail("");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setSubscribeMessage({
+          text: "You're already subscribed to ExploreCeylon updates!",
+          type: "warning",
+        });
+      } else {
+        setSubscribeMessage({
+          text: err.response?.data?.message || err.response?.data?.error || "Failed to subscribe. Please try again.",
+          type: "error",
+        });
+      }
+    } finally {
+      setSubscribing(false);
+    }
   };
 
   return (
@@ -699,23 +735,47 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-2 mt-8 sm:flex-row">
+          <form onSubmit={handleSubscribe} className="flex flex-col items-center justify-center gap-2 mt-8 sm:flex-row max-w-md mx-auto">
             <label htmlFor="newsletter-email" className="sr-only">Email address</label>
             <input
               id="newsletter-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={subscribing}
               placeholder="📧 Enter your email for travel tips..."
-              className="w-full sm:w-72 px-4 py-2.5 text-sm text-stone-900 bg-white border border-stone-200 rounded-lg outline-none placeholder:text-stone-400 focus:border-emerald-500"
+              className="w-full sm:w-72 px-4 py-2.5 text-sm text-stone-900 bg-white border border-stone-200 rounded-lg outline-none placeholder:text-stone-400 focus:border-emerald-500 disabled:opacity-50"
             />
             <button
-              onClick={handleSubscribe}
-              className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg bg-amber-500 text-emerald-950 hover:bg-amber-400 transition-colors"
+              type="submit"
+              disabled={subscribing}
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg bg-amber-500 text-emerald-950 hover:bg-amber-400 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              Subscribe →
+              {subscribing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-emerald-950 border-t-transparent rounded-full animate-spin" />
+                  <span>Subscribing...</span>
+                </>
+              ) : (
+                <span>Subscribe →</span>
+              )}
             </button>
-          </div>
+          </form>
+
+          {subscribeMessage && (
+            <div
+              className={`mt-3 text-xs font-semibold max-w-md mx-auto px-4 py-2 rounded-lg transition-all ${
+                subscribeMessage.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : subscribeMessage.type === "warning"
+                  ? "bg-amber-50 text-amber-900 border border-amber-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {subscribeMessage.text}
+            </div>
+          )}
+
           <p className="mt-2 text-xs text-stone-400">No spam. Unsubscribe anytime.</p>
         </div>
       </div>
