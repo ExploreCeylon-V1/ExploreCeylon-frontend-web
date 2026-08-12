@@ -4,6 +4,7 @@ import { SuccessModal } from "../components/SuccessModal";
 import { register as registerUser } from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
 import { User, Mail, Lock, Eye, EyeOff, Globe, MessageSquare, ShieldCheck, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
+import logo from "../assets/EC_Logo.png";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan",
@@ -96,10 +97,12 @@ export default function RegisterPage() {
 
           {/* Header Brand */}
           <div className="relative z-10 flex items-center justify-between">
-            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 font-bold text-white text-xs shadow-sm">
-                🌴
-              </span>
+            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-2 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
+              <img
+                src={logo}
+                alt="ExploreCeylon Logo"
+                className="h-10 w-10 object-contain"
+              />
               <span className="text-sm font-bold tracking-wide text-white group-hover:text-emerald-200">
                 ExploreCeylon
               </span>
