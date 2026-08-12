@@ -1,9 +1,24 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { login as loginUser, googleLogin as googleLoginApi } from "../services/authService";
+import {
+  login as loginUser,
+  googleLogin as googleLoginApi,
+} from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
-import { useGoogleLogin } from '@react-oauth/google';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Sparkles, MapPin, Star, Users } from "lucide-react";
+import { useGoogleLogin } from "@react-oauth/google";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  MapPin,
+  Star,
+  Users,
+} from "lucide-react";
+import logo from "../assets/EC_Logo.png";
 
 export default function LoginPage() {
   const { login: setAuth } = useAuth();
@@ -25,13 +40,18 @@ export default function LoginPage() {
 
     try {
       const data = await loginUser({ email, password });
-      setAuth(data.accessToken, {
-        id: data.userId,
-        name: data.name || "",
-        email: data.email || "",
-        role: data.role || "TRAVELER",
-        avatarUrl: data.avatarUrl,
-      }, rememberMe, data.refreshToken);
+      setAuth(
+        data.accessToken,
+        {
+          id: data.userId,
+          name: data.name || "",
+          email: data.email || "",
+          role: data.role || "TRAVELER",
+          avatarUrl: data.avatarUrl,
+        },
+        rememberMe,
+        data.refreshToken,
+      );
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err?.message || "Sign in failed.");
@@ -46,13 +66,18 @@ export default function LoginPage() {
       setLoading(true);
       try {
         const data = await googleLoginApi(tokenResponse.access_token);
-        setAuth(data.accessToken, {
-          id: data.userId,
-          name: data.name || "",
-          email: data.email || "",
-          role: data.role || "TRAVELER",
-          avatarUrl: data.avatarUrl,
-        }, rememberMe, data.refreshToken);
+        setAuth(
+          data.accessToken,
+          {
+            id: data.userId,
+            name: data.name || "",
+            email: data.email || "",
+            role: data.role || "TRAVELER",
+            avatarUrl: data.avatarUrl,
+          },
+          rememberMe,
+          data.refreshToken,
+        );
         navigate(redirectTo, { replace: true });
       } catch (err) {
         setError(err?.message || "Google Sign in failed.");
@@ -73,7 +98,6 @@ export default function LoginPage() {
 
       {/* ── Main Container ── */}
       <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-xl shadow-emerald-950/5 backdrop-blur-md lg:grid lg:grid-cols-12">
-
         {/* ── LEFT HERO PANEL ── */}
         <section className="relative flex flex-col justify-between overflow-hidden p-8 sm:p-10 text-white lg:col-span-5 min-h-[320px] lg:min-h-[600px]">
           {/* Hero Image Overlay */}
@@ -82,10 +106,15 @@ export default function LoginPage() {
 
           {/* Header Badge */}
           <div className="relative z-10 flex items-center justify-between">
-            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 font-bold text-white text-xs shadow-sm">
-                🌴
-              </span>
+            <Link
+              to="/"
+              className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-2 py-1.5 backdrop-blur-md transition-all hover:bg-white/20"
+            >
+              <img
+                src={logo}
+                alt="ExploreCeylon Logo"
+                className="h-10 w-10 object-contain"
+              />
               <span className="text-sm font-bold tracking-wide text-white group-hover:text-emerald-200">
                 ExploreCeylon
               </span>
@@ -101,7 +130,9 @@ export default function LoginPage() {
               Your Journey to Paradise Begins Here
             </h1>
             <p className="text-xs sm:text-sm text-slate-100/90 leading-relaxed max-w-sm font-medium">
-              Discover ancient heritage sites, pristine golden beaches, and mist-covered tea plantations with Sri Lanka's leading tourism platform.
+              Discover ancient heritage sites, pristine golden beaches, and
+              mist-covered tea plantations with Sri Lanka's leading tourism
+              platform.
             </p>
           </div>
 
@@ -158,13 +189,32 @@ export default function LoginPage() {
             disabled={loading}
             className="mb-5 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white py-3 px-4 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              className="shrink-0"
+            >
+              <path
+                fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
             </svg>
-            <span>{loading ? "Connecting to Google..." : "Continue with Google"}</span>
+            <span>
+              {loading ? "Connecting to Google..." : "Continue with Google"}
+            </span>
           </button>
 
           {/* Divider */}
@@ -178,7 +228,10 @@ export default function LoginPage() {
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             {/* Email Field */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="email">
+              <label
+                className="text-xs font-bold text-slate-700 tracking-wide uppercase"
+                htmlFor="email"
+              >
                 Email Address
               </label>
               <div className="relative flex items-center">
@@ -198,7 +251,10 @@ export default function LoginPage() {
             {/* Password Field */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="password">
+                <label
+                  className="text-xs font-bold text-slate-700 tracking-wide uppercase"
+                  htmlFor="password"
+                >
                   Password
                 </label>
                 <Link
@@ -226,7 +282,11 @@ export default function LoginPage() {
                   className="absolute right-3.5 text-slate-400 hover:text-slate-600 transition-colors p-1"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -273,7 +333,10 @@ export default function LoginPage() {
           <div className="mt-6 pt-4 border-t border-slate-100 text-center">
             <p className="text-xs sm:text-sm text-slate-500">
               Don't have an account?{" "}
-              <Link to="/register" className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
+              <Link
+                to="/register"
+                className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+              >
                 Create one free →
               </Link>
             </p>
@@ -285,7 +348,6 @@ export default function LoginPage() {
             <span>256-bit Bank-Grade SSL Encrypted Authentication</span>
           </div>
         </main>
-
       </div>
     </div>
   );
