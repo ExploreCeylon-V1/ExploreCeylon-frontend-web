@@ -17,23 +17,58 @@ import { downloadBudgetPdf } from "../utils/budgetPdf";
 
 const LKR_RATE = DEFAULT_USD_TO_LKR_RATE;
 
-// Keys match the backend BudgetItem.ItemCategory enum exactly.
+// Category definitions for Budget Tracker.
 const CATEGORIES = [
-  { key: "HOTEL",     label: "Hotels",     emoji: "🏨", color: "#1e3a5f", budget: 350 },
-  { key: "VEHICLE",   label: "Vehicles",   emoji: "🚗", color: "#f59e0b", budget: 140 },
-  { key: "GUIDE",     label: "Guides",     emoji: "👤", color: "#7c3aed", budget: 130 },
-  { key: "ACTIVITY",  label: "Activities", emoji: "🎟️", color: "#059669", budget: 70 },
-  { key: "FOOD",      label: "Food",       emoji: "🍜", color: "#e11d48", budget: 70 },
-  { key: "TRANSPORT", label: "Transport",  emoji: "🚌", color: "#2563eb", budget: 40 },
-  { key: "MISC",      label: "Other",      emoji: "📦", color: "#9ca3af", budget: 0 },
+  { key: "HOTEL",     label: "Hotels",     emoji: "🏨", color: "#1e3a5f" },
+  { key: "VEHICLE",   label: "Vehicles",   emoji: "🚗", color: "#f59e0b" },
+  { key: "GUIDE",     label: "Guides",     emoji: "👤", color: "#7c3aed" },
+  { key: "ACTIVITY",  label: "Activities", emoji: "🎟️", color: "#059669" },
+  { key: "FOOD",      label: "Food",       emoji: "🍜", color: "#e11d48" },
+  { key: "TRANSPORT", label: "Transport",  emoji: "🚌", color: "#2563eb" },
+  { key: "OTHER",     label: "Other",      emoji: "📦", color: "#6b7280" },
 ];
 
-const catMeta = key =>
-  CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length - 1];
+function isSameCategory(cat1, cat2) {
+  if (cat1 === cat2) return true;
+  if ((cat1 === "OTHER" || cat1 === "MISC") && (cat2 === "OTHER" || cat2 === "MISC")) return true;
+  return false;
+}
 
-// Starting allocations offered before the traveler customizes their own.
-const DEFAULT_ALLOCATIONS = Object.fromEntries(
-  CATEGORIES.map(c => [c.key, c.budget]));
+const catMeta = key =>
+  CATEGORIES.find(c => isSameCategory(c.key, key)) || CATEGORIES[CATEGORIES.length - 1];
+
+// Fixed default allocation percentages (must sum to 100%)
+const DEFAULT_CATEGORY_PERCENTAGES = [
+  { key: "HOTEL",     pct: 0.40 },
+  { key: "VEHICLE",   pct: 0.20 },
+  { key: "GUIDE",     pct: 0.00 },
+  { key: "ACTIVITY",  pct: 0.10 },
+  { key: "FOOD",      pct: 0.10 },
+  { key: "TRANSPORT", pct: 0.10 },
+  { key: "OTHER",     pct: 0.10 },
+];
+
+export function computeDefaultCategoryBudgets(totalBudget) {
+  const tb = Math.max(0, Math.round(totalBudget || 0));
+  if (tb === 0) {
+    return Object.fromEntries(DEFAULT_CATEGORY_PERCENTAGES.map(c => [c.key, 0]));
+  }
+
+  const result = {};
+  let currentSum = 0;
+
+  DEFAULT_CATEGORY_PERCENTAGES.forEach(c => {
+    const allocated = Math.round(tb * c.pct);
+    result[c.key] = allocated;
+    currentSum += allocated;
+  });
+
+  const remainder = tb - currentSum;
+  if (remainder !== 0) {
+    result["OTHER"] = (result["OTHER"] || 0) + remainder;
+  }
+  return result;
+}
 
 const DEMO_STATES = [
   { key: "ON_TRACK", label: "On Track",    hint: "(43% used)",    Icon: CheckCircle2 },
@@ -373,7 +408,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   const [loadingLive, setLoadingLive] = useState(true);
   const [expenses, setExpenses]     = useState([]);
   const [totalBudget, setTotalBudget] = useState(800);
-  const [categoryBudgets, setCategoryBudgets] = useState(DEFAULT_ALLOCATIONS);
+  const [categoryBudgets, setCategoryBudgets] = useState({});
   const [editingAllocations, setEditingAllocations] = useState(null);
   const [showForm, setShowForm]     = useState(false);
   const [presetCategory, setPresetCategory] = useState(null);
@@ -401,17 +436,29 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
       setBudgetId(budget.id);
       setTotalBudget(budget.totalBudget);
       setExpenses((budget.items || []).map(mapApiItem));
+
+      const loadedCategoryBudgets = budget.categoryBudgets || {};
+      const hasCustomCategoryBudgets = Object.keys(loadedCategoryBudgets).length > 0;
+      if (hasCustomCategoryBudgets) {
+        if (loadedCategoryBudgets.MISC !== undefined && loadedCategoryBudgets.OTHER === undefined) {
+          loadedCategoryBudgets.OTHER = loadedCategoryBudgets.MISC;
+        }
+        if (loadedCategoryBudgets.OTHER !== undefined && loadedCategoryBudgets.MISC === undefined) {
+          loadedCategoryBudgets.MISC = loadedCategoryBudgets.OTHER;
+        }
+      }
       setCategoryBudgets(
-        budget.categoryBudgets && Object.keys(budget.categoryBudgets).length > 0
-          ? budget.categoryBudgets
-          : DEFAULT_ALLOCATIONS);
+        hasCustomCategoryBudgets
+          ? loadedCategoryBudgets
+          : computeDefaultCategoryBudgets(budget.totalBudget)
+      );
       onBudgetChange?.(budget.totalBudget);
     } catch {
       // No budget created for this trip yet — show the empty state.
       setBudgetId(null);
       setTotalBudget(defaultBudget);
       setExpenses([]);
-      setCategoryBudgets(DEFAULT_ALLOCATIONS);
+      setCategoryBudgets(computeDefaultCategoryBudgets(defaultBudget));
       onBudgetChange?.(null);
     } finally {
       setLoadingLive(false);
@@ -427,7 +474,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     } else {
       setExpenses(DEMO_EXPENSES[mode] || []);
       setTotalBudget(800);
-      setCategoryBudgets(DEFAULT_ALLOCATIONS);
+      setCategoryBudgets(computeDefaultCategoryBudgets(800));
       setLoadingLive(false);
     }
     setEditingAllocations(null);
@@ -452,12 +499,15 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   const pctUsed     = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
   const dailyAvg    = tripDays > 0 ? totalSpent / tripDays : 0;
 
-  const perCategory = CATEGORIES.map(c => ({
-    ...c,
-    budget: categoryBudgets[c.key] ?? 0,
-    spent: expenses.filter(e => e.category === c.key)
-                   .reduce((s, e) => s + e.amount, 0),
-  }));
+  const perCategory = CATEGORIES.map(c => {
+    const bVal = categoryBudgets[c.key] ?? (isSameCategory(c.key, "OTHER") ? (categoryBudgets["OTHER"] ?? categoryBudgets["MISC"] ?? 0) : 0);
+    return {
+      ...c,
+      budget: bVal,
+      spent: expenses.filter(e => isSameCategory(e.category, c.key))
+                     .reduce((s, e) => s + e.amount, 0),
+    };
+  });
 
   // Live mode: bucket real expenses into trip days. Prefer the "Day N"
   // the traveler tagged the expense with (stored in notes) since that's
@@ -493,6 +543,39 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
 
     return { daily: buckets, unscheduledSpend: unscheduled };
   }, [isLive, mode, expenses, tripDays, trip]);
+
+  // Live mismatch calculation when editing or viewing Category Summary
+  const budgetMismatchInfo = useMemo(() => {
+    let currentSum = 0;
+    if (editingAllocations) {
+      const keys = ["HOTEL", "VEHICLE", "GUIDE", "ACTIVITY", "FOOD", "TRANSPORT", "OTHER"];
+      currentSum = keys.reduce((s, k) => {
+        const val = parseFloat(editingAllocations[k]);
+        return s + (Number.isNaN(val) || val < 0 ? 0 : val);
+      }, 0);
+    } else {
+      currentSum = perCategory.reduce((s, c) => s + c.budget, 0);
+    }
+
+    const diff = Math.abs(currentSum - totalBudget);
+    if (diff <= 0.01) return null;
+
+    if (currentSum < totalBudget) {
+      return {
+        type: "UNDER",
+        sum: currentSum,
+        diff,
+        message: `Category budgets total ${money(currentSum)}, which is ${money(diff)} less than your Total Budget (${money(totalBudget)}).`,
+      };
+    } else {
+      return {
+        type: "OVER",
+        sum: currentSum,
+        diff,
+        message: `Category budgets total ${money(currentSum)}, which is ${money(diff)} more than your Total Budget (${money(totalBudget)}).`,
+      };
+    }
+  }, [editingAllocations, perCategory, totalBudget]);
 
   const level = pctUsed > 100 ? "OVER" : pctUsed >= 80 ? "WARNING" : "ON_TRACK";
 
@@ -585,29 +668,47 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
       onBudgetChange?.(n);
     }
     setTotalBudget(n);
+    setCategoryBudgets(prev => {
+      const hasCustom = prev && Object.values(prev).some(v => v > 0);
+      return hasCustom ? prev : computeDefaultCategoryBudgets(n);
+    });
   }
 
   function startEditAllocations() {
     setEditingAllocations(Object.fromEntries(
-      CATEGORIES.map(c => [c.key, String(categoryBudgets[c.key] ?? 0)])));
+      CATEGORIES.map(c => {
+        const val = categoryBudgets[c.key] ?? (isSameCategory(c.key, "OTHER") ? (categoryBudgets["OTHER"] ?? categoryBudgets["MISC"] ?? 0) : 0);
+        return [c.key, String(val)];
+      })
+    ));
   }
 
   async function saveAllocations() {
-    const parsed = {};
-    for (const [key, value] of Object.entries(editingAllocations)) {
+    const uiParsed = {};
+    const apiPayload = {};
+
+    for (const [key, value] of Object.entries(editingAllocations || {})) {
       const n = parseFloat(value);
-      parsed[key] = Number.isNaN(n) || n < 0 ? 0 : n;
+      const val = Number.isNaN(n) || n < 0 ? 0 : n;
+
+      uiParsed[key] = val;
+      if (key === "OTHER") uiParsed["MISC"] = val;
+      if (key === "MISC") uiParsed["OTHER"] = val;
+
+      const apiKey = (key === "OTHER" || key === "MISC") ? "MISC" : key;
+      apiPayload[apiKey] = val;
     }
+
     if (isLive) {
       try {
         const id = await ensureBudget();
-        await budgetService.updateCategoryBudgets(id, parsed);
+        await budgetService.updateCategoryBudgets(id, apiPayload);
       } catch {
         alert("Failed to save category budgets");
         return;
       }
     }
-    setCategoryBudgets(parsed);
+    setCategoryBudgets(uiParsed);
     setEditingAllocations(null);
   }
 
@@ -1031,17 +1132,22 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
               </tbody>
             </table>
 
+            {/* Soft non-blocking warning when category budgets sum does not equal Total Budget */}
+            {budgetMismatchInfo && (
+              <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-xs text-amber-900 shadow-2xs">
+                <AlertTriangle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium leading-snug">{budgetMismatchInfo.message}</p>
+                </div>
+              </div>
+            )}
+
             {editingAllocations ? (
               <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
                 <p className="text-2xs text-gray-400">
                   Allocated:{" "}
-                  <span className={
-                    Object.values(editingAllocations)
-                      .reduce((s, v) => s + (parseFloat(v) || 0), 0) > totalBudget
-                      ? "text-red-600 font-semibold"
-                      : "text-gray-600 font-semibold"}>
-                    {money(Object.values(editingAllocations)
-                      .reduce((s, v) => s + (parseFloat(v) || 0), 0))}
+                  <span className={budgetMismatchInfo ? "text-amber-700 font-semibold" : "text-gray-600 font-semibold"}>
+                    {money(budgetMismatchInfo ? budgetMismatchInfo.sum : totalBudget)}
                   </span>
                   {" "}of {money(totalBudget)} total budget
                 </p>

@@ -5,6 +5,7 @@ import GuideReviews from '../components/GuideReviews';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../hooks/useCart';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 
 const PLACEHOLDER_PHOTO =
   'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=60';
@@ -30,6 +31,7 @@ const GuideDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
+  const requireAuth = useRequireAuth();
 
   const [guide, setGuide] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -654,20 +656,27 @@ const GuideDetail = () => {
                     type="button"
                     disabled={!guide.available}
                     onClick={() =>
-                      addToCart({
-                        type: 'guide',
-                        id: guide.id,
-                        name: guide.fullName,
-                        price: guide.pricePerDay,
-                        image: guide.photoUrl,
-                        meta: {
-                          district: guide.district,
-                          specialties: guide.specialties,
-                          languages: guide.languages,
-                          phone: guide.phone,
-                          whatsappNumber: guide.whatsappNumber,
-                        },
-                      })
+                      requireAuth(
+                        () =>
+                          addToCart({
+                            type: 'guide',
+                            id: guide.id,
+                            name: guide.fullName,
+                            price: guide.pricePerDay,
+                            image: guide.photoUrl,
+                            meta: {
+                              district: guide.district,
+                              specialties: guide.specialties,
+                              languages: guide.languages,
+                              phone: guide.phone,
+                              whatsappNumber: guide.whatsappNumber,
+                            },
+                          }),
+                        {
+                          title: "Sign in required",
+                          message: "Please sign in or create an account to add guides to your cart."
+                        }
+                      )
                     }
                     className="w-full border border-[#2D6A4F] text-[#2D6A4F] hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg py-2.5 text-sm transition-colors"
                   >

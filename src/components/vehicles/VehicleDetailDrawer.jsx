@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { vehicleService } from "../../services/vehicleService";
 import { useCart } from "../../hooks/useCart";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import VehicleReviews from "../VehicleReviews";
 import apiClient from "../../services/api";
 
 export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
+  const requireAuth = useRequireAuth();
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imgIndex, setImgIndex] = useState(0);
@@ -397,22 +399,29 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
               ) : (
                 <button
                   onClick={() =>
-                    addToCart({
-                      type: "vehicle",
-                      id: vehicle.id,
-                      name: vehicle.name,
-                      price: vehicle.pricePerDay,
-                      image: vehicle.imageUrls?.[0],
-                      meta: {
-                        district: vehicle.district,
-                        type: vehicle.type,
-                        seats: vehicle.seats,
-                        driverName: vehicle.driverName,
-                        driverPhone: vehicle.driverPhone,
-                        whatsappNumber: vehicle.whatsappNumber,
-                        languages: vehicle.driverLanguages,
-                      },
-                    })
+                    requireAuth(
+                      () =>
+                        addToCart({
+                          type: "vehicle",
+                          id: vehicle.id,
+                          name: vehicle.name,
+                          price: vehicle.pricePerDay,
+                          image: vehicle.imageUrls?.[0],
+                          meta: {
+                            district: vehicle.district,
+                            type: vehicle.type,
+                            seats: vehicle.seats,
+                            driverName: vehicle.driverName,
+                            driverPhone: vehicle.driverPhone,
+                            whatsappNumber: vehicle.whatsappNumber,
+                            languages: vehicle.driverLanguages,
+                          },
+                        }),
+                      {
+                        title: "Sign in required",
+                        message: "Please sign in or create an account to add vehicles to your cart."
+                      }
+                    )
                   }
                   disabled={!vehicle.available}
                   className="flex-1 py-2.5 rounded-xl font-semibold text-sm border border-green-700 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

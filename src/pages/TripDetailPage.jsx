@@ -802,7 +802,7 @@ function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
               key={p.label}
               onClick={() => setCustomPrompt(p.prompt)}
               disabled={disabled}
-              className="text-3xs font-bold px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-emerald-100 transition-all disabled:opacity-50 text-left"
+              className="text-3xs font-bold px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-emerald-100 transition-all disabled:opacity-50 text-left cursor-pointer"
             >
               {p.label}
             </button>
@@ -1165,12 +1165,21 @@ export default function TripDetailPage() {
     setRegenerating(true);
     try {
       const feedback = (overridePrompt || regenFeedback).trim();
+      const feedbackLower = feedback.toLowerCase();
+
+      let targetBudget = trip.budgetRange;
+      if (feedbackLower.includes("reduce budget") || feedbackLower.includes("lower budget") || feedbackLower.includes("cheap") || feedbackLower.includes("budget target") || feedbackLower.includes("280") || feedbackLower.includes("50,000")) {
+        targetBudget = "BUDGET";
+      } else if (feedbackLower.includes("luxury") || feedbackLower.includes("premium")) {
+        targetBudget = "LUXURY";
+      }
+
       await generateAiItinerary(trip.id, {
         startDate:     trip.startDate,
         endDate:       trip.endDate,
         travelStyle:   trip.travelStyle,
         travelStyles:  trip.travelStyle ? [trip.travelStyle] : [],
-        budgetRange:   trip.budgetRange,
+        budgetRange:   targetBudget,
         groupSize:     trip.groupSize,
         regions:       trip.toLocation ? [trip.toLocation] : [],
         interests:     trip.interests
@@ -1214,7 +1223,7 @@ export default function TripDetailPage() {
         <div className="text-center bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-md">
           <p className="text-xs font-bold uppercase tracking-wider text-rose-600 mb-2">Error Loading Trip</p>
           <p className="text-slate-700 font-medium mb-6">{error || "Trip not found"}</p>
-          <Link to="/trips"
+          <Link to="/my-trips"
             className="px-6 py-3 bg-emerald-800 text-white rounded-xl text-sm font-bold hover:bg-emerald-900 transition-all shadow-sm">
              Back to My Trips
           </Link>
@@ -1303,7 +1312,7 @@ export default function TripDetailPage() {
             <div className="space-y-3 max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
                 <Link
-                  to="/trips"
+                  to="/my-trips"
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-3xs font-extrabold uppercase tracking-widest text-emerald-200 hover:bg-white/20 transition-all"
                 >
                   <ArrowLeft size={12} /> My Trips
