@@ -1,38 +1,54 @@
 // tripPdf.js
-// Modern, professional Full Trip PDF generator for ExploreCeylon.
+// Premium Sri Lankan Travel Itinerary PDF Generator for ExploreCeylon.
 // Client-side generation using jsPDF with direct file download (.pdf blob).
-// Incorporates Phase 1 normalized currency utilities, time-slot bucketing,
-// item type classification, Unicode safety, and robust auto-pagination.
+// Features an ultra-clean luxury brochure layout, editorial typography,
+// route visualization, lightweight time slots, type badges, Hidden Gem highlights,
+// travel tip callouts, Unicode safety, and smart auto-pagination.
+// NOTE: Budget summary section removed completely as per specification.
 
 import { jsPDF } from "jspdf";
-import { formatMoney, formatDualCurrency, normalizeTripBudget } from "./currencyUtils.js";
+import { formatMoney } from "./currencyUtils.js";
 
 const PAGE_MARGIN = 40;
 const PAGE_WIDTH = 595.28;  // A4 width in pt
 const PAGE_HEIGHT = 841.89; // A4 height in pt
 const CONTENT_WIDTH = PAGE_WIDTH - (PAGE_MARGIN * 2);
 
-// ExploreCeylon Design System Palette
+// ExploreCeylon Refined Luxury Palette
 const COLORS = {
-  primary: [20, 83, 45],        // Deep Forest Green (#14532d)
-  primaryLight: [236, 253, 245],// Very Light Mint (#ecfdf5)
-  secondary: [5, 150, 105],     // Emerald Green (#059669)
-  accentBg: [240, 253, 244],    // Soft Mint Background (#f0fdf4)
-  textDark: [31, 41, 55],       // Charcoal Body (#1f2937)
-  textMuted: [107, 114, 128],   // Gray Text (#6b7280)
-  textLight: [156, 163, 175],   // Light Gray (#9ca3af)
-  borderLight: [229, 231, 235], // Line Border (#e5e7eb)
-  cardBg: [249, 250, 251],      // Card Fill (#f9fafb)
-  // Type Badges
-  gem: [124, 58, 237],          // Purple (#7c3aed)
-  event: [225, 29, 72],         // Rose (#e11d48)
-  destination: [5, 150, 105],   // Emerald (#059669)
-  transport: [37, 99, 235],     // Blue (#2563eb)
+  primary: [20, 83, 45],          // Deep Forest Green (#14532d)
+  primaryDark: [15, 60, 32],      // Darker Forest (#0f3c20)
+  secondary: [5, 150, 105],       // Emerald Green (#059669)
+  sandBg: [254, 248, 238],        // Warm Sand / Cream (#fef8ee)
+  sandBorder: [253, 230, 138],    // Warm Amber Border (#fde68a)
+  cardBg: [250, 252, 250],        // Soft Off-White (#fafcfa)
+  mintBg: [240, 253, 244],        // Soft Mint Accent (#f0fdf4)
+  textDark: [17, 24, 39],         // Charcoal Body (#111827)
+  textMuted: [107, 114, 128],     // Gray Text (#6b7280)
+  textLight: [156, 163, 175],     // Light Gray (#9ca3af)
+  borderLight: [229, 231, 235],   // Line Border (#e5e7eb)
+  
+  // Category Accents
+  gemText: [124, 58, 237],        // Purple (#7c3aed)
+  gemBg: [245, 243, 255],         // Soft Purple (#f5f3ff)
+  gemBorder: [221, 214, 254],     // Purple Border (#ddd6fe)
+
+  eventText: [225, 29, 72],       // Rose (#e11d48)
+  eventBg: [255, 241, 242],       // Soft Rose (#fff1f2)
+  eventBorder: [254, 205, 211],   // Rose Border (#fecdd3)
+
+  transportText: [37, 99, 235],   // Blue (#2563eb)
+  transportBg: [239, 246, 255],   // Soft Blue (#eff6ff)
+  transportBorder: [191, 219, 254],// Blue Border (#bfdbfe)
+
+  destText: [5, 150, 105],        // Emerald (#059669)
+  destBg: [236, 253, 245],        // Soft Mint (#ecfdf5)
+  destBorder: [167, 243, 208],    // Emerald Border (#a7f3d0)
 };
 
 /**
  * Sanitize text strings for safe jsPDF rendering.
- * Replaces non-standard quotes, dashes, and unsupported control glyphs.
+ * Replaces non-standard quotes, dashes, bullets, and unsupported control glyphs.
  */
 function sanitizeText(str = "") {
   if (!str) return "";
@@ -42,6 +58,19 @@ function sanitizeText(str = "") {
     .replace(/[\u2013\u2014]/g, "-")
     .replace(/\u2022/g, "•")
     .trim();
+}
+
+function formatTripTitle(title = "") {
+  let cleaned = sanitizeText(title)
+    .replace(/\s+Trip$/i, "")
+    .trim();
+  if (!cleaned) return "Sri Lanka Travel Itinerary";
+
+  // Capitalize title if all lowercase
+  if (cleaned === cleaned.toLowerCase()) {
+    cleaned = cleaned.replace(/\b\w/g, l => l.toUpperCase());
+  }
+  return cleaned;
 }
 
 function formatDate(d) {
@@ -67,15 +96,39 @@ function classifyItem(item) {
   const titleStr = String(item.title || "").toLowerCase();
 
   if (typeStr === "GEM" || titleStr.includes("hidden gem:")) {
-    return { label: "HIDDEN GEM", color: COLORS.gem, key: "GEM" };
+    return {
+      label: "✦ HIDDEN GEM",
+      textColor: COLORS.gemText,
+      bgColor: COLORS.gemBg,
+      borderColor: COLORS.gemBorder,
+      key: "GEM",
+    };
   }
   if (typeStr === "EVENT" || titleStr.startsWith("festival:")) {
-    return { label: "EVENT", color: COLORS.event, key: "EVENT" };
+    return {
+      label: "EVENT",
+      textColor: COLORS.eventText,
+      bgColor: COLORS.eventBg,
+      borderColor: COLORS.eventBorder,
+      key: "EVENT",
+    };
   }
   if (typeStr === "GUIDE" || typeStr === "VEHICLE" || typeStr === "TRANSPORT") {
-    return { label: "TRANSPORT / GUIDE", color: COLORS.transport, key: "TRANSPORT" };
+    return {
+      label: "TRANSPORT / GUIDE",
+      textColor: COLORS.transportText,
+      bgColor: COLORS.transportBg,
+      borderColor: COLORS.transportBorder,
+      key: "TRANSPORT",
+    };
   }
-  return { label: "DESTINATION", color: COLORS.destination, key: "DESTINATION" };
+  return {
+    label: "DESTINATION",
+    textColor: COLORS.destText,
+    bgColor: COLORS.destBg,
+    borderColor: COLORS.destBorder,
+    key: "DESTINATION",
+  };
 }
 
 function parseItemNotes(item) {
@@ -118,9 +171,9 @@ function bucketItemsIntoSlots(items = []) {
   }
 
   return [
-    { key: "MORNING", label: "MORNING", time: "08:00 AM – 12:00 PM", items: morning },
-    { key: "AFTERNOON", label: "AFTERNOON", time: "12:00 PM – 04:30 PM", items: afternoon },
-    { key: "EVENING", label: "EVENING", time: "04:30 PM – 08:00 PM", items: evening },
+    { key: "MORNING", label: "MORNING", time: "08:00 AM — 12:00 PM", items: morning },
+    { key: "AFTERNOON", label: "AFTERNOON", time: "12:00 PM — 04:30 PM", items: afternoon },
+    { key: "EVENING", label: "EVENING", time: "04:30 PM — 08:00 PM", items: evening },
   ];
 }
 
@@ -131,8 +184,9 @@ function createWriter(doc) {
   let y = PAGE_MARGIN;
 
   function ensureSpace(needed) {
-    if (y + needed > PAGE_HEIGHT - PAGE_MARGIN - 30) {
+    if (y + needed > PAGE_HEIGHT - PAGE_MARGIN - 35) {
       doc.addPage();
+      drawTopPageAccent(doc);
       y = PAGE_MARGIN + 20;
       return true;
     }
@@ -180,206 +234,318 @@ function createWriter(doc) {
   };
 }
 
+function drawTopPageAccent(doc) {
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, PAGE_WIDTH, 8, "F");
+  doc.setFillColor(...COLORS.secondary);
+  doc.rect(0, 8, PAGE_WIDTH, 2.5, "F");
+}
+
+function drawRouteArrow(doc, x1, y, x2, color = COLORS.secondary) {
+  doc.setDrawColor(...color);
+  doc.setLineWidth(1);
+  doc.line(x1, y, x2 - 8, y);
+
+  doc.setFillColor(...color);
+  doc.triangle(x2 - 8, y - 3, x2 - 8, y + 3, x2, y, "F");
+}
+
 export function downloadTripPdf(trip) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const w = createWriter(doc);
 
-  // ── 1. Top Decorative Brand Banner ─────────────────────
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE_WIDTH, 14, "F");
-  doc.setFillColor(...COLORS.secondary);
-  doc.rect(0, 14, PAGE_WIDTH, 3, "F");
-  w.y = 35;
+  // ── 1. Editorial Cover & Brand Header ───────────────────
+  drawTopPageAccent(doc);
+  w.y = 30;
 
-  // Header Titles
+  // Brand Badge
   w.drawText("EXPLORECEYLON", { size: 9, style: "bold", color: COLORS.secondary });
-  w.spacer(2);
-  w.drawText(trip.title || "Sri Lanka Travel Itinerary", { size: 20, style: "bold", color: COLORS.primary });
-  w.spacer(4);
+  w.drawText("AI-POWERED TRAVEL PLANNING", { size: 7.5, style: "bold", color: COLORS.textMuted });
+  w.spacer(6);
 
-  // Metadata Subtitle
+  // Large Trip Title
+  const formattedTitle = formatTripTitle(trip.title);
+  w.drawText(formattedTitle, { size: 22, style: "bold", color: COLORS.primary });
+  w.drawText("Trip Itinerary", { size: 12, style: "italic", color: COLORS.textMuted });
+  w.spacer(8);
+
+  // Subtitle Metadata Row
   const datesStr = trip.startDate && trip.endDate
     ? `${formatDate(trip.startDate)} – ${formatDate(trip.endDate)}`
     : "Dates TBD";
   const groupStr = `${trip.groupSize || 1} Traveler${(trip.groupSize || 1) > 1 ? "s" : ""}`;
-  const routeStr = (trip.fromLocation || trip.toLocation)
-    ? `  ·  Route: ${sanitizeText(trip.fromLocation || "Start")} → ${sanitizeText(trip.toLocation || "End")}`
-    : "";
+  const styleStr = trip.travelStyle ? `  ·  ${sanitizeText(trip.travelStyle)}` : "";
 
-  w.drawText(`${datesStr}   ·   ${groupStr}${routeStr}`, { size: 10, color: COLORS.textMuted });
-  w.spacer(8);
-  w.drawLine(COLORS.borderLight, 1);
+  w.drawText(`${datesStr}   ·   ${groupStr}${styleStr}`, { size: 9.5, color: COLORS.textMuted });
+  w.spacer(10);
+
+  // Clean Route Visual Banner (No corrupted unicode arrows)
+  const fromLoc = sanitizeText(trip.fromLocation || "Origin");
+  const toLoc   = sanitizeText(trip.toLocation || "Destination");
+
+  w.ensureSpace(40);
+  doc.setFillColor(...COLORS.sandBg);
+  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 34, 5, 5, "F");
+  doc.setDrawColor(...COLORS.sandBorder);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 34, 5, 5, "S");
+
+  // Route Origin Text
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...COLORS.primary);
+  doc.text(fromLoc.toUpperCase(), PAGE_MARGIN + 16, w.y + 16);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLORS.textMuted);
+  doc.text("START", PAGE_MARGIN + 16, w.y + 26);
+
+  // Center Arrow Line
+  const arrowX1 = PAGE_MARGIN + 120;
+  const arrowX2 = PAGE_WIDTH - PAGE_MARGIN - 120;
+  drawRouteArrow(doc, arrowX1, w.y + 18, arrowX2, COLORS.secondary);
+
+  // Route Destination Text
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...COLORS.primary);
+  doc.text(toLoc.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 16, w.y + 16, { align: "right" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLORS.textMuted);
+  doc.text("DESTINATION", PAGE_WIDTH - PAGE_MARGIN - 16, w.y + 26, { align: "right" });
+
+  w.y += 46;
+  w.drawLine(COLORS.borderLight, 0.75);
   w.spacer(6);
 
-  // ── 2. Trip Overview Metrics Card ───────────────────────
+  // ── 2. Trip Overview (4 Stat Cards Grid) ─────────────────
   const days = trip.days || [];
   const allStops = days.flatMap(d => (d.items || []).map(i => ({ ...i, region: d.region })));
   
-  const destCount = allStops.filter(s => classifyItem(s).key === "DESTINATION").length;
-  const gemCount  = allStops.filter(s => classifyItem(s).key === "GEM").length;
+  const destCount  = allStops.filter(s => classifyItem(s).key === "DESTINATION").length;
+  const gemCount   = allStops.filter(s => classifyItem(s).key === "GEM").length;
   const eventCount = allStops.filter(s => classifyItem(s).key === "EVENT").length;
-  const regions = [...new Set(days.map(d => d.region).filter(Boolean))];
+  const regions    = [...new Set(days.map(d => d.region).filter(Boolean))];
 
-  // Draw Summary Box
-  w.ensureSpace(55);
-  doc.setFillColor(...COLORS.accentBg);
-  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 50, 6, 6, "F");
-  doc.setDrawColor(...COLORS.secondary);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 50, 6, 6, "S");
-
-  // Summary Metrics Grid Text
-  const statBoxY = w.y + 16;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(...COLORS.primary);
-  
-  doc.text(`${days.length} Days`, PAGE_MARGIN + 20, statBoxY);
-  doc.text(`${destCount} Destinations`, PAGE_MARGIN + 120, statBoxY);
-  doc.text(`${gemCount} Hidden Gems`, PAGE_MARGIN + 270, statBoxY);
-  doc.text(`${eventCount} Events`, PAGE_MARGIN + 410, statBoxY);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...COLORS.textMuted);
-  doc.text(
-    regions.length ? `Regions: ${sanitizeText(regions.join(", "))}` : "Comprehensive Sri Lanka Tour",
-    PAGE_MARGIN + 20, statBoxY + 18
-  );
-
-  w.y += 62;
-
-  // ── 3. Day-by-Day Itinerary ──────────────────────────────
-  w.drawText("DAY-BY-DAY ITINERARY", { size: 12, style: "bold", color: COLORS.primary });
+  w.drawText("TRIP OVERVIEW", { size: 10.5, style: "bold", color: COLORS.primary });
   w.spacer(6);
 
-  days.forEach(day => {
-    // Check space for Day Header + at least 1 item
-    w.ensureSpace(70);
+  w.ensureSpace(45);
+  const cardWidth = (CONTENT_WIDTH - 24) / 4;
+  const stats = [
+    { label: "DAYS", val: String(days.length).padStart(2, "0") },
+    { label: "DESTINATIONS", val: String(destCount).padStart(2, "0") },
+    { label: "HIDDEN GEMS", val: String(gemCount).padStart(2, "0") },
+    { label: "EVENTS", val: String(eventCount).padStart(2, "0") },
+  ];
 
-    const dayTitle = `Day ${day.dayNumber} — ${formatDate(day.date)}${day.region ? ` · ${sanitizeText(day.region)}` : ""}`;
-    const dayCost = day.estimatedDayCost ?? (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
-
-    // Day Header Bar
-    doc.setFillColor(...COLORS.primary);
-    doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 22, 4, 4, "F");
+  stats.forEach((st, idx) => {
+    const cardX = PAGE_MARGIN + idx * (cardWidth + 8);
+    
+    doc.setFillColor(...COLORS.cardBg);
+    doc.roundedRect(cardX, w.y, cardWidth, 38, 4, 4, "F");
+    doc.setDrawColor(...COLORS.borderLight);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(cardX, w.y, cardWidth, 38, 4, 4, "S");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text(dayTitle, PAGE_MARGIN + 10, w.y + 15);
+    doc.setFontSize(15);
+    doc.setTextColor(...COLORS.primary);
+    doc.text(st.val, cardX + 12, w.y + 20);
 
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...COLORS.textMuted);
+    doc.text(st.label, cardX + 12, w.y + 31);
+  });
+
+  w.y += 46;
+
+  if (regions.length > 0) {
+    w.drawText(`REGION: ${sanitizeText(regions.join("  ·  "))}`, { size: 8.5, style: "bold", color: COLORS.textMuted, indent: 2 });
+    w.spacer(6);
+  }
+
+  w.drawLine(COLORS.borderLight, 0.75);
+  w.spacer(8);
+
+  // ── 3. Day-by-Day Itinerary ──────────────────────────────
+  w.drawText("DAY-BY-DAY ITINERARY", { size: 11.5, style: "bold", color: COLORS.primary });
+  w.spacer(8);
+
+  days.forEach((day, dIdx) => {
+    // Check space for Day Header + theme + first item
+    w.ensureSpace(80);
+
+    const dayNumStr = `DAY ${String(day.dayNumber || dIdx + 1).padStart(2, "0")}`;
+    const dayDateStr = formatDate(day.date);
+    const dayRegionStr = day.region ? sanitizeText(day.region).toUpperCase() : "";
+    const dayCost = day.estimatedDayCost ?? (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
+
+    // Premium Day Header Accent
+    doc.setFillColor(...COLORS.primary);
+    doc.rect(PAGE_MARGIN, w.y, 4, 22, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...COLORS.primary);
+    doc.text(dayNumStr, PAGE_MARGIN + 12, w.y + 16);
+
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
-    doc.text(`Subtotal: ${formatMoney(dayCost, "USD")}`, PAGE_WIDTH - PAGE_MARGIN - 10, w.y + 15, { align: "right" });
+    doc.setTextColor(...COLORS.textDark);
+    const dateRegionText = `${dayDateStr}${dayRegionStr ? `  ·  ${dayRegionStr}` : ""}`;
+    doc.text(dateRegionText, PAGE_MARGIN + 78, w.y + 16);
 
-    w.y += 28;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...COLORS.primary);
+    doc.text(`Subtotal: ${formatMoney(dayCost, "USD")}`, PAGE_WIDTH - PAGE_MARGIN, w.y + 16, { align: "right" });
 
-    if (day.theme) {
-      w.drawText(`Theme: ${sanitizeText(day.theme)}`, { size: 9, style: "italic", color: COLORS.textMuted, indent: 6 });
-      w.spacer(2);
+    w.y += 26;
+
+    // Day Theme (rendered only if not repetitive "Day 1: Region")
+    const themeClean = sanitizeText(day.theme || "");
+    const isRepetitiveTheme = /^Day\s+\d+:\s*/i.test(themeClean);
+    if (day.theme && !isRepetitiveTheme) {
+      w.drawText(themeClean, { size: 9, style: "italic", color: COLORS.textMuted, indent: 12 });
+      w.spacer(4);
     }
 
-    // Time-Slotted Items Breakdown (Morning / Afternoon / Evening)
+    // Time Slot Breakdown (Morning, Afternoon, Evening)
     const slotGroups = bucketItemsIntoSlots(day.items || []);
 
     slotGroups.forEach(slot => {
       if (!slot.items.length) return;
 
-      w.ensureSpace(30);
+      w.ensureSpace(32);
 
-      // Slot Section Header
-      w.drawText(`• ${slot.label} (${slot.time})`, { size: 9.5, style: "bold", color: COLORS.secondary, indent: 8 });
-      w.spacer(3);
+      // Lightweight Time Slot Heading with Dot Indicator
+      doc.setFillColor(...COLORS.secondary);
+      doc.circle(PAGE_MARGIN + 12, w.y + 4, 2.5, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...COLORS.primary);
+      doc.text(slot.label, PAGE_MARGIN + 20, w.y + 7);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...COLORS.textMuted);
+      doc.text(`—  ${slot.time}`, PAGE_MARGIN + 82, w.y + 7);
+
+      doc.setDrawColor(...COLORS.borderLight);
+      doc.setLineWidth(0.5);
+      doc.line(PAGE_MARGIN + 190, w.y + 5, PAGE_WIDTH - PAGE_MARGIN, w.y + 5);
+
+      w.y += 18;
 
       slot.items.forEach(item => {
-        w.ensureSpace(24);
-
         const kind = classifyItem(item);
         const name = cleanItemTitle(item.title);
-        const costStr = item.cost > 0 ? formatMoney(item.cost, "USD") : "Included / Free";
+        const costStr = item.cost > 0 ? formatMoney(item.cost, "USD") : "INCLUDED · FREE";
         const notes = parseItemNotes(item);
 
-        // Type Badge + Title
+        // Estimate wrapped lines for title
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(...kind.color);
-        doc.text(`[${kind.label}]`, PAGE_MARGIN + 16, w.y);
+        doc.setFontSize(10);
+        const titleLines = doc.splitTextToSize(name, CONTENT_WIDTH - 170);
+        const itemHeight = Math.max(32, 20 + titleLines.length * 12 + (notes ? 12 : 0));
 
+        w.ensureSpace(itemHeight + 6);
+
+        // Item Card Fill
+        doc.setFillColor(...kind.bgColor);
+        doc.roundedRect(PAGE_MARGIN + 8, w.y, CONTENT_WIDTH - 16, itemHeight, 4, 4, "F");
+
+        // Left Category Accent Line
+        doc.setFillColor(...kind.textColor);
+        doc.rect(PAGE_MARGIN + 8, w.y, 3, itemHeight, "F");
+
+        // Border stroke
+        doc.setDrawColor(...kind.borderColor);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(PAGE_MARGIN + 8, w.y, CONTENT_WIDTH - 16, itemHeight, 4, 4, "S");
+
+        const cardTopY = w.y + 13;
+
+        // Type Badge Pill Text
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
+        doc.setFontSize(7.5);
+        doc.setTextColor(...kind.textColor);
+        doc.text(kind.label, PAGE_MARGIN + 18, cardTopY);
+
+        // Title (wrapped)
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
         doc.setTextColor(...COLORS.textDark);
-        doc.text(name, PAGE_MARGIN + 100, w.y);
+        doc.text(titleLines, PAGE_MARGIN + 120, cardTopY);
 
-        // Cost Right Aligned
-        doc.setFont("helvetica", "normal");
+        // Cost (Right aligned)
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
-        doc.setTextColor(...COLORS.textMuted);
-        doc.text(costStr, PAGE_WIDTH - PAGE_MARGIN - 10, w.y, { align: "right" });
+        if (item.cost > 0) {
+          doc.setTextColor(...COLORS.primary);
+          doc.text(costStr, PAGE_WIDTH - PAGE_MARGIN - 18, cardTopY, { align: "right" });
+        } else {
+          doc.setTextColor(...COLORS.secondary);
+          doc.text("INCLUDED · FREE", PAGE_WIDTH - PAGE_MARGIN - 18, cardTopY, { align: "right" });
+        }
 
-        w.y += 12;
+        const notesY = cardTopY + (titleLines.length * 12) + 1;
 
         if (notes) {
-          w.drawText(notes, { size: 8.5, style: "italic", color: COLORS.textMuted, indent: 100, lineGap: 10 });
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(8.5);
+          doc.setTextColor(...COLORS.textMuted);
+          const noteLines = doc.splitTextToSize(notes, CONTENT_WIDTH - 150);
+          doc.text(noteLines, PAGE_MARGIN + 120, notesY);
         }
-        w.spacer(3);
+
+        w.y += itemHeight + 6;
       });
 
-      w.spacer(3);
+      w.spacer(4);
     });
 
-    if (day.tips) {
-      w.drawText(`Tip: ${sanitizeText(day.tips)}`, { size: 8.5, style: "italic", color: [180, 83, 9], indent: 16 });
-      w.spacer(4);
+    // Travel Tip Editorial Callout Box (Omit generic pipeline system tips)
+    const isSystemPipelineTip = /Optimized via ExploreCeylon|13-Phase Pipeline|AI travel planning pipeline/i.test(day.tips || "");
+    if (day.tips && !isSystemPipelineTip) {
+      w.ensureSpace(32);
+
+      doc.setFillColor(...COLORS.sandBg);
+      doc.roundedRect(PAGE_MARGIN + 4, w.y, CONTENT_WIDTH - 8, 26, 4, 4, "F");
+      doc.setDrawColor(...COLORS.sandBorder);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(PAGE_MARGIN + 4, w.y, CONTENT_WIDTH - 8, 26, 4, 4, "S");
+
+      doc.setFillColor(217, 119, 6);
+      doc.circle(PAGE_MARGIN + 16, w.y + 13, 2.5, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(180, 83, 9);
+      doc.text("TRAVEL TIP", PAGE_MARGIN + 24, w.y + 16);
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...COLORS.textDark);
+      const tipText = sanitizeText(day.tips).replace(/^Tip:\s*/i, "");
+      const tipLines = doc.splitTextToSize(tipText, CONTENT_WIDTH - 110);
+      doc.text(tipLines, PAGE_MARGIN + 85, w.y + 16);
+
+      w.y += 32;
     }
 
     w.spacer(6);
     w.drawLine(COLORS.borderLight, 0.5);
-    w.spacer(4);
+    w.spacer(6);
   });
 
-  // ── 4. Overall Budget & Summary Section ─────────────────
-  w.ensureSpace(90);
-  w.drawText("BUDGET & COST SUMMARY", { size: 12, style: "bold", color: COLORS.primary });
-  w.spacer(6);
-
-  const totalCost = days.reduce(
-    (s, d) => s + (d.estimatedDayCost ?? (d.items || []).reduce((s2, i) => s2 + (i.cost || 0), 0)),
-    0
-  );
-  const normalized = normalizeTripBudget(totalCost, trip.budgetAmountLkr);
-
-  // Draw Budget Summary Card Box
-  doc.setFillColor(...COLORS.cardBg);
-  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 64, 6, 6, "F");
-  doc.setDrawColor(...COLORS.borderLight);
-  doc.setLineWidth(1);
-  doc.roundedRect(PAGE_MARGIN, w.y, CONTENT_WIDTH, 64, 6, 6, "S");
-
-  const bBoxY = w.y + 18;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10.5);
-  doc.setTextColor(...COLORS.textDark);
-  doc.text("Estimated Itinerary Total:", PAGE_MARGIN + 16, bBoxY);
-
-  doc.setFontSize(11);
-  doc.setTextColor(...COLORS.primary);
-  doc.text(normalized.displayEstimatedTotal, PAGE_MARGIN + 170, bBoxY);
-
-  if (normalized.displayUserBudget) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(...COLORS.textDark);
-    doc.text("Your Budget Target:", PAGE_MARGIN + 16, bBoxY + 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(...COLORS.secondary);
-    doc.text(normalized.displayUserBudget, PAGE_MARGIN + 170, bBoxY + 22);
-  }
-
-  w.y += 75;
-
-  // ── 5. Page Numbers & Footers ───────────────────────────
+  // ── 4. Page Numbers & Footers (Budget Section Completely Omitted) ──
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -389,12 +555,12 @@ export function downloadTripPdf(trip) {
     doc.setLineWidth(0.5);
     doc.line(PAGE_MARGIN, PAGE_HEIGHT - 28, PAGE_WIDTH - PAGE_MARGIN, PAGE_HEIGHT - 28);
 
-    // Footer Text
+    // Minimal Footer Text
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(...COLORS.textLight);
     doc.text(
-      "ExploreCeylon · Official AI-Powered Travel Itinerary",
+      "ExploreCeylon · AI-Powered Sri Lankan Travel Itinerary",
       PAGE_MARGIN,
       PAGE_HEIGHT - 14
     );
