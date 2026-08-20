@@ -12,8 +12,9 @@ import {
   BarChart3, ArrowLeftRight, Lightbulb, Ban, Database,
 } from "lucide-react";
 import budgetService from "../services/budgetService";
+import { DEFAULT_USD_TO_LKR_RATE } from "../utils/currencyUtils";
 
-const LKR_RATE = 325;
+const LKR_RATE = DEFAULT_USD_TO_LKR_RATE;
 
 // Keys match the backend BudgetItem.ItemCategory enum exactly.
 const CATEGORIES = [
@@ -668,8 +669,12 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
         </tr>`;
       }).join("");
 
-    const dailyRows = daily.slice(0, tripDays).map((v, i) =>
+    const scheduledDailyRows = daily.slice(0, tripDays).map((v, i) =>
       `<tr><td>Day ${i + 1}</td><td class="num">${money(v)}</td></tr>`).join("");
+    const unscheduledRow = unscheduledSpend > 0
+      ? `<tr><td><em>Unscheduled / General Expenses</em></td><td class="num">${money(unscheduledSpend)}</td></tr>`
+      : "";
+    const dailyRows = scheduledDailyRows + unscheduledRow;
 
     const sortedExpenses = [...expenses].sort((a, b) =>
       String(a.date || "").localeCompare(String(b.date || "")));
@@ -747,8 +752,10 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
       </table>
 
       <h2>Daily Spending</h2>
-      <table><thead><tr><th>Day</th><th class="num">Spent</th></tr></thead>
-        <tbody>${dailyRows}</tbody></table>
+      <table><thead><tr><th>Day / Item Group</th><th class="num">Spent</th></tr></thead>
+        <tbody>${dailyRows}</tbody>
+        <tfoot><tr><td>Total Daily Spending</td><td class="num">${money(totalSpent)}</td></tr></tfoot>
+      </table>
 
       <h2>All Expenses (${expenses.length})</h2>
       <table><thead><tr><th>Date</th><th>Category</th><th>Item</th>
