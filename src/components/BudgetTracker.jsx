@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import budgetService from "../services/budgetService";
 import { DEFAULT_USD_TO_LKR_RATE } from "../utils/currencyUtils";
+import { downloadBudgetPdf } from "../utils/budgetPdf";
 
 const LKR_RATE = DEFAULT_USD_TO_LKR_RATE;
 
@@ -642,142 +643,26 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     });
   }
 
-  // Opens a print-ready report in a new window and triggers the browser's
-  // print dialog, where the traveler can "Save as PDF". No PDF library —
-  // this stays dependency-free and works in every browser.
+  // Triggers a direct PDF binary file download (.pdf blob) using jsPDF
+  // with Phase 1 normalized currency utilities, financial summary cards,
+  // category breakdown, daily spending reconciliation, repeating table headers,
+  // and complete pop-up blocker independence.
   function handleExportPdf() {
-    const esc = s => String(s ?? "").replace(/[&<>"]/g, ch =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-
-    const statusLabel = { ON_TRACK: "On Track", WARNING: "Warning",
-      OVER: "Over Budget" }[level];
-    const dateRange = trip?.startDate && trip?.endDate
-      ? `${formatItemDate(trip.startDate)} – ${formatItemDate(trip.endDate)}`
-      : "";
-    const generatedOn = new Date().toLocaleString("en-US",
-      { dateStyle: "medium", timeStyle: "short" });
-
-    const categoryRows = perCategory
-      .filter(c => c.budget > 0 || c.spent > 0)
-      .map(c => {
-        const rem = c.budget - c.spent;
-        return `<tr>
-          <td>${esc(c.emoji)} ${esc(c.label)}</td>
-          <td class="num">${money(c.budget)}</td>
-          <td class="num">${money(c.spent)}</td>
-          <td class="num ${rem < 0 ? "neg" : "pos"}">${money(rem)}</td>
-        </tr>`;
-      }).join("");
-
-    const scheduledDailyRows = daily.slice(0, tripDays).map((v, i) =>
-      `<tr><td>Day ${i + 1}</td><td class="num">${money(v)}</td></tr>`).join("");
-    const unscheduledRow = unscheduledSpend > 0
-      ? `<tr><td><em>Unscheduled / General Expenses</em></td><td class="num">${money(unscheduledSpend)}</td></tr>`
-      : "";
-    const dailyRows = scheduledDailyRows + unscheduledRow;
-
-    const sortedExpenses = [...expenses].sort((a, b) =>
-      String(a.date || "").localeCompare(String(b.date || "")));
-    const expenseRows = sortedExpenses.map(e => {
-      const meta = catMeta(e.category);
-      return `<tr>
-        <td>${esc(formatItemDate(e.date))}</td>
-        <td>${esc(meta.emoji)} ${esc(meta.label)}</td>
-        <td>${esc(e.title)}${e.auto ? ' <span class="tag">AUTO</span>' : ""}
-            ${e.note ? `<div class="note">${esc(e.note)}</div>` : ""}</td>
-        <td class="num">${money(e.amount)}</td>
-      </tr>`;
-    }).join("");
-
-    const html = `<!doctype html><html><head><meta charset="utf-8">
-      <title>Budget Report — ${esc(tripTitle)}</title>
-      <style>
-        :root {
-          --font-size-3xs: 0.625rem;
-          --font-size-2xs: 0.6875rem;
-          --font-size-xs: 0.75rem;
-          --font-size-sm: 0.875rem;
-          --font-size-lg: 1.125rem;
-          --font-size-2xl: 1.5rem;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; color: #1f2937;
-               margin: 32px; font-size: var(--font-size-xs); }
-        h1 { font-size: var(--font-size-2xl); margin: 0 0 4px; color: #14532d; }
-        h2 { font-size: var(--font-size-sm); margin: 24px 0 8px; color: #14532d;
-             border-bottom: 2px solid #dcfce7; padding-bottom: 4px; }
-        .sub { color: #6b7280; margin: 0 0 16px; }
-        .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-        .card { flex: 1; min-width: 130px; border: 1px solid #e5e7eb;
-                border-radius: 10px; padding: 12px; }
-        .card .val { font-size: var(--font-size-lg); font-weight: 700; }
-        .card .lbl { color: #6b7280; font-size: var(--font-size-2xs); }
-        .badge { display: inline-block; padding: 3px 10px; border-radius: 999px;
-                 font-weight: 700; font-size: var(--font-size-2xs); }
-        .b-ontrack { background: #dcfce7; color: #166534; }
-        .b-warning { background: #fef9c3; color: #854d0e; }
-        .b-over { background: #fee2e2; color: #991b1b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-        th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #f0f0f0; }
-        th { color: #6b7280; font-weight: 600; border-bottom: 1px solid #d1d5db; }
-        .num { text-align: right; font-variant-numeric: tabular-nums; }
-        .pos { color: #15803d; } .neg { color: #dc2626; }
-        tfoot td { font-weight: 700; border-top: 2px solid #d1d5db; }
-        .tag { background: #dbeafe; color: #1d4ed8; font-size: var(--font-size-3xs);
-               font-weight: 700; padding: 1px 5px; border-radius: 4px; }
-        .note { color: #9ca3af; font-size: var(--font-size-3xs); }
-        .foot { margin-top: 28px; color: #9ca3af; font-size: var(--font-size-3xs);
-                border-top: 1px solid #e5e7eb; padding-top: 8px; }
-        @media print { body { margin: 12px; } h2 { page-break-after: avoid; } }
-      </style></head><body>
-      <h1>Budget Report</h1>
-      <p class="sub"><strong>${esc(tripTitle)}</strong>${dateRange ? ` &middot; ${esc(dateRange)}` : ""}
-        ${trip?.groupSize ? ` &middot; ${trip.groupSize} traveler${trip.groupSize > 1 ? "s" : ""}` : ""}</p>
-
-      <div class="cards">
-        <div class="card"><div class="val">${money(totalBudget)}</div><div class="lbl">Total Budget</div></div>
-        <div class="card"><div class="val">${money(totalSpent)}</div><div class="lbl">Total Spent (${pctUsed.toFixed(1)}%)</div></div>
-        <div class="card"><div class="val ${remaining < 0 ? "neg" : "pos"}">${money(remaining)}</div><div class="lbl">Remaining</div></div>
-        <div class="card"><div class="val">${money(dailyAvg)}</div><div class="lbl">Daily Average</div></div>
-      </div>
-      <p><span class="badge b-${level.toLowerCase().replace("_", "")}">${statusLabel}</span></p>
-
-      <h2>Spending by Category</h2>
-      <table><thead><tr><th>Category</th><th class="num">Budgeted</th>
-        <th class="num">Spent</th><th class="num">Remaining</th></tr></thead>
-        <tbody>${categoryRows || '<tr><td colspan="4">No categories.</td></tr>'}</tbody>
-        <tfoot><tr><td>Total</td><td class="num">${money(totalBudget)}</td>
-          <td class="num">${money(totalSpent)}</td>
-          <td class="num ${remaining < 0 ? "neg" : "pos"}">${money(remaining)}</td></tr></tfoot>
-      </table>
-
-      <h2>Daily Spending</h2>
-      <table><thead><tr><th>Day / Item Group</th><th class="num">Spent</th></tr></thead>
-        <tbody>${dailyRows}</tbody>
-        <tfoot><tr><td>Total Daily Spending</td><td class="num">${money(totalSpent)}</td></tr></tfoot>
-      </table>
-
-      <h2>All Expenses (${expenses.length})</h2>
-      <table><thead><tr><th>Date</th><th>Category</th><th>Item</th>
-        <th class="num">Amount</th></tr></thead>
-        <tbody>${expenseRows || '<tr><td colspan="4">No expenses logged.</td></tr>'}</tbody>
-        <tfoot><tr><td colspan="3">Total Spent</td>
-          <td class="num">${money(totalSpent)}</td></tr></tfoot>
-      </table>
-
-      <p class="foot">Generated ${esc(generatedOn)} &middot; ExploreCeylon Budget Tracker</p>
-      </body></html>`;
-
-    const win = window.open("", "_blank");
-    if (!win) {
-      alert("Please allow pop-ups to export the PDF report.");
-      return;
-    }
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    // Give the new document a tick to lay out before invoking print.
-    setTimeout(() => win.print(), 300);
+    downloadBudgetPdf({
+      trip,
+      tripTitle,
+      totalBudget,
+      totalSpent,
+      remaining,
+      dailyAvg,
+      level,
+      pctUsed,
+      perCategory,
+      daily,
+      unscheduledSpend,
+      expenses,
+      tripDays,
+    });
   }
 
   // ── Data source bar (live + demo previews) ───────────────
