@@ -1,7 +1,4 @@
-// TripDetailPage.jsx
-// Shows full AI-generated itinerary with day cards, map sidebar, stats
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, Component } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
@@ -9,7 +6,7 @@ import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
 import BudgetTracker from "../components/BudgetTracker";
 import TripGenerationLoader from "../components/TripGenerationLoader";
-import { getTripById, updateTripTitle, updateTripStatus, generateAiItinerary, removeItemFromDay } from "../services/tripService";
+import { getTripById, updateTripTitle, updateTripStatus, generateAiItinerary, removeItemFromDay, addItemToDay } from "../services/tripService";
 import budgetService from "../services/budgetService";
 import destinationsService from "../services/destinationsService";
 import hiddenGemsService from "../services/Hiddengemsservice";
@@ -18,14 +15,52 @@ import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
 import { downloadTripPdf } from "../utils/tripPdf";
-import { fetchTripActivityLogs } from "../services/Mytripsservice";
 import {
   Calendar, Wallet, MapPin, FileText, ChevronDown,
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
   PartyPopper, Lightbulb, Sunrise, Sun, Moon,
-  Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download, History,
+  Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download,
   Users, Trash2,
 } from "lucide-react";
+
+// ============================================================================
+// ERROR BOUNDARY FOR TRIP RESULTS
+// ============================================================================
+class TripResultsErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Trip rendering error caught by boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center bg-white rounded-3xl border border-rose-200 shadow-sm my-6 max-w-2xl mx-auto">
+          <span className="text-4xl mb-3 block">🗺️</span>
+          <h3 className="text-lg font-black text-slate-900 mb-1">Couldn't display some itinerary details</h3>
+          <p className="text-xs text-slate-500 mb-5 font-medium">
+            An unexpected error occurred while rendering the trip itinerary components.
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-5 py-2.5 text-xs font-extrabold bg-emerald-800 text-white rounded-xl hover:bg-emerald-900 transition-all shadow-sm"
+          >
+            Try Refreshing
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -69,10 +104,11 @@ const TIME_SLOTS = [
 
 function bucketItemsIntoSlots(items) {
   const groups = [[], [], []];
-  const n = items.length;
+  const list = items || [];
+  const n = list.length;
   if (n === 0) return groups;
   const per = Math.ceil(n / 3);
-  items.forEach((item, i) => {
+  list.forEach((item, i) => {
     groups[Math.min(2, Math.floor(i / per))].push(item);
   });
   return groups;
@@ -172,14 +208,15 @@ const PLACEHOLDER_ITEM_IMAGE =
   "https://images.unsplash.com/photo-1546484959-f9a381d1330d?auto=format&fit=crop&w=400&q=60";
 
 const DETAIL_LINK_BY_KIND = {
-  GEM:         record => `/hidden-gems/${record.id}`,
-  EVENT:       record => `/events/${record.id}`,
-  DESTINATION: record => `/destinations/${record.id}`,
-  GUIDE:       record => `/guides/${record.id}`,
-  VEHICLE:     record => `/vehicles?selected=${record.id}`,
+  GEM:         record => record?.id ? `/hidden-gems/${record.id}` : null,
+  EVENT:       record => record?.id ? `/events/${record.id}` : null,
+  DESTINATION: record => record?.id ? `/destinations/${record.id}` : null,
+  GUIDE:       record => record?.id ? `/guides/${record.id}` : null,
+  VEHICLE:     record => record?.id ? `/vehicles?selected=${record.id}` : null,
 };
 
 function getItemImage(kind, record) {
+  if (!record) return null;
   switch (kind) {
     case "DESTINATION": return record.coverImageUrl || record.imageUrls?.[0] || null;
     case "GUIDE":        return record.photoUrl || record.imageUrls?.[0] || null;
@@ -188,10 +225,12 @@ function getItemImage(kind, record) {
 }
 
 function buildItemMatch(kind, record) {
+  if (!record) return null;
+  const linkFn = DETAIL_LINK_BY_KIND[kind];
   return {
     kind,
     record,
-    link: DETAIL_LINK_BY_KIND[kind](record),
+    link: typeof linkFn === "function" ? linkFn(record) : null,
     image: getItemImage(kind, record),
   };
 }
@@ -264,30 +303,34 @@ async function loadDetailCatalog(startDate, endDate) {
 // Picks a lat/lng center to rank "nearby" suggestions from: the average
 // position of the day's own resolved items, falling back to a destination
 // matching the day's region (or the trip's destination) when the day is
+// Picks a lat/lng center to rank "nearby" suggestions from: the average
+// position of the day's own resolved items, falling back to a destination
+// matching the day's region (or the trip's destination) when the day is
 // still empty.
-function resolveDayCenter(day, trip, catalog) {
-  const coords = (day.items || [])
+function resolveDayCenter(day, trip, catalog = {}) {
+  if (!day) return null;
+  const coords = (day?.items || [])
     .map(item => resolveItemMatch(item, catalog)?.record)
-    .filter(r => r && r.latitude != null && r.longitude != null);
+    .filter(r => r && r.latitude != null && r.longitude != null && !isNaN(Number(r.latitude)) && !isNaN(Number(r.longitude)));
 
   if (coords.length > 0) {
     return {
-      lat: coords.reduce((s, r) => s + r.latitude, 0) / coords.length,
-      lng: coords.reduce((s, r) => s + r.longitude, 0) / coords.length,
+      lat: coords.reduce((s, r) => s + Number(r.latitude), 0) / coords.length,
+      lng: coords.reduce((s, r) => s + Number(r.longitude), 0) / coords.length,
     };
   }
 
-  const regionQuery = day.region || trip?.toLocation;
+  const regionQuery = day?.region || trip?.toLocation;
   if (regionQuery) {
-    const q = regionQuery.toLowerCase();
+    const q = String(regionQuery).toLowerCase();
     const match = (catalog.destinations || []).find(d =>
-      d.latitude != null && d.longitude != null && (
-        d.district?.toLowerCase().includes(q) ||
-        d.province?.toLowerCase().includes(q) ||
-        d.name?.toLowerCase().includes(q)
+      d && d.latitude != null && d.longitude != null && !isNaN(Number(d.latitude)) && !isNaN(Number(d.longitude)) && (
+        String(d.district || "").toLowerCase().includes(q) ||
+        String(d.province || "").toLowerCase().includes(q) ||
+        String(d.name || "").toLowerCase().includes(q)
       )
     );
-    if (match) return { lat: match.latitude, lng: match.longitude };
+    if (match) return { lat: Number(match.latitude), lng: Number(match.longitude) };
   }
 
   return null;
@@ -303,7 +346,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
   const rowRef = useRef(null);
 
   const center = resolveDayCenter(day, trip, detailCatalog);
-  const centerKey = center ? `${center.lat.toFixed(4)},${center.lng.toFixed(4)}` : null;
+  const centerKey = center && !isNaN(center.lat) && !isNaN(center.lng) ? `${center.lat.toFixed(4)},${center.lng.toFixed(4)}` : null;
 
   function updateScrollArrows() {
     const el = rowRef.current;
@@ -325,11 +368,11 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
     setLoading(true);
 
     const addedRefIds = new Set(
-      (day.items || [])
-        .filter(i => category === "GEM" ? i.type === "GEM" : i.type === "ACTIVITY")
-        .filter(i => category === "EVENT" ? i.title?.startsWith("Festival:") : true)
-        .filter(i => category === "DESTINATION" ? !i.title?.startsWith("Festival:") : true)
-        .map(i => i.referenceId)
+      (day?.items || [])
+        .filter(i => category === "GEM" ? i?.type === "GEM" : i?.type === "ACTIVITY")
+        .filter(i => category === "EVENT" ? i?.title?.startsWith("Festival:") : true)
+        .filter(i => category === "DESTINATION" ? !i?.title?.startsWith("Festival:") : true)
+        .map(i => i?.referenceId)
         .filter(Boolean)
     );
 
@@ -338,19 +381,19 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
         let results = [];
         if (category === "DESTINATION") {
           const data = await destinationsService.getNearby(center.lat, center.lng, 9);
-          results = data.filter(d => !addedRefIds.has(String(d.id)));
+          results = (data || []).filter(d => d && !addedRefIds.has(String(d.id)));
         } else if (category === "GEM") {
           const data = await hiddenGemsService.getNearby(center.lat, center.lng, 9);
-          results = data.filter(g => !addedRefIds.has(String(g.id)));
+          results = (data || []).filter(g => g && !addedRefIds.has(String(g.id)));
         } else {
-          const data = await eventService.getTripSyncEvents(trip.startDate, trip.endDate);
-          results = data
-            .filter(e => e.latitude != null && e.longitude != null)
+          const data = await eventService.getTripSyncEvents(trip?.startDate, trip?.endDate);
+          results = (data || [])
+            .filter(e => e && e.latitude != null && e.longitude != null)
             .filter(e => !addedRefIds.has(String(e.id)));
         }
         const withDistance = results
           .map(r => ({ ...r, distanceKm: getDistanceKm(center.lat, center.lng, r.latitude, r.longitude) }))
-          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .sort((a, b) => (Number(a.distanceKm) || 0) - (Number(b.distanceKm) || 0))
           .slice(0, 6);
         if (!cancelled) setSuggestions(withDistance);
       } catch {
@@ -362,7 +405,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
     load();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, centerKey, day.items?.length]);
+  }, [category, centerKey, day?.items?.length]);
 
   useEffect(() => {
     if (rowRef.current) rowRef.current.scrollLeft = 0;
@@ -477,7 +520,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
                         <span className="absolute top-1.5 right-1.5 bg-white/90
                                          text-3xs font-semibold text-gray-700
                                          px-1.5 py-0.5 rounded-full">
-                          {s.distanceKm.toFixed(1)} km
+                          {Number(s?.distanceKm || 0).toFixed(1)} km
                         </span>
                       </div>
                       <div className="p-2.5">
@@ -529,9 +572,9 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
                    isActive, onClick, detailCatalog, dayIndex }) {
   const [deletingId, setDeletingId] = useState(null);
 
-  const dayTotal = (day.items || []).reduce((s, i) => s + (i.cost || 0), 0);
+  const dayTotal = (day?.items || []).reduce((s, i) => s + (Number(i?.cost) || 0), 0);
   const color = DAY_BADGE_COLORS[dayIndex % DAY_BADGE_COLORS.length];
-  const slotGroups = bucketItemsIntoSlots(day.items || []);
+  const slotGroups = bucketItemsIntoSlots(day?.items || []);
 
   async function handleDeleteItem(itemId) {
     setDeletingId(itemId);
@@ -580,7 +623,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-2">
           <span className="text-xs font-extrabold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-            ${dayTotal.toFixed(2)}
+            ${Number(dayTotal || 0).toFixed(2)}
           </span>
           <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-emerald-100 transition-colors">
             <ChevronDown
@@ -598,14 +641,14 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
         <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-slate-100 bg-slate-50/40">
 
           {/* Festival banner */}
-          {day.items?.some(i => i.title?.startsWith("Festival:")) && (
+          {day?.items?.some(i => i?.title?.startsWith("Festival:")) && (
             <div className="mt-3 mb-4 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-3 text-xs text-amber-950 font-bold shadow-2xs">
               <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0">
                 <PartyPopper size={16} />
               </div>
               <div className="min-w-0">
                 <p className="font-extrabold text-amber-950 text-xs sm:text-sm">
-                  {(day.items.find(i => i.title?.startsWith("Festival:"))?.title || "").replace(/^Festival:\s*/i, "")} nearby!
+                  {((day?.items || []).find(i => i?.title?.startsWith("Festival:"))?.title || "").replace(/^Festival:\s*/i, "")} nearby!
                 </p>
                 <p className="text-3xs text-amber-800/90 font-medium">
                   Special cultural festival integrated into today's itinerary.
@@ -615,15 +658,24 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
           )}
 
           {/* Tips */}
-          {day.tips && (
+          {day?.tips && (
             <div className="mt-3 mb-4 flex items-start gap-2 text-xs text-slate-600 bg-emerald-50/80 border border-emerald-100 rounded-xl p-3">
               <Lightbulb size={15} className="text-emerald-700 shrink-0 mt-0.5" />
               <p className="italic font-medium leading-relaxed">{day.tips}</p>
             </div>
           )}
 
+          {/* Empty items placeholder */}
+          {(day?.items || []).length === 0 && (
+            <div className="text-center py-6 px-4 bg-white/70 rounded-2xl border border-dashed border-slate-200 mb-4">
+              <Compass className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-600 mb-0.5">No activities planned yet for Day {day?.dayNumber}</p>
+              <p className="text-3xs text-slate-400 font-medium">Add suggestions below or click Regenerate to fill this day.</p>
+            </div>
+          )}
+
           {/* Time-slotted items (§2): Morning / Afternoon / Evening */}
-          {(day.items || []).length > 0 && (
+          {(day?.items || []).length > 0 && (
             <div className="mb-5 space-y-5">
               {TIME_SLOTS.map((slot, slotIdx) => {
                 const slotItems = slotGroups[slotIdx] || [];
@@ -700,7 +752,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
                             <div className="flex items-center gap-2 self-end sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end border-slate-100">
                               <span className="text-xs sm:text-sm font-extrabold text-slate-800 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 whitespace-nowrap">
-                                {item.cost > 0 ? `$${item.cost.toFixed(2)}` : "Included"}
+                                {Number(item?.cost) > 0 ? `$${Number(item.cost).toFixed(2)}` : "Included"}
                               </span>
 
                               {detailLink && (
@@ -751,7 +803,7 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
               Day {day.dayNumber} Subtotal
             </span>
             <span className={`text-base font-black ${color.text}`}>
-              ${dayTotal.toFixed(2)}
+              ${Number(dayTotal || 0).toFixed(2)}
             </span>
           </div>
         </div>
@@ -761,19 +813,89 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 }
 
 //  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
-function EditableTripIntelligencePanel({ onApplyEdit, disabled }) {
+function EditableTripIntelligencePanel({ trip, onApplyEdit, disabled }) {
   const [customPrompt, setCustomPrompt] = useState("");
 
-  const presets = [
-    { label: "✏️ Replace Stop", prompt: "Replace Temple of the Tooth with Ambuluwawa" },
-    { label: "➕ Add Sigiriya", prompt: "Add Sigiriya on Day 2" },
-    { label: "➖ Remove Pinnawala", prompt: "Remove Pinnawala" },
-    { label: "📅 Shift Schedule", prompt: "Move Gregory Lake to Day 3" },
-    { label: "⏰ Start 9:00 AM", prompt: "Start the trip at 9:00 AM instead of 8:00 AM" },
-    { label: "🚗 Less Driving", prompt: "Reduce driving time and optimize route" },
-    { label: "👨‍👩‍👧 Family Friendly", prompt: "Make the trip family friendly with light walking" },
-    { label: "💰 Reduce Budget", prompt: "Reduce budget target to LKR 50,000" },
-  ];
+  const allStops = useMemo(() => {
+    const list = [];
+    if (trip && trip.days) {
+      trip.days.forEach(d => {
+        (d.items || []).forEach(item => {
+          const name = item.title || item.name;
+          if (name) {
+            list.push({ name, dayNumber: d.dayNumber, region: d.region });
+          }
+        });
+      });
+    }
+    return list;
+  }, [trip]);
+
+  const presets = useMemo(() => {
+    const list = [];
+
+    // 1. Dynamic Replace Stop (from actual trip)
+    if (allStops.length > 0) {
+      const stopToReplace = allStops[0].name;
+      const shortName = stopToReplace.length > 18 ? stopToReplace.slice(0, 15) + "..." : stopToReplace;
+      list.push({
+        label: `✏️ Replace ${shortName}`,
+        prompt: `Replace ${stopToReplace} with a nearby attraction`
+      });
+    } else {
+      list.push({ label: "✏️ Replace Stop", prompt: "Replace a stop with a nearby attraction" });
+    }
+
+    // 2. Dynamic Add Stop
+    const regionName = trip?.toLocation || (trip?.days && trip.days[0]?.region) || "Sri Lanka";
+    list.push({
+      label: `➕ Add Stop`,
+      prompt: `Add a stop in ${regionName}`
+    });
+
+    // 3. Dynamic Remove Stop(s) (from actual trip)
+    if (allStops.length > 0) {
+      const firstStop = allStops[0].name;
+      const shortFirst = firstStop.length > 18 ? firstStop.slice(0, 15) + "..." : firstStop;
+      list.push({
+        label: `➖ Remove ${shortFirst}`,
+        prompt: `Remove ${firstStop}`
+      });
+
+      if (allStops.length > 1 && allStops[1].name !== firstStop) {
+        const secondStop = allStops[1].name;
+        const shortSecond = secondStop.length > 18 ? secondStop.slice(0, 15) + "..." : secondStop;
+        list.push({
+          label: `➖ Remove ${shortSecond}`,
+          prompt: `Remove ${secondStop}`
+        });
+      }
+    } else {
+      list.push({ label: "➖ Remove Stop", prompt: "Remove a stop from itinerary" });
+    }
+
+    // 4. Dynamic Shift Schedule (from actual trip)
+    if (allStops.length > 0) {
+      const shiftStop = allStops[0];
+      const targetDay = (trip?.days && trip.days.length > 1)
+        ? (shiftStop.dayNumber === 1 ? 2 : 1)
+        : 1;
+      const shortShift = shiftStop.name.length > 15 ? shiftStop.name.slice(0, 12) + "..." : shiftStop.name;
+      list.push({
+        label: `📅 Move ${shortShift}`,
+        prompt: `Move ${shiftStop.name} to Day ${targetDay}`
+      });
+    } else {
+      list.push({ label: "📅 Shift Schedule", prompt: "Move a stop to a different day" });
+    }
+
+    // 5. Generic Presets (Start 9:00 AM preset removed entirely)
+    list.push({ label: "🚗 Less Driving", prompt: "Reduce driving time and optimize route" });
+    list.push({ label: "👨‍👩‍👧 Family Friendly", prompt: "Make the trip family friendly with light walking" });
+    list.push({ label: "💰 Reduce Budget", prompt: "Reduce budget target to LKR 50,000" });
+
+    return list;
+  }, [allStops, trip]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -860,8 +982,13 @@ function SharePanel({ trip }) {
 }
 
 function classifyItem(item) {
+  if (!item) return "DESTINATION";
   if (item.type === "GEM") return "GEM";
   if (item.title?.startsWith("Festival:")) return "EVENT";
+  if (item.type === "GUIDE") return "GUIDE";
+  if (item.type === "VEHICLE" || item.type === "TRANSPORT") return "VEHICLE";
+  if (item.type === "HOTEL") return "HOTEL";
+  if (item.type === "FOOD") return "FOOD";
   return "DESTINATION";
 }
 
@@ -869,13 +996,18 @@ const OVERVIEW_KIND_META = {
   DESTINATION: { label: "Destination", Icon: Compass,     dot: "bg-green-600"  },
   GEM:         { label: "Hidden Gem",  Icon: Gem,          dot: "bg-purple-600" },
   EVENT:       { label: "Event",       Icon: PartyPopper,  dot: "bg-yellow-500" },
+  GUIDE:       { label: "Guide",       Icon: Users,        dot: "bg-teal-600"   },
+  VEHICLE:     { label: "Transport",   Icon: Route,        dot: "bg-orange-500" },
+  HOTEL:       { label: "Hotel",       Icon: MapPin,       dot: "bg-green-600"  },
+  FOOD:        { label: "Food",        Icon: Sun,          dot: "bg-yellow-600" },
+  ACTIVITY:    { label: "Activity",    Icon: Compass,      dot: "bg-blue-600"   },
 };
 
 function buildTripSummary(trip, stops) {
-  const from = trip.fromLocation || trip.startingPoint;
-  const to = trip.toLocation;
-  const dayCount = countDays(trip.startDate, trip.endDate);
-  const regionSequence = [...new Set((trip.days || []).map(d => d.region).filter(Boolean))];
+  const from = trip?.fromLocation || trip?.startingPoint;
+  const to = trip?.toLocation;
+  const dayCount = countDays(trip?.startDate, trip?.endDate);
+  const regionSequence = [...new Set((trip?.days || []).map(d => d?.region).filter(Boolean))];
   const destCount = stops.filter(s => s.kind === "DESTINATION").length;
   const gemCount = stops.filter(s => s.kind === "GEM").length;
   const eventCount = stops.filter(s => s.kind === "EVENT").length;
@@ -902,8 +1034,8 @@ function buildTripSummary(trip, stops) {
 }
 
 function TripOverviewSection({ trip, detailCatalog }) {
-  const stops = (trip.days || []).flatMap((day) =>
-    (day.items || []).map((item) => ({
+  const stops = (trip?.days || []).flatMap((day) =>
+    (day?.items || []).map((item) => ({
       ...item,
       kind: classifyItem(item),
       dayNumber: day.dayNumber,
@@ -948,15 +1080,18 @@ function TripOverviewSection({ trip, detailCatalog }) {
             { count: destCount, label: "Destinations", meta: OVERVIEW_KIND_META.DESTINATION },
             { count: gemCount, label: "Hidden Gems", meta: OVERVIEW_KIND_META.GEM },
             { count: eventCount, label: "Events", meta: OVERVIEW_KIND_META.EVENT },
-          ].filter((c) => c.count > 0).map((c) => (
-            <span
-              key={c.label}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700"
-            >
-              <c.meta.Icon size={13} className="text-emerald-700" />
-              {c.count} {c.label}
-            </span>
-          ))}
+          ].filter((c) => c.count > 0).map((c) => {
+            const Icon = c.meta?.Icon || Compass;
+            return (
+              <span
+                key={c.label}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700"
+              >
+                <Icon size={13} className="text-emerald-700" />
+                {c.count} {c.label}
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -979,18 +1114,19 @@ function TripOverviewSection({ trip, detailCatalog }) {
                 </p>
               )}
               <ul className="space-y-1.5">
-                {bucket.stops.map((s) => {
-                  const meta = OVERVIEW_KIND_META[s.kind];
-                  const title = cleanItemTitle(s.title);
+                {bucket.stops.map((s, sIdx) => {
+                  const meta = OVERVIEW_KIND_META[s?.kind] || OVERVIEW_KIND_META.DESTINATION;
+                  const Icon = meta?.Icon || Compass;
+                  const title = cleanItemTitle(s?.title || s?.name || "Stop");
                   const content = (
                     <span className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors">
-                      <meta.Icon size={12} className="text-emerald-700 shrink-0" />
+                      <Icon size={12} className="text-emerald-700 shrink-0" />
                       <span className="truncate">{title}</span>
                     </span>
                   );
                   return (
-                    <li key={s.id}>
-                      {s.match?.link ? (
+                    <li key={s?.id || `${bucket.dayNumber}-${sIdx}`}>
+                      {s?.match?.link ? (
                         <Link to={s.match.link}>{content}</Link>
                       ) : (
                         content
@@ -1031,27 +1167,6 @@ export default function TripDetailPage() {
   const [regenFeedback, setRegenFeedback] = useState("");
   const [regenerating,  setRegenerating]  = useState(false);
   const [regenError,    setRegenError]    = useState(null);
-
-  const [timelineOpen, setTimelineOpen] = useState(false);
-  const [activityLogs, setActivityLogs] = useState([]);
-  const [loadingLogs,  setLoadingLogs]  = useState(false);
-
-  async function toggleTimeline() {
-    if (!timelineOpen) {
-      setLoadingLogs(true);
-      setTimelineOpen(true);
-      try {
-        const logs = await fetchTripActivityLogs(id, token);
-        setActivityLogs(logs);
-      } catch (err) {
-        console.error("Failed loading activity logs", err);
-      } finally {
-        setLoadingLogs(false);
-      }
-    } else {
-      setTimelineOpen(false);
-    }
-  }
 
   async function loadTrip() {
     setLoading(true);
@@ -1320,11 +1435,6 @@ export default function TripDetailPage() {
                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-3xs font-extrabold uppercase tracking-wider shadow-2xs ${statusMeta.color}`}>
                   ● {statusMeta.label}
                 </span>
-                {trip.aiGenerated && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-3xs font-extrabold uppercase tracking-wider shadow-2xs">
-                    <Sparkles size={12} /> AI Generated
-                  </span>
-                )}
               </div>
 
               {/* Editable Title */}
@@ -1409,13 +1519,6 @@ export default function TripDetailPage() {
                 <Download size={15} /> PDF
               </button>
 
-              <button
-                onClick={toggleTimeline}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
-              >
-                <History size={15} /> Timeline
-              </button>
-
               {trip.aiGenerated && (
                 <button
                   onClick={() => {
@@ -1454,6 +1557,7 @@ export default function TripDetailPage() {
 
       <div className="min-h-screen bg-slate-50/70 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <TripResultsErrorBoundary>
 
           {/*  Tabs  */}
           <div className="flex gap-2 mb-6 border-b border-slate-200">
@@ -1481,7 +1585,7 @@ export default function TripDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {[
               { value: `${days} Days`, label: "Trip Duration", Icon: Calendar, color: "text-emerald-700 bg-emerald-50 border-emerald-100" },
-              { value: `$${Number(budgetTotal ?? (totalCost || 0)).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
+              { value: `$${Number(totalCost > 0 ? totalCost : (budgetTotal || 0)).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
               { value: `${locations} Regions`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
               { value: `${totalItems} Activities`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
             ].map(s => (
@@ -1505,6 +1609,7 @@ export default function TripDetailPage() {
               {/* Responsive 2-column layout on desktop (lg), 1-column on mobile & tablet */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
                 <EditableTripIntelligencePanel
+                  trip={trip}
                   onApplyEdit={(promptText) => {
                     setRegenFeedback(promptText);
                     doRegenerateWithPrompt(promptText);
@@ -1584,63 +1689,9 @@ export default function TripDetailPage() {
             <BudgetTracker trip={trip} onBudgetChange={setBudgetTotal} />
           )}
 
+          </TripResultsErrorBoundary>
         </div>
       </div>
-
-      {/* Activity Timeline Modal */}
-      {timelineOpen && (
-        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs" onClick={() => setTimelineOpen(false)} />
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl max-h-[80vh] flex flex-col border border-slate-100">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                  <History size={18} />
-                </div>
-                <h2 className="text-lg font-extrabold text-slate-900">Trip Activity Timeline</h2>
-              </div>
-              <button
-                onClick={() => setTimelineOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="overflow-y-auto flex-1 space-y-3 pr-1">
-              {loadingLogs ? (
-                <p className="text-xs font-bold text-slate-500 text-center py-6">Loading activity history...</p>
-              ) : activityLogs.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <p className="text-xs font-semibold">No activity recorded yet for this trip.</p>
-                </div>
-              ) : (
-                activityLogs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                      ⚡
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-3xs font-extrabold text-slate-800 uppercase tracking-wider">
-                          {(log.actionType || "").replace(/_/g, " ")}
-                        </span>
-                        <span className="text-3xs text-slate-400 font-semibold">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-snug font-medium">{log.description}</p>
-                      {log.performedBy && (
-                        <p className="text-3xs text-slate-400 mt-1 font-semibold">By: {log.performedBy}</p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </>

@@ -28,6 +28,7 @@ import VehicleListing from "./pages/vehicles/VehicleListing";
 import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import TripDetailPage from "./pages/TripDetailPage";
+import SharedTripPage from "./pages/SharedTripPage";
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -86,6 +87,7 @@ function App() {
           <Route path="/guides/:id" element={<GuideDetail />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/trips/share/:token" element={<SharedTripPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />

@@ -430,14 +430,18 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   }, [trip]);
 
   async function loadLive() {
+    if (!trip?.id) {
+      setLoadingLive(false);
+      return;
+    }
     setLoadingLive(true);
     try {
       const budget = await budgetService.getBudgetByTrip(trip.id);
-      setBudgetId(budget.id);
-      setTotalBudget(budget.totalBudget);
-      setExpenses((budget.items || []).map(mapApiItem));
+      setBudgetId(budget?.id || null);
+      setTotalBudget(budget?.totalBudget ?? defaultBudget);
+      setExpenses((budget?.items || []).map(mapApiItem));
 
-      const loadedCategoryBudgets = budget.categoryBudgets || {};
+      const loadedCategoryBudgets = budget?.categoryBudgets || {};
       const hasCustomCategoryBudgets = Object.keys(loadedCategoryBudgets).length > 0;
       if (hasCustomCategoryBudgets) {
         if (loadedCategoryBudgets.MISC !== undefined && loadedCategoryBudgets.OTHER === undefined) {
@@ -450,9 +454,9 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
       setCategoryBudgets(
         hasCustomCategoryBudgets
           ? loadedCategoryBudgets
-          : computeDefaultCategoryBudgets(budget.totalBudget)
+          : computeDefaultCategoryBudgets(budget?.totalBudget ?? defaultBudget)
       );
-      onBudgetChange?.(budget.totalBudget);
+      onBudgetChange?.(budget?.totalBudget);
     } catch {
       // No budget created for this trip yet — show the empty state.
       setBudgetId(null);
@@ -484,6 +488,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   // Creates the trip's budget on first use (first expense / edit / sync).
   async function ensureBudget() {
     if (budgetId) return budgetId;
+    if (!trip?.id) return null;
     const created = await budgetService.createBudget(
       trip.id, totalBudget, "USD");
     setBudgetId(created.id);

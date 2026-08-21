@@ -713,7 +713,7 @@ export default function AboutPage() {
                     icon: "📍",
                     label: "Find Us",
                     value: "ExploreCeylon.com",
-                    href: "http://exploreceylon.me:5173",
+                    href: "https://exploreceylon.me/",
                     external: true,
                   },
                   {

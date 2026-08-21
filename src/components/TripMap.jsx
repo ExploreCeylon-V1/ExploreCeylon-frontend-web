@@ -86,7 +86,7 @@ export default function TripMap({ trip, activeDayId, catalog = {}, onStopSelect 
       polylineRef.current = null;
     }
 
-    const activeDay = (trip.days || []).find(d => d.id === activeDayId) || (trip.days || [])[0];
+    const activeDay = (trip?.days || []).find(d => d.id === activeDayId) || (trip?.days || [])[0];
     if (!activeDay) return;
 
     const coords = [];
@@ -110,14 +110,14 @@ export default function TripMap({ trip, activeDayId, catalog = {}, onStopSelect 
         }
       }
 
-      if (lat != null && lng != null) {
+      if (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
         const type = item.type === 'GEM' ? 'GEM' : (item.title?.startsWith('Festival:') ? 'EVENT' : 'DESTINATION');
         const icon = createMarkerIcon(stopCounter, type);
-        const marker = L.marker([lat, lng], { icon })
+        const marker = L.marker([Number(lat), Number(lng)], { icon })
           .addTo(map)
           .bindPopup(`
             <div style="font-family: sans-serif; font-size: 12px; padding: 2px;">
-              <strong style="color: #166534; font-size: 13px;">${item.title}</strong><br/>
+              <strong style="color: #166534; font-size: 13px;">${item.title || 'Stop'}</strong><br/>
               <span style="color: #666;">Day ${activeDay.dayNumber} · ${activeDay.region || ''}</span>
               ${item.notes ? `<p style="margin-top: 4px; font-size: 11px; color: #444;">${item.notes}</p>` : ''}
             </div>
@@ -128,7 +128,7 @@ export default function TripMap({ trip, activeDayId, catalog = {}, onStopSelect 
         }
 
         markersRef.current.push(marker);
-        coords.push([lat, lng]);
+        coords.push([Number(lat), Number(lng)]);
         stopCounter++;
       }
     });
@@ -146,7 +146,9 @@ export default function TripMap({ trip, activeDayId, catalog = {}, onStopSelect 
     // Fit map bounds around coordinates
     if (coords.length > 0) {
       const bounds = L.latLngBounds(coords);
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      }
     }
   }, [trip, activeDayId, catalog, onStopSelect]);
 
