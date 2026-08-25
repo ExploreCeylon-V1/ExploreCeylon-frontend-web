@@ -12,26 +12,63 @@ import {
   BarChart3, ArrowLeftRight, Lightbulb, Ban, Database,
 } from "lucide-react";
 import budgetService from "../services/budgetService";
+import { DEFAULT_USD_TO_LKR_RATE } from "../utils/currencyUtils";
+import { downloadBudgetPdf } from "../utils/budgetPdf";
 
-const LKR_RATE = 325;
+const LKR_RATE = DEFAULT_USD_TO_LKR_RATE;
 
-// Keys match the backend BudgetItem.ItemCategory enum exactly.
+// Category definitions for Budget Tracker.
 const CATEGORIES = [
-  { key: "HOTEL",     label: "Hotels",     emoji: "🏨", color: "#1e3a5f", budget: 350 },
-  { key: "VEHICLE",   label: "Vehicles",   emoji: "🚗", color: "#f59e0b", budget: 140 },
-  { key: "GUIDE",     label: "Guides",     emoji: "👤", color: "#7c3aed", budget: 130 },
-  { key: "ACTIVITY",  label: "Activities", emoji: "🎟️", color: "#059669", budget: 70 },
-  { key: "FOOD",      label: "Food",       emoji: "🍜", color: "#e11d48", budget: 70 },
-  { key: "TRANSPORT", label: "Transport",  emoji: "🚌", color: "#2563eb", budget: 40 },
-  { key: "MISC",      label: "Other",      emoji: "📦", color: "#9ca3af", budget: 0 },
+  { key: "HOTEL",     label: "Hotels",     emoji: "🏨", color: "#1e3a5f" },
+  { key: "VEHICLE",   label: "Vehicles",   emoji: "🚗", color: "#f59e0b" },
+  { key: "GUIDE",     label: "Guides",     emoji: "👤", color: "#7c3aed" },
+  { key: "ACTIVITY",  label: "Activities", emoji: "🎟️", color: "#059669" },
+  { key: "FOOD",      label: "Food",       emoji: "🍜", color: "#e11d48" },
+  { key: "TRANSPORT", label: "Transport",  emoji: "🚌", color: "#2563eb" },
+  { key: "OTHER",     label: "Other",      emoji: "📦", color: "#6b7280" },
 ];
 
-const catMeta = key =>
-  CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length - 1];
+function isSameCategory(cat1, cat2) {
+  if (cat1 === cat2) return true;
+  if ((cat1 === "OTHER" || cat1 === "MISC") && (cat2 === "OTHER" || cat2 === "MISC")) return true;
+  return false;
+}
 
-// Starting allocations offered before the traveler customizes their own.
-const DEFAULT_ALLOCATIONS = Object.fromEntries(
-  CATEGORIES.map(c => [c.key, c.budget]));
+const catMeta = key =>
+  CATEGORIES.find(c => isSameCategory(c.key, key)) || CATEGORIES[CATEGORIES.length - 1];
+
+// Fixed default allocation percentages (must sum to 100%)
+const DEFAULT_CATEGORY_PERCENTAGES = [
+  { key: "HOTEL",     pct: 0.40 },
+  { key: "VEHICLE",   pct: 0.20 },
+  { key: "GUIDE",     pct: 0.00 },
+  { key: "ACTIVITY",  pct: 0.10 },
+  { key: "FOOD",      pct: 0.10 },
+  { key: "TRANSPORT", pct: 0.10 },
+  { key: "OTHER",     pct: 0.10 },
+];
+
+export function computeDefaultCategoryBudgets(totalBudget) {
+  const tb = Math.max(0, Math.round(totalBudget || 0));
+  if (tb === 0) {
+    return Object.fromEntries(DEFAULT_CATEGORY_PERCENTAGES.map(c => [c.key, 0]));
+  }
+
+  const result = {};
+  let currentSum = 0;
+
+  DEFAULT_CATEGORY_PERCENTAGES.forEach(c => {
+    const allocated = Math.round(tb * c.pct);
+    result[c.key] = allocated;
+    currentSum += allocated;
+  });
+
+  const remainder = tb - currentSum;
+  if (remainder !== 0) {
+    result["OTHER"] = (result["OTHER"] || 0) + remainder;
+  }
+  return result;
+}
 
 const DEMO_STATES = [
   { key: "ON_TRACK", label: "On Track",    hint: "(43% used)",    Icon: CheckCircle2 },
@@ -371,7 +408,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   const [loadingLive, setLoadingLive] = useState(true);
   const [expenses, setExpenses]     = useState([]);
   const [totalBudget, setTotalBudget] = useState(800);
-  const [categoryBudgets, setCategoryBudgets] = useState(DEFAULT_ALLOCATIONS);
+  const [categoryBudgets, setCategoryBudgets] = useState({});
   const [editingAllocations, setEditingAllocations] = useState(null);
   const [showForm, setShowForm]     = useState(false);
   const [presetCategory, setPresetCategory] = useState(null);
@@ -393,23 +430,39 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   }, [trip]);
 
   async function loadLive() {
+    if (!trip?.id) {
+      setLoadingLive(false);
+      return;
+    }
     setLoadingLive(true);
     try {
       const budget = await budgetService.getBudgetByTrip(trip.id);
-      setBudgetId(budget.id);
-      setTotalBudget(budget.totalBudget);
-      setExpenses((budget.items || []).map(mapApiItem));
+      setBudgetId(budget?.id || null);
+      setTotalBudget(budget?.totalBudget ?? defaultBudget);
+      setExpenses((budget?.items || []).map(mapApiItem));
+
+      const loadedCategoryBudgets = budget?.categoryBudgets || {};
+      const hasCustomCategoryBudgets = Object.keys(loadedCategoryBudgets).length > 0;
+      if (hasCustomCategoryBudgets) {
+        if (loadedCategoryBudgets.MISC !== undefined && loadedCategoryBudgets.OTHER === undefined) {
+          loadedCategoryBudgets.OTHER = loadedCategoryBudgets.MISC;
+        }
+        if (loadedCategoryBudgets.OTHER !== undefined && loadedCategoryBudgets.MISC === undefined) {
+          loadedCategoryBudgets.MISC = loadedCategoryBudgets.OTHER;
+        }
+      }
       setCategoryBudgets(
-        budget.categoryBudgets && Object.keys(budget.categoryBudgets).length > 0
-          ? budget.categoryBudgets
-          : DEFAULT_ALLOCATIONS);
-      onBudgetChange?.(budget.totalBudget);
+        hasCustomCategoryBudgets
+          ? loadedCategoryBudgets
+          : computeDefaultCategoryBudgets(budget?.totalBudget ?? defaultBudget)
+      );
+      onBudgetChange?.(budget?.totalBudget);
     } catch {
       // No budget created for this trip yet — show the empty state.
       setBudgetId(null);
       setTotalBudget(defaultBudget);
       setExpenses([]);
-      setCategoryBudgets(DEFAULT_ALLOCATIONS);
+      setCategoryBudgets(computeDefaultCategoryBudgets(defaultBudget));
       onBudgetChange?.(null);
     } finally {
       setLoadingLive(false);
@@ -425,7 +478,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     } else {
       setExpenses(DEMO_EXPENSES[mode] || []);
       setTotalBudget(800);
-      setCategoryBudgets(DEFAULT_ALLOCATIONS);
+      setCategoryBudgets(computeDefaultCategoryBudgets(800));
       setLoadingLive(false);
     }
     setEditingAllocations(null);
@@ -435,6 +488,7 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   // Creates the trip's budget on first use (first expense / edit / sync).
   async function ensureBudget() {
     if (budgetId) return budgetId;
+    if (!trip?.id) return null;
     const created = await budgetService.createBudget(
       trip.id, totalBudget, "USD");
     setBudgetId(created.id);
@@ -450,12 +504,15 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   const pctUsed     = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
   const dailyAvg    = tripDays > 0 ? totalSpent / tripDays : 0;
 
-  const perCategory = CATEGORIES.map(c => ({
-    ...c,
-    budget: categoryBudgets[c.key] ?? 0,
-    spent: expenses.filter(e => e.category === c.key)
-                   .reduce((s, e) => s + e.amount, 0),
-  }));
+  const perCategory = CATEGORIES.map(c => {
+    const bVal = categoryBudgets[c.key] ?? (isSameCategory(c.key, "OTHER") ? (categoryBudgets["OTHER"] ?? categoryBudgets["MISC"] ?? 0) : 0);
+    return {
+      ...c,
+      budget: bVal,
+      spent: expenses.filter(e => isSameCategory(e.category, c.key))
+                     .reduce((s, e) => s + e.amount, 0),
+    };
+  });
 
   // Live mode: bucket real expenses into trip days. Prefer the "Day N"
   // the traveler tagged the expense with (stored in notes) since that's
@@ -491,6 +548,39 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
 
     return { daily: buckets, unscheduledSpend: unscheduled };
   }, [isLive, mode, expenses, tripDays, trip]);
+
+  // Live mismatch calculation when editing or viewing Category Summary
+  const budgetMismatchInfo = useMemo(() => {
+    let currentSum = 0;
+    if (editingAllocations) {
+      const keys = ["HOTEL", "VEHICLE", "GUIDE", "ACTIVITY", "FOOD", "TRANSPORT", "OTHER"];
+      currentSum = keys.reduce((s, k) => {
+        const val = parseFloat(editingAllocations[k]);
+        return s + (Number.isNaN(val) || val < 0 ? 0 : val);
+      }, 0);
+    } else {
+      currentSum = perCategory.reduce((s, c) => s + c.budget, 0);
+    }
+
+    const diff = Math.abs(currentSum - totalBudget);
+    if (diff <= 0.01) return null;
+
+    if (currentSum < totalBudget) {
+      return {
+        type: "UNDER",
+        sum: currentSum,
+        diff,
+        message: `Category budgets total ${money(currentSum)}, which is ${money(diff)} less than your Total Budget (${money(totalBudget)}).`,
+      };
+    } else {
+      return {
+        type: "OVER",
+        sum: currentSum,
+        diff,
+        message: `Category budgets total ${money(currentSum)}, which is ${money(diff)} more than your Total Budget (${money(totalBudget)}).`,
+      };
+    }
+  }, [editingAllocations, perCategory, totalBudget]);
 
   const level = pctUsed > 100 ? "OVER" : pctUsed >= 80 ? "WARNING" : "ON_TRACK";
 
@@ -583,29 +673,47 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
       onBudgetChange?.(n);
     }
     setTotalBudget(n);
+    setCategoryBudgets(prev => {
+      const hasCustom = prev && Object.values(prev).some(v => v > 0);
+      return hasCustom ? prev : computeDefaultCategoryBudgets(n);
+    });
   }
 
   function startEditAllocations() {
     setEditingAllocations(Object.fromEntries(
-      CATEGORIES.map(c => [c.key, String(categoryBudgets[c.key] ?? 0)])));
+      CATEGORIES.map(c => {
+        const val = categoryBudgets[c.key] ?? (isSameCategory(c.key, "OTHER") ? (categoryBudgets["OTHER"] ?? categoryBudgets["MISC"] ?? 0) : 0);
+        return [c.key, String(val)];
+      })
+    ));
   }
 
   async function saveAllocations() {
-    const parsed = {};
-    for (const [key, value] of Object.entries(editingAllocations)) {
+    const uiParsed = {};
+    const apiPayload = {};
+
+    for (const [key, value] of Object.entries(editingAllocations || {})) {
       const n = parseFloat(value);
-      parsed[key] = Number.isNaN(n) || n < 0 ? 0 : n;
+      const val = Number.isNaN(n) || n < 0 ? 0 : n;
+
+      uiParsed[key] = val;
+      if (key === "OTHER") uiParsed["MISC"] = val;
+      if (key === "MISC") uiParsed["OTHER"] = val;
+
+      const apiKey = (key === "OTHER" || key === "MISC") ? "MISC" : key;
+      apiPayload[apiKey] = val;
     }
+
     if (isLive) {
       try {
         const id = await ensureBudget();
-        await budgetService.updateCategoryBudgets(id, parsed);
+        await budgetService.updateCategoryBudgets(id, apiPayload);
       } catch {
         alert("Failed to save category budgets");
         return;
       }
     }
-    setCategoryBudgets(parsed);
+    setCategoryBudgets(uiParsed);
     setEditingAllocations(null);
   }
 
@@ -641,136 +749,26 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     });
   }
 
-  // Opens a print-ready report in a new window and triggers the browser's
-  // print dialog, where the traveler can "Save as PDF". No PDF library —
-  // this stays dependency-free and works in every browser.
+  // Triggers a direct PDF binary file download (.pdf blob) using jsPDF
+  // with Phase 1 normalized currency utilities, financial summary cards,
+  // category breakdown, daily spending reconciliation, repeating table headers,
+  // and complete pop-up blocker independence.
   function handleExportPdf() {
-    const esc = s => String(s ?? "").replace(/[&<>"]/g, ch =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-
-    const statusLabel = { ON_TRACK: "On Track", WARNING: "Warning",
-      OVER: "Over Budget" }[level];
-    const dateRange = trip?.startDate && trip?.endDate
-      ? `${formatItemDate(trip.startDate)} – ${formatItemDate(trip.endDate)}`
-      : "";
-    const generatedOn = new Date().toLocaleString("en-US",
-      { dateStyle: "medium", timeStyle: "short" });
-
-    const categoryRows = perCategory
-      .filter(c => c.budget > 0 || c.spent > 0)
-      .map(c => {
-        const rem = c.budget - c.spent;
-        return `<tr>
-          <td>${esc(c.emoji)} ${esc(c.label)}</td>
-          <td class="num">${money(c.budget)}</td>
-          <td class="num">${money(c.spent)}</td>
-          <td class="num ${rem < 0 ? "neg" : "pos"}">${money(rem)}</td>
-        </tr>`;
-      }).join("");
-
-    const dailyRows = daily.slice(0, tripDays).map((v, i) =>
-      `<tr><td>Day ${i + 1}</td><td class="num">${money(v)}</td></tr>`).join("");
-
-    const sortedExpenses = [...expenses].sort((a, b) =>
-      String(a.date || "").localeCompare(String(b.date || "")));
-    const expenseRows = sortedExpenses.map(e => {
-      const meta = catMeta(e.category);
-      return `<tr>
-        <td>${esc(formatItemDate(e.date))}</td>
-        <td>${esc(meta.emoji)} ${esc(meta.label)}</td>
-        <td>${esc(e.title)}${e.auto ? ' <span class="tag">AUTO</span>' : ""}
-            ${e.note ? `<div class="note">${esc(e.note)}</div>` : ""}</td>
-        <td class="num">${money(e.amount)}</td>
-      </tr>`;
-    }).join("");
-
-    const html = `<!doctype html><html><head><meta charset="utf-8">
-      <title>Budget Report — ${esc(tripTitle)}</title>
-      <style>
-        :root {
-          --font-size-3xs: 0.625rem;
-          --font-size-2xs: 0.6875rem;
-          --font-size-xs: 0.75rem;
-          --font-size-sm: 0.875rem;
-          --font-size-lg: 1.125rem;
-          --font-size-2xl: 1.5rem;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; color: #1f2937;
-               margin: 32px; font-size: var(--font-size-xs); }
-        h1 { font-size: var(--font-size-2xl); margin: 0 0 4px; color: #14532d; }
-        h2 { font-size: var(--font-size-sm); margin: 24px 0 8px; color: #14532d;
-             border-bottom: 2px solid #dcfce7; padding-bottom: 4px; }
-        .sub { color: #6b7280; margin: 0 0 16px; }
-        .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-        .card { flex: 1; min-width: 130px; border: 1px solid #e5e7eb;
-                border-radius: 10px; padding: 12px; }
-        .card .val { font-size: var(--font-size-lg); font-weight: 700; }
-        .card .lbl { color: #6b7280; font-size: var(--font-size-2xs); }
-        .badge { display: inline-block; padding: 3px 10px; border-radius: 999px;
-                 font-weight: 700; font-size: var(--font-size-2xs); }
-        .b-ontrack { background: #dcfce7; color: #166534; }
-        .b-warning { background: #fef9c3; color: #854d0e; }
-        .b-over { background: #fee2e2; color: #991b1b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-        th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #f0f0f0; }
-        th { color: #6b7280; font-weight: 600; border-bottom: 1px solid #d1d5db; }
-        .num { text-align: right; font-variant-numeric: tabular-nums; }
-        .pos { color: #15803d; } .neg { color: #dc2626; }
-        tfoot td { font-weight: 700; border-top: 2px solid #d1d5db; }
-        .tag { background: #dbeafe; color: #1d4ed8; font-size: var(--font-size-3xs);
-               font-weight: 700; padding: 1px 5px; border-radius: 4px; }
-        .note { color: #9ca3af; font-size: var(--font-size-3xs); }
-        .foot { margin-top: 28px; color: #9ca3af; font-size: var(--font-size-3xs);
-                border-top: 1px solid #e5e7eb; padding-top: 8px; }
-        @media print { body { margin: 12px; } h2 { page-break-after: avoid; } }
-      </style></head><body>
-      <h1>Budget Report</h1>
-      <p class="sub"><strong>${esc(tripTitle)}</strong>${dateRange ? ` &middot; ${esc(dateRange)}` : ""}
-        ${trip?.groupSize ? ` &middot; ${trip.groupSize} traveler${trip.groupSize > 1 ? "s" : ""}` : ""}</p>
-
-      <div class="cards">
-        <div class="card"><div class="val">${money(totalBudget)}</div><div class="lbl">Total Budget</div></div>
-        <div class="card"><div class="val">${money(totalSpent)}</div><div class="lbl">Total Spent (${pctUsed.toFixed(1)}%)</div></div>
-        <div class="card"><div class="val ${remaining < 0 ? "neg" : "pos"}">${money(remaining)}</div><div class="lbl">Remaining</div></div>
-        <div class="card"><div class="val">${money(dailyAvg)}</div><div class="lbl">Daily Average</div></div>
-      </div>
-      <p><span class="badge b-${level.toLowerCase().replace("_", "")}">${statusLabel}</span></p>
-
-      <h2>Spending by Category</h2>
-      <table><thead><tr><th>Category</th><th class="num">Budgeted</th>
-        <th class="num">Spent</th><th class="num">Remaining</th></tr></thead>
-        <tbody>${categoryRows || '<tr><td colspan="4">No categories.</td></tr>'}</tbody>
-        <tfoot><tr><td>Total</td><td class="num">${money(totalBudget)}</td>
-          <td class="num">${money(totalSpent)}</td>
-          <td class="num ${remaining < 0 ? "neg" : "pos"}">${money(remaining)}</td></tr></tfoot>
-      </table>
-
-      <h2>Daily Spending</h2>
-      <table><thead><tr><th>Day</th><th class="num">Spent</th></tr></thead>
-        <tbody>${dailyRows}</tbody></table>
-
-      <h2>All Expenses (${expenses.length})</h2>
-      <table><thead><tr><th>Date</th><th>Category</th><th>Item</th>
-        <th class="num">Amount</th></tr></thead>
-        <tbody>${expenseRows || '<tr><td colspan="4">No expenses logged.</td></tr>'}</tbody>
-        <tfoot><tr><td colspan="3">Total Spent</td>
-          <td class="num">${money(totalSpent)}</td></tr></tfoot>
-      </table>
-
-      <p class="foot">Generated ${esc(generatedOn)} &middot; ExploreCeylon Budget Tracker</p>
-      </body></html>`;
-
-    const win = window.open("", "_blank");
-    if (!win) {
-      alert("Please allow pop-ups to export the PDF report.");
-      return;
-    }
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    // Give the new document a tick to lay out before invoking print.
-    setTimeout(() => win.print(), 300);
+    downloadBudgetPdf({
+      trip,
+      tripTitle,
+      totalBudget,
+      totalSpent,
+      remaining,
+      dailyAvg,
+      level,
+      pctUsed,
+      perCategory,
+      daily,
+      unscheduledSpend,
+      expenses,
+      tripDays,
+    });
   }
 
   // ── Data source bar (live + demo previews) ───────────────
@@ -1139,17 +1137,22 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
               </tbody>
             </table>
 
+            {/* Soft non-blocking warning when category budgets sum does not equal Total Budget */}
+            {budgetMismatchInfo && (
+              <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-xs text-amber-900 shadow-2xs">
+                <AlertTriangle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium leading-snug">{budgetMismatchInfo.message}</p>
+                </div>
+              </div>
+            )}
+
             {editingAllocations ? (
               <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
                 <p className="text-2xs text-gray-400">
                   Allocated:{" "}
-                  <span className={
-                    Object.values(editingAllocations)
-                      .reduce((s, v) => s + (parseFloat(v) || 0), 0) > totalBudget
-                      ? "text-red-600 font-semibold"
-                      : "text-gray-600 font-semibold"}>
-                    {money(Object.values(editingAllocations)
-                      .reduce((s, v) => s + (parseFloat(v) || 0), 0))}
+                  <span className={budgetMismatchInfo ? "text-amber-700 font-semibold" : "text-gray-600 font-semibold"}>
+                    {money(budgetMismatchInfo ? budgetMismatchInfo.sum : totalBudget)}
                   </span>
                   {" "}of {money(totalBudget)} total budget
                 </p>

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
 import destinationReviewsService from '../services/Destinationreviewsservice';
 import { getToken } from '../utils/authStorage';
+import ShowMoreButton from './ShowMoreButton';
+import { useShowMore } from '../hooks/useShowMore';
 
 const StarPicker = ({ value, onChange }) => (
   <div className="flex gap-1">
@@ -126,6 +127,17 @@ const DestinationReviews = ({ destinationId, onReviewAdded }) => {
     }
   };
 
+  const {
+    visibleItems: visibleReviews,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(reviews, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [destinationId, reviews.length],
+  });
+
   return (
     <div className="bg-white rounded-xl p-5 sm:p-6">
       <h3 className="text-lg font-bold text-gray-800 mb-4">
@@ -209,9 +221,15 @@ const DestinationReviews = ({ destinationId, onReviewAdded }) => {
 
       {!loading && !error && reviews.length > 0 && (
         <div>
-          {reviews.map((review) => (
+          {visibleReviews.map((review) => (
             <ReviewItem key={review.id} review={review} />
           ))}
+          <ShowMoreButton
+            onClick={showMore}
+            hasMore={hasMore}
+            remainingCount={remainingCount}
+            buttonText="Show More Reviews"
+          />
         </div>
       )}
     </div>

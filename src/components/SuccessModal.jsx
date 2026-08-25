@@ -45,7 +45,7 @@ export function SuccessModal({
           )}
 
           <button
-            onClick={onButtonClick}
+            onClick={onButtonClick || onClose}
             className="w-full rounded-full bg-emerald-700 px-6 py-3 font-semibold text-white transition hover:bg-emerald-800"
           >
             {buttonText}

@@ -8,8 +8,8 @@ import FeaturedCarousel from "../components/FeaturedCarousel";
 import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Pagination from "../components/Pagination";
-import { usePagination } from "../hooks/usePagination";
+import ShowMoreButton from "../components/ShowMoreButton";
+import { useShowMore } from "../hooks/useShowMore";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -110,15 +110,15 @@ const Destinations = () => {
     return result;
   }, [destinations, activeCategory, provinceFilter, searchTerm, sortBy]);
 
-  // Grid is `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` — 10 rows per page.
   const {
-    pageItems: pagedDestinations,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(filteredDestinations, {
-    columns: { base: 1, md: 2, lg: 3 },
+    visibleItems: visibleDestinations,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(filteredDestinations, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [activeCategory, provinceFilter, searchTerm, sortBy],
   });
 
   const handleExplore = (destination) => {
@@ -129,32 +129,36 @@ const Destinations = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100">
-        {/* Hero */}
-        <header
-          className="h-64 bg-[#1B4332] bg-cover bg-center text-white py-8 flex flex-col justify-center"
-          style={{
-            backgroundImage: `linear-gradient(to top, rgba(27,67,50,0.9), rgba(45,106,79,0.55)), url(${bannerImage})`,
-          }}
-        >
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-10">
-            <div className="flex items-center gap-1 text-sm text-gray-200 mb-3">
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <ChevronRight size={14} />
-              <span>Destinations</span>
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-12 px-4 sm:px-6 lg:px-8 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="max-w-4xl text-left space-y-2.5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300">
+                  <span>📍</span> Iconic Destinations
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-snug">
+                Explore Sri Lanka's Finest <span className="text-amber-300">Wonders</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium max-w-3xl">
+                From ancient UNESCO fortresses and tea plantations to pristine tropical beaches and wildlife reserves.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                  ✨ {destinations.length} Destinations
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                  🏛️ 8 UNESCO World Heritage Sites
+                </span>
+              </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold mb-1.5">
-              Explore Sri Lanka's Finest Destinations
-            </h1>
-            <p className="text-base opacity-90">
-              From ancient kingdoms to pristine beaches
-            </p>
           </div>
-        </header>
+        </div>
 
         <div className="px-4 py-6 mx-auto max-w-7xl sm:px-10 pb-14">
           {/* Featured carousel */}
@@ -166,14 +170,14 @@ const Destinations = () => {
           )}
 
           {/* Category tabs */}
-          <div className="flex gap-2.5 flex-wrap mb-5">
+          <div className="flex gap-2 flex-wrap mb-5">
             <button
               type="button"
               onClick={() => setActiveCategory("ALL")}
-              className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
+              className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap border transition-all ${
                 activeCategory === "ALL"
-                  ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
+                  ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
               }`}
             >
               ☀️ All ({destinations.length})
@@ -183,10 +187,10 @@ const Destinations = () => {
                 key={cat.value}
                 type="button"
                 onClick={() => setActiveCategory(cat.value)}
-                className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap border transition-colors duration-150 ${
+                className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap border transition-all ${
                   activeCategory === cat.value
-                    ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]"
+                    ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
                 }`}
               >
                 {cat.icon} {cat.label} ({categoryCounts[cat.value] || 0})
@@ -234,8 +238,8 @@ const Destinations = () => {
           </div>
 
           {/* Result count */}
-          <p ref={listRef} className="mb-4 text-sm text-gray-500">
-            Showing <strong>{filteredDestinations.length}</strong> destinations
+          <p className="mb-4 text-sm text-gray-500">
+            Showing <strong>{visibleDestinations.length}</strong> of <strong>{filteredDestinations.length}</strong> destinations
           </p>
 
           {loading && (
@@ -266,7 +270,7 @@ const Destinations = () => {
           {!loading && !error && filteredDestinations.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {pagedDestinations.map((destination) => (
+                {visibleDestinations.map((destination) => (
                   <DestinationCard
                     key={destination.id}
                     destination={destination}
@@ -275,11 +279,11 @@ const Destinations = () => {
                 ))}
               </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Destinations"
+              <ShowMoreButton
+                onClick={showMore}
+                hasMore={hasMore}
+                remainingCount={remainingCount}
+                buttonText="Show More Destinations"
               />
             </>
           )}

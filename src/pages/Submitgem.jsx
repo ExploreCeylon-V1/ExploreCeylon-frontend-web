@@ -148,85 +148,97 @@ const SubmitGem = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-100">
-        {/* Hero */}
-        <header className="bg-gradient-to-br from-[#2D6A4F] to-[#1B4332] text-white px-6 sm:px-10 py-8">
-          <div className="flex items-center gap-3 mb-1.5">
-            <span className="text-3xl">💎</span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">Share a Hidden Gem</h1>
-          </div>
-          <p className="text-base opacity-90">
-            Help fellow travelers discover Sri Lanka's secret spots
-          </p>
-        </header>
+      <div className="min-h-screen bg-slate-100 font-sans">
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-12 px-4 sm:px-6 lg:px-8 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-10 py-6">
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="max-w-4xl text-left space-y-2.5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300">
+                  <span>💎</span> Community Contribution
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-snug">
+                Share a Hidden Gem of <span className="text-amber-300">Sri Lanka</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium max-w-3xl">
+                Help fellow travelers discover off-the-beaten-path waterfalls, secluded beaches, and secret local spots across the island.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <Link to="/" className="hover:text-[#2D6A4F]">Home</Link>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-4">
+            <Link to="/" className="hover:text-emerald-800">Home</Link>
             <span>›</span>
-            <Link to="/hidden-gems" className="hover:text-[#2D6A4F]">Hidden Gems</Link>
+            <Link to="/hidden-gems" className="hover:text-emerald-800">Hidden Gems</Link>
             <span>›</span>
-            <span className="text-gray-800 font-medium">Submit a Gem</span>
+            <span className="text-slate-800 font-bold">Submit a Gem</span>
           </div>
 
           {/* Info banner */}
-          <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-800 mb-6 flex items-center gap-2">
-            ℹ️ Your submission will be reviewed by our team before publishing.
-            Usually approved within 24–48 hours.
+          <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl px-4 py-3 text-xs font-semibold text-emerald-900 mb-6 flex items-center gap-2 shadow-xs">
+            <span>ℹ️</span> Your submission will be reviewed by our team before publishing. Usually approved within 24–48 hours.
           </div>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main column */}
-            <div className="lg:col-span-2 flex flex-col gap-5">
+            <div className="lg:col-span-2 flex flex-col gap-6">
               {/* Basic Information */}
-              <div className="bg-white rounded-xl p-5 sm:p-6 border-l-4 border-[#2D6A4F]">
-                <h2 className="font-bold text-gray-800 text-lg mb-4">📍 Basic Information</h2>
+              <div className="bg-white rounded-2xl p-6 border-l-4 border-emerald-800 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                  <span>📍</span> Basic Information
+                </h2>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   Gem Name *
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">Give it a memorable name</p>
+                <p className="text-xs text-slate-500 mb-1.5">Give it a memorable, descriptive title</p>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value.slice(0, 200))}
-                  placeholder="e.g. Jungle Beach, Ravana Cave..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-1 focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                  placeholder="e.g. Secret Jungle Waterfall, Nilaveli Coral Cove..."
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium mb-1 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                 />
-                <p className="text-xs text-gray-400 text-right mb-4">{title.length}/200</p>
+                <p className="text-xs font-semibold text-slate-400 text-right mb-4">{title.length}/200</p>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   Description *
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">
-                  Tell travelers what makes this place special
+                <p className="text-xs text-slate-500 mb-1.5">
+                  Tell travelers what makes this place special, how it feels, and what to expect
                 </p>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 3000))}
-                  placeholder="e.g. A secluded beach only accessible by boat or jungle trek. Crystal clear water with no crowds..."
+                  placeholder="e.g. A secluded beach only accessible by boat or a short jungle trek. Crystal clear water with zero crowds..."
                   rows={4}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none mb-1 focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium resize-none mb-1 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                 />
-                <p className="text-xs text-gray-400 text-right mb-4">
+                <p className="text-xs font-semibold text-slate-400 text-right mb-4">
                   {description.length}/3000
                 </p>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   Category *
                 </label>
-                <p className="text-xs text-gray-500 mb-2">Select the type of hidden gem</p>
-                <div className="flex gap-2 flex-wrap mb-4">
+                <p className="text-xs text-slate-500 mb-2">Select the type of secret spot</p>
+                <div className="flex gap-2 flex-wrap mb-5">
                   {GEM_CATEGORIES.map((cat) => (
                     <button
                       key={cat.value}
                       type="button"
                       onClick={() => setCategory(cat.value)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium border transition-colors duration-150 ${
+                      className={`rounded-full px-4 py-2 text-xs font-bold border transition-all ${
                         category === cat.value
-                          ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-[#2D6A4F]'
+                          ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800'
                       }`}
                     >
                       {cat.icon} {cat.label}
@@ -234,14 +246,14 @@ const SubmitGem = () => {
                   ))}
                 </div>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   District *
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">Which Sri Lanka district?</p>
+                <p className="text-xs text-slate-500 mb-1.5">Which Sri Lankan district is it located in?</p>
                 <select
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm cursor-pointer"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer focus:outline-none focus:border-emerald-700"
                 >
                   <option value="">Select district</option>
                   {SRI_LANKA_DISTRICTS.map((d) => (
@@ -251,108 +263,112 @@ const SubmitGem = () => {
               </div>
 
               {/* Location Details */}
-              <div className="bg-white rounded-xl p-5 sm:p-6 border-l-4 border-[#2D6A4F]">
-                <h2 className="font-bold text-gray-800 text-lg mb-4">🗺️ Location Details</h2>
+              <div className="bg-white rounded-2xl p-6 border-l-4 border-emerald-800 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                  <span>🗺️</span> Location & Directions
+                </h2>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   GPS Location
                 </label>
-                <p className="text-xs text-gray-500 mb-2">Optional but helps travelers find it</p>
+                <p className="text-xs text-slate-500 mb-2">Optional coordinates to help travelers navigate directly</p>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <input
                     type="text"
                     value={latitude}
                     onChange={(e) => setLatitude(e.target.value)}
                     placeholder="Latitude e.g. 6.0089"
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-700"
                   />
                   <input
                     type="text"
                     value={longitude}
                     onChange={(e) => setLongitude(e.target.value)}
                     placeholder="Longitude e.g. 80.2491"
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                    className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-700"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
                   disabled={locatingGps}
-                  className="w-full border border-[#2D6A4F] text-[#2D6A4F] rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50 disabled:opacity-60 mb-4"
+                  className="w-full border border-emerald-800/30 text-emerald-900 rounded-xl py-2.5 text-xs font-bold hover:bg-emerald-50 disabled:opacity-60 transition-all mb-5"
                 >
-                  📍 {locatingGps ? 'Locating...' : 'Use My Current Location'}
+                  📍 {locatingGps ? 'Locating coordinates...' : 'Use My Current GPS Location'}
                 </button>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   How to Get There *
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">
-                  Give clear directions from nearest town
+                <p className="text-xs text-slate-500 mb-1.5">
+                  Clear step-by-step directions from nearest town or landmark
                 </p>
                 <textarea
                   value={howToGetThere}
                   onChange={(e) => setHowToGetThere(e.target.value.slice(0, 1000))}
-                  placeholder="e.g. Take a boat from Unawatuna beach (10 min) OR hike 30 min through jungle trail..."
+                  placeholder="e.g. Take a boat from Unawatuna beach (10 min) OR hike 30 min through jungle trail starting near temple..."
                   rows={3}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none mb-1 focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium resize-none mb-1 focus:outline-none focus:border-emerald-700"
                 />
-                <p className="text-xs text-gray-400 text-right mb-4">
+                <p className="text-xs font-semibold text-slate-400 text-right mb-4">
                   {howToGetThere.length}/1000
                 </p>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
                   Best Time to Visit
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">
-                  e.g. "Dec–Mar" or "Year round"
+                <p className="text-xs text-slate-500 mb-1.5">
+                  e.g. "Dec–Mar (Dry Season)" or "Early morning at sunrise"
                 </p>
                 <input
                   type="text"
                   value={bestTime}
                   onChange={(e) => setBestTime(e.target.value.slice(0, 100))}
                   placeholder="e.g. Dec – Mar"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-700"
                 />
               </div>
 
               {/* Tips & Safety */}
-              <div className="bg-white rounded-xl p-5 sm:p-6 border-l-4 border-[#2D6A4F]">
-                <h2 className="font-bold text-gray-800 text-lg mb-4">💡 Tips & Safety Info</h2>
+              <div className="bg-white rounded-2xl p-6 border-l-4 border-emerald-800 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                  <span>💡</span> Tips & Insider Advice
+                </h2>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Traveler Tips
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">
+                  Traveler Tips & Safety Notes
                 </label>
-                <p className="text-xs text-gray-500 mb-1.5">Share practical tips for visiting</p>
+                <p className="text-xs text-slate-500 mb-1.5">Share practical advice (e.g. footwear, water, entry fees, local customs)</p>
                 <textarea
                   value={tips}
                   onChange={(e) => setTips(e.target.value.slice(0, 1000))}
-                  placeholder="e.g. Bring snacks — no shops nearby. Go early morning for calm water. Wear good shoes for the hike..."
+                  placeholder="e.g. Bring drinking water — no shops nearby. Go early morning for calm water. Wear sturdy shoes..."
                   rows={3}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-2 focus:outline-[#2D6A4F] focus:outline-offset-1"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium resize-none mb-1 focus:outline-none focus:border-emerald-700"
                 />
-                <p className="text-xs text-gray-400 text-right">{tips.length}/1000</p>
+                <p className="text-xs font-semibold text-slate-400 text-right">{tips.length}/1000</p>
               </div>
 
               {/* Photos */}
-              <div className="bg-white rounded-xl p-5 sm:p-6">
-                <h2 className="font-bold text-gray-800 text-lg mb-1">
-                  📷 Photos <span className="text-gray-400 font-normal text-sm">(Optional)</span>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
+                  <span>📷</span> High-Quality Photos <span className="text-slate-400 font-normal text-xs">(Optional)</span>
                 </h2>
 
                 <label
                   htmlFor="photo-input"
-                  className="mt-3 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center py-10 cursor-pointer hover:border-[#2D6A4F] transition-colors duration-150"
+                  className="mt-3 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center py-10 cursor-pointer hover:border-emerald-600 transition-colors bg-slate-50/50"
                 >
-                  <span className="text-3xl mb-2">⬆️</span>
-                  <p className="text-sm font-medium text-gray-700">
-                    Drag & drop photos here
+                  <span className="text-3xl mb-2">📸</span>
+                  <p className="text-sm font-bold text-slate-800">
+                    Upload Photos of the Hidden Gem
                   </p>
-                  <p className="text-xs text-gray-500 mb-3">or click to browse</p>
-                  <p className="text-xs text-gray-400 mb-3">
-                    Supported: JPG, PNG (max {MAX_FILE_SIZE_MB}MB) · Up to {MAX_PHOTOS} photos
+                  <p className="text-xs text-slate-500 mb-3">Drag & drop or click to browse</p>
+                  <p className="text-3xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                    JPG or PNG (max {MAX_FILE_SIZE_MB}MB) · Up to {MAX_PHOTOS} photos
                   </p>
-                  <span className="bg-[#2D6A4F] text-white text-sm font-semibold rounded-lg px-5 py-2.5">
-                    Browse Files
+                  <span className="bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl px-5 py-2.5 shadow-sm transition-all">
+                    Browse Local Photos
                   </span>
                   <input
                     id="photo-input"
@@ -367,7 +383,7 @@ const SubmitGem = () => {
                 {photoFiles.length > 0 && (
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
                     {photoFiles.map((file, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-gray-200">
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                         <img
                           src={URL.createObjectURL(file)}
                           alt={file.name}
@@ -376,7 +392,7 @@ const SubmitGem = () => {
                         <button
                           type="button"
                           onClick={() => removePhoto(idx)}
-                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          className="absolute top-1 right-1 bg-black/70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hover:bg-rose-600 transition-colors"
                         >
                           ×
                         </button>
@@ -385,67 +401,69 @@ const SubmitGem = () => {
                   </div>
                 )}
                 {uploading && (
-                  <p className="text-sm text-gray-500 mt-3">Uploading photos...</p>
+                  <p className="text-xs font-semibold text-emerald-800 mt-3 flex items-center gap-1.5">
+                    <span className="animate-spin">⏳</span> Uploading photos to server...
+                  </p>
                 )}
               </div>
 
               {/* Confirmation */}
-              <div className="bg-white rounded-xl p-5 sm:p-6">
-                <label className="flex items-start gap-2 text-sm text-gray-700 mb-3 cursor-pointer">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 mb-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={confirmAccuracy}
                     onChange={(e) => setConfirmAccuracy(e.target.checked)}
-                    className="mt-0.5"
+                    className="mt-0.5 rounded text-emerald-800 focus:ring-emerald-500"
                   />
-                  I confirm this is a real location in Sri Lanka and my submission is
-                  accurate to the best of my knowledge.
+                  I confirm this is a real location in Sri Lanka and my submission is accurate to the best of my knowledge.
                 </label>
-                <label className="flex items-start gap-2 text-sm text-gray-700 mb-4 cursor-pointer">
+                <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 mb-5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={confirmLicense}
                     onChange={(e) => setConfirmLicense(e.target.checked)}
-                    className="mt-0.5"
+                    className="mt-0.5 rounded text-emerald-800 focus:ring-emerald-500"
                   />
-                  I agree that ExploreCeylon may use my submission and photos on the
-                  platform.
+                  I agree that ExploreCeylon may share this submission and photos on the travel platform.
                 </label>
 
                 {submitError && (
-                  <p className="text-sm text-red-600 mb-3">{submitError}</p>
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-bold mb-4">
+                    ⚠️ {submitError}
+                  </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={submitting || uploading}
-                  className="w-full bg-[#2D6A4F] hover:bg-[#1B4332] disabled:opacity-60 text-white font-semibold rounded-lg py-3.5 transition-colors duration-150"
+                  className="w-full bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 text-white font-extrabold text-sm rounded-xl py-3.5 transition-all shadow-md hover:shadow-lg"
                 >
-                  {submitting ? 'Submitting...' : '✨ Submit Hidden Gem →'}
+                  {submitting ? 'Submitting Hidden Gem...' : '✨ Submit Hidden Gem →'}
                 </button>
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  ⏱️ Review time: 24–48 hours &nbsp;&nbsp; 📧 You'll be notified by email
+                <p className="text-3xs font-bold text-slate-400 uppercase tracking-wider text-center mt-3">
+                  ⏱️ Review time: 24–48 hours &nbsp;•&nbsp; 📧 Email notification upon approval
                 </p>
               </div>
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1 flex flex-col gap-5">
+            <div className="lg:col-span-1 flex flex-col gap-6">
               {/* Preview */}
-              <div className="bg-white rounded-xl p-5 sm:p-6">
-                <h2 className="font-bold text-gray-800 mb-1">Preview</h2>
-                <p className="text-xs text-gray-500 mb-4">How your gem will appear</p>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 mb-1">Live Card Preview</h2>
+                <p className="text-xs text-slate-500 mb-4">How your gem will appear in community listings</p>
 
                 {!title && !description ? (
-                  <div className="border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center py-10 text-center">
+                  <div className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center py-10 text-center bg-slate-50/50">
                     <span className="text-3xl mb-2">💎</span>
-                    <p className="text-sm text-gray-500">
-                      Start filling the form to<br />see your gem preview
+                    <p className="text-xs font-semibold text-slate-500">
+                      Fill the form to see your<br />live gem card preview
                     </p>
                   </div>
                 ) : (
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="aspect-[4/3] bg-gray-200 flex items-center justify-center relative">
+                  <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+                    <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center relative overflow-hidden">
                       {photoFiles[0] ? (
                         <img
                           src={URL.createObjectURL(photoFiles[0])}
@@ -453,23 +471,23 @@ const SubmitGem = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-3xl">💎</span>
+                        <span className="text-4xl">💎</span>
                       )}
                       {categoryMeta && (
-                        <span className="absolute top-2 left-2 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#2D6A4F]/90 text-white">
+                        <span className="absolute top-3 left-3 text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg bg-emerald-900/90 text-emerald-200 border border-emerald-400/30">
                           {categoryMeta.icon} {categoryMeta.label}
                         </span>
                       )}
                     </div>
-                    <div className="p-3">
-                      <p className="font-bold text-gray-800 text-sm mb-0.5">
+                    <div className="p-4">
+                      <p className="font-extrabold text-slate-900 text-base mb-0.5">
                         {title || 'Untitled gem'}
                       </p>
                       {district && (
-                        <p className="text-xs text-gray-500 mb-1.5">📍 {district}</p>
+                        <p className="text-xs font-semibold text-slate-500 mb-2">📍 {district}</p>
                       )}
-                      <p className="text-xs text-gray-600 line-clamp-2">
-                        {description || 'No description yet.'}
+                      <p className="text-xs font-medium text-slate-600 line-clamp-2">
+                        {description || 'No description provided.'}
                       </p>
                     </div>
                   </div>
@@ -477,47 +495,49 @@ const SubmitGem = () => {
               </div>
 
               {/* Guidelines */}
-              <div className="bg-white rounded-xl p-5 sm:p-6">
-                <h2 className="font-bold text-gray-800 mb-4">📋 Guidelines</h2>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <h2 className="font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <span>📋</span> Community Guidelines
+                </h2>
 
-                <p className="text-xs font-semibold text-gray-500 mb-2">DO</p>
-                <ul className="flex flex-col gap-1.5 mb-4">
+                <p className="text-3xs font-extrabold uppercase tracking-wider text-emerald-800 mb-2">DO SUBMIT</p>
+                <ul className="flex flex-col gap-2 mb-5">
                   {[
-                    'Real locations in Sri Lanka',
-                    'Clear accurate directions',
+                    'Real off-the-beaten-path locations in Sri Lanka',
+                    'Clear, accurate directions & tips',
                     'Your own photos only',
-                    'Honest descriptions',
+                    'Authentic traveler experiences',
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-gray-700">
-                      <span className="text-green-600">✅</span> {item}
+                    <li key={item} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                      <span className="text-emerald-600">✅</span> {item}
                     </li>
                   ))}
                 </ul>
 
-                <p className="text-xs font-semibold text-gray-500 mb-2">DON'T</p>
-                <ul className="flex flex-col gap-1.5 mb-4">
+                <p className="text-3xs font-extrabold uppercase tracking-wider text-rose-700 mb-2">DO NOT SUBMIT</p>
+                <ul className="flex flex-col gap-2 mb-5">
                   {[
                     'Commercial businesses (hotels, restaurants)',
-                    'Already famous landmarks',
+                    'Already famous tourist landmarks',
                     'Duplicate existing gems',
-                    'Copied photos',
+                    'Copyrighted web photos',
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-gray-700">
-                      <span className="text-red-500">❌</span> {item}
+                    <li key={item} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                      <span className="text-rose-500">❌</span> {item}
                     </li>
                   ))}
                 </ul>
 
-                <p className="text-xs font-semibold text-gray-500 mb-2">APPROVAL PROCESS</p>
+                <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">APPROVAL PROCESS</p>
                 <ol className="flex flex-col gap-2">
                   {[
                     'Submit your gem',
-                    'Admin reviews (24–48h)',
+                    'Admin reviews details (24–48h)',
                     'Approved & published',
                     'Email notification sent',
                   ].map((step, idx) => (
-                    <li key={step} className="flex items-center gap-2 text-sm text-gray-700">
-                      <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 text-xs flex items-center justify-center flex-shrink-0">
+                    <li key={step} className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                      <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-800 font-bold text-3xs flex items-center justify-center border border-emerald-200/60 shrink-0">
                         {idx + 1}
                       </span>
                       {step}

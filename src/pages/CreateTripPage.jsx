@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TripGenerationLoader from '../components/TripGenerationLoader';
 import plannerService from '../services/plannerService';
-import PlannerResultView from '../components/PlannerResultView';
+import { MapPin, Calendar, Users, Compass, DollarSign, FileText, Sparkles, ArrowRight, CheckCircle2, Lightbulb, Clock } from "lucide-react";
 
 // ── Constants ──────────────────────────────────────────────
 const TRAVEL_STYLES = [
@@ -46,11 +46,11 @@ const BUDGET_OPTIONS = [
 ];
 
 const NEXT_STEPS = [
-  { emoji: "✨", label: "AI analyzes your preferences" },
-  { emoji: "📍", label: "Finds best places & activities" },
-  { emoji: "📋", label: "Builds a perfect itinerary" },
-  { emoji: "📝", label: "You review & customize" },
-  { emoji: "🙂", label: "Your dream trip is ready!" },
+  { emoji: "✨", label: "AI analyzes your travel preferences" },
+  { emoji: "📍", label: "Selects optimal routes & hidden gems" },
+  { emoji: "📋", label: "Generates custom daily itinerary" },
+  { emoji: "📝", label: "Review & personalize your schedule" },
+  { emoji: "🎉", label: "Your Sri Lanka dream trip is ready!" },
 ];
 
 // ── Date / Duration Picker ─────────────────────────────────
@@ -76,15 +76,17 @@ function DateDurationPicker({ startDate, endDate, onChange, onClose }) {
   }
 
   return (
-    <div className="absolute left-0 top-full mt-2 z-50 bg-white rounded-2xl
-                    border border-gray-200 shadow-2xl p-5 w-80">
-      <h4 className="text-sm font-semibold text-gray-800 mb-4">
-        📅 Select Dates
-      </h4>
+    <div className="absolute left-0 top-full mt-2.5 z-50 bg-white rounded-3xl border border-gray-200 shadow-2xl p-6 w-80 animate-in fade-in zoom-in-95 duration-150">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+        <h4 className="text-xs font-extrabold text-slate-900 tracking-wide uppercase flex items-center gap-1.5">
+          <Calendar className="h-4 w-4 text-emerald-700" /> Select Travel Dates
+        </h4>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xs font-bold">✕</button>
+      </div>
 
-      <div className="space-y-3 mb-4">
+      <div className="space-y-3.5 mb-4">
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">
+          <label className="text-3xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">
             Start Date
           </label>
           <input
@@ -92,13 +94,11 @@ function DateDurationPicker({ startDate, endDate, onChange, onClose }) {
             value={localStart}
             min={new Date().toISOString().split("T")[0]}
             onChange={e => setLocalStart(e.target.value)}
-            className="w-full min-w-0 max-w-full border border-gray-200 rounded-xl px-3 py-2
-                       text-sm text-gray-800 outline-none
-                       focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100"
+            className="w-full rounded-2xl border border-gray-200 bg-slate-50 px-3.5 py-2.5 text-xs text-gray-800 outline-none focus:border-emerald-700 focus:bg-white focus:ring-2 focus:ring-emerald-700/10"
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">
+          <label className="text-3xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">
             End Date
           </label>
           <input
@@ -106,37 +106,30 @@ function DateDurationPicker({ startDate, endDate, onChange, onClose }) {
             value={localEnd}
             min={localStart || new Date().toISOString().split("T")[0]}
             onChange={e => setLocalEnd(e.target.value)}
-            className="w-full min-w-0 max-w-full border border-gray-200 rounded-xl px-3 py-2
-                       text-sm text-gray-800 outline-none
-                       focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100"
+            className="w-full rounded-2xl border border-gray-200 bg-slate-50 px-3.5 py-2.5 text-xs text-gray-800 outline-none focus:border-emerald-700 focus:bg-white focus:ring-2 focus:ring-emerald-700/10"
           />
         </div>
       </div>
 
       {days > 0 && (
-        <div className="text-center text-xs font-semibold text-[#1a5c2a]
-                         bg-green-50 rounded-lg py-2 mb-4">
-          🕐 {days} Day{days > 1 ? "s" : ""} Trip
+        <div className="text-center text-xs font-bold text-emerald-800 bg-emerald-50 rounded-2xl py-2 mb-4 border border-emerald-100 flex items-center justify-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 text-emerald-700" /> {days} Day{days > 1 ? "s" : ""} Duration
         </div>
       )}
 
       <div className="flex gap-2">
         <button
           onClick={onClose}
-          className="flex-1 py-2 text-sm border border-gray-200 rounded-xl
-                     text-gray-600 hover:bg-gray-50 transition-colors"
+          className="flex-1 py-2 text-xs border border-gray-200 rounded-2xl text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
         <button
           onClick={handleApply}
           disabled={!localStart || !localEnd}
-          className="flex-1 py-2 text-sm bg-[#1a5c2a] text-white
-                     rounded-xl font-semibold hover:bg-[#14471f]
-                     disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-colors"
+          className="flex-1 py-2 text-xs bg-emerald-800 text-white rounded-2xl font-bold hover:bg-emerald-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
         >
-          Apply
+          Apply Dates
         </button>
       </div>
     </div>
@@ -172,14 +165,11 @@ export default function CreateTripPage() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
-  // AI generation overlay (§5 loader / §6 failure state)
+
   const [aiGenerating, setAiGenerating] = useState(false);
   const [genError,     setGenError]     = useState(null);
-  // Trip is created once; a retry re-generates on this id instead of
-  // creating a duplicate draft.
   const [pendingTripId, setPendingTripId] = useState(null);
 
-  // ── Validation ─────────────────────────────────────────
   function isValid() {
     return (
       fromLocation.trim() &&
@@ -206,7 +196,6 @@ export default function CreateTripPage() {
     };
   }
 
-  // ── Manual create ──────────────────────────────────────
   async function handleManualCreate() {
     if (!isValid()) {
       setError("Please fill in all required fields.");
@@ -224,9 +213,6 @@ export default function CreateTripPage() {
     }
   }
 
-  // ── AI generate (with §5 loader / §6 retry) ────────────
-  // The trip is created once; on retry we reuse pendingTripId and only
-  // re-run generation, so a failed attempt never leaves duplicate drafts.
   async function runAiGeneration() {
     setGenError(null);
     setAiGenerating(true);
@@ -281,12 +267,10 @@ export default function CreateTripPage() {
     setGenError(null);
   }
 
-  // Back-compat shim: the two buttons call this with a boolean.
   function handleSubmit(withAi) {
     return withAi ? handleGenerateWithAi() : handleManualCreate();
   }
 
-  // ── Toggle Travel Style ────────────────────────────────
   function toggleTravelStyle(styleValue) {
     setTravelStyle(prev => {
       if (prev.includes(styleValue)) {
@@ -296,7 +280,6 @@ export default function CreateTripPage() {
     });
   }
 
-  // ── Render ─────────────────────────────────────────────
   return (
     <>
     {aiGenerating && (
@@ -312,101 +295,83 @@ export default function CreateTripPage() {
     )}
     <Navbar />
     <div
-      className="min-h-screen relative bg-cover bg-center bg-fixed "
-      style={{ backgroundImage: `url(${heroImg})` }}
+      className="min-h-screen relative bg-gradient-to-br from-emerald-50/70 via-teal-50/30 to-slate-100 font-sans text-slate-900 selection:bg-emerald-600 selection:text-white"
     >
-      <div className="absolute inset-0 bg-white/55 " />
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
-        {/* Desktop Header */}
-        <div className="hidden lg:block mb-8">
-            <h1 className="text-4xl font-extrabold text-[#16331c]">
-                Create New Trip ✨
+        {/* ── Top Hero Banner ── */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-800 to-green-900 p-6 sm:p-10 shadow-xl text-white mb-8">
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-white/15 px-3.5 py-1 text-3xs font-bold uppercase tracking-widest text-emerald-200 mb-3">
+              <Sparkles size={13} /> AI Travel Engine Phase 13
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+              Create Your Dream Itinerary ✨
             </h1>
-
-            <p className="mt-3 text-lg text-gray-600">
-                Plan your perfect adventure with our AI-powered trip planner.
+            <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium">
+              Tell us your starting point, destination, dates, and preferences. Our multi-engine AI will craft an optimized Sri Lanka journey in seconds.
             </p>
+          </div>
         </div>
 
-        {/* Mobile Header */}
-        <div className="lg:hidden mb-5">
-            <h1 className="text-2xl font-extrabold text-[#16331c]">
-                Create New Trip ✨
-            </h1>
-
-            <p className="text-sm text-gray-600 mt-1">
-                Plan your perfect adventure with our AI trip planner.
-            </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* ── Center: Form card ── */}
-            <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100 p-8 xl:p-10">            
+          {/* ── Main Form Section ── */}
+          <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-emerald-100/80 p-6 sm:p-10">            
 
             {/* Error banner */}
             {error && (
-              <div className="mb-5 flex items-start gap-2 bg-red-50 border
-                              border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                <span>⚠️</span> {error}
+              <div className="mb-6 flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-2xl p-4 text-xs font-semibold text-red-700">
+                <span className="text-base">⚠️</span> {error}
               </div>
             )}
 
-            {/* ── Row 1: From / To / Date ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+            {/* ── Row 1: Locations, Dates, Group Size ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {/* Heading from */}
-              <div>
-                <label className="flex items-center gap-1.5 text-xs font-semibold
-                                  text-[#1a5c2a] mb-2">
-                  <span className="text-base">📍</span> Heading from
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <MapPin className="h-4 w-4 text-emerald-600" /> Heading From <span className="text-emerald-600">*</span>
                 </label>
                 <input
                   type="text"
                   value={fromLocation}
                   onChange={e => setFromLocation(e.target.value)}
-                  placeholder="Country, City or Landmark"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5
-                             text-sm text-gray-800 placeholder-gray-400 outline-none
-                             focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100
-                             transition-all"
+                  placeholder="e.g. Colombo, Katunayake Airport"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-3 px-4 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
                 />
               </div>
 
               {/* Where to */}
-              <div>
-                <label className="flex items-center gap-1.5 text-xs font-semibold
-                                  text-[#1a5c2a] mb-2">
-                  <span className="text-base">📍</span> Where to?
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <MapPin className="h-4 w-4 text-rose-500" /> Where To? <span className="text-emerald-600">*</span>
                 </label>
                 <input
                   type="text"
                   value={toLocation}
                   onChange={e => setToLocation(e.target.value)}
-                  placeholder="Country, City or Landmark"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5
-                             text-sm text-gray-800 placeholder-gray-400 outline-none
-                             focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100
-                             transition-all"
+                  placeholder="e.g. Kandy, Galle, Ella, Sigiriya"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-3 px-4 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
                 />
               </div>
 
               {/* Date / Duration */}
-              <div className="relative">
-                <label className="flex items-center gap-1.5 text-xs font-semibold
-                                  text-[#1a5c2a] mb-2">
-                  <span className="text-base">📅</span> Date / Duration
+              <div className="relative flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <Calendar className="h-4 w-4 text-emerald-600" /> Date & Duration <span className="text-emerald-600">*</span>
                 </label>
                 <button
+                  type="button"
                   onClick={() => setShowDatePicker(p => !p)}
-                  className={`w-full border rounded-xl px-3 py-2.5 text-sm text-left
-                              transition-all outline-none
-                              ${startDate && endDate
-                                ? "border-[#1a5c2a] text-gray-800 bg-green-50"
-                                : "border-gray-200 text-gray-400 hover:border-gray-300"
-                              }`}
+                  className={`w-full rounded-2xl border py-3 px-4 text-xs sm:text-sm text-left transition-all outline-none flex items-center justify-between ${
+                    startDate && endDate
+                      ? "border-emerald-600 text-emerald-950 font-semibold bg-emerald-50/50"
+                      : "border-slate-200 text-slate-400 hover:border-slate-300 bg-slate-50/50"
+                  }`}
                 >
-                  {formatDisplay(startDate, endDate) || "Select date range"}
+                  <span>{formatDisplay(startDate, endDate) || "Select travel dates"}</span>
+                  <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
                 </button>
 
                 {showDatePicker && (
@@ -419,44 +384,41 @@ export default function CreateTripPage() {
                 )}
               </div>
 
-              {/* ── Group Size ── */}
-                <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-semibold
-                                    text-gray-800 mb-3">
-                    <span className="text-base">👥</span> Group Size
+              {/* Group Size */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <Users className="h-4 w-4 text-emerald-600" /> Group Size
                 </label>
-                <div className="flex items-center gap-3">
-                    <button
+                <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/50 py-1.5 px-3">
+                  <button
+                    type="button"
                     onClick={() => setGroupSize(s => Math.max(1, s - 1))}
-                    className="w-9 h-9 rounded-xl border border-gray-200 text-gray-600
-                                text-lg font-bold hover:border-[#1a5c2a] hover:text-[#1a5c2a]
-                                hover:bg-green-50 transition-colors flex items-center justify-center"
-                    >
+                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-600 hover:bg-emerald-50 transition-colors shadow-2xs"
+                  >
                     −
-                    </button>
-                    <span className="text-base font-semibold text-gray-800 w-6 text-center">
-                    {groupSize}
-                    </span>
-                    <button
+                  </button>
+                  <div className="text-center">
+                    <span className="text-sm font-extrabold text-slate-900">{groupSize}</span>
+                    <span className="text-3xs text-slate-500 ml-1">Traveler{groupSize > 1 ? "s" : ""}</span>
+                  </div>
+                  <button
+                    type="button"
                     onClick={() => setGroupSize(s => Math.min(20, s + 1))}
-                    className="w-9 h-9 rounded-xl border border-gray-200 text-gray-600
-                                text-lg font-bold hover:border-[#1a5c2a] hover:text-[#1a5c2a]
-                                hover:bg-green-50 transition-colors flex items-center justify-center"
-                    >
+                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:border-emerald-600 hover:bg-emerald-50 transition-colors shadow-2xs"
+                  >
                     +
-                    </button>
+                  </button>
                 </div>
-                </div>
+              </div>
             </div>
 
-            <div className="border-t border-gray-100 mb-6" />
+            <div className="border-t border-gray-100 my-6" />
 
             {/* ── Travel Style ── */}
             <div className="mb-6">
-              <label className="flex items-center gap-2 text-sm font-semibold
-                                text-gray-800 mb-3">
-                <span className="text-base">🧭</span> Travel Style
-                <span className="text-xs font-normal text-gray-400">(Choose one or more)</span>
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                <Compass className="h-4 w-4 text-emerald-600" /> Travel Style <span className="text-emerald-600">*</span>
+                <span className="text-3xs font-medium text-slate-400 normal-case ml-1">(Select one or more)</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {TRAVEL_STYLES.map(s => {
@@ -464,34 +426,31 @@ export default function CreateTripPage() {
                   return (
                     <button
                       key={s.value}
+                      type="button"
                       onClick={() => toggleTravelStyle(s.value)}
-                      className={`relative flex flex-col items-center gap-1.5 py-3 px-2
-                                  rounded-xl border text-xs font-medium transition-all
-                                  ${active
-                                    ? "border-[#1a5c2a] bg-green-50 text-[#1a5c2a]"
-                                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                                  }`}
+                      className={`relative flex flex-col items-center gap-1.5 py-3.5 px-3 rounded-2xl border text-xs font-semibold transition-all ${
+                        active
+                          ? "border-emerald-600 bg-emerald-50/70 text-emerald-950 shadow-sm"
+                          : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/70"
+                      }`}
                     >
                       {active && (
-                        <span className="absolute top-1.5 right-1.5 text-[#1a5c2a] text-sm">
-                          ✅
-                        </span>
+                        <CheckCircle2 className="absolute top-2 right-2 h-4 w-4 text-emerald-700" />
                       )}
                       <span className="text-2xl">{s.emoji}</span>
-                      <span className="text-center">{s.label}</span>
+                      <span>{s.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="border-t border-gray-100 mb-6" />
+            <div className="border-t border-gray-100 my-6" />
 
             {/* ── Budget Range ── */}
             <div className="mb-6">
-              <label className="flex items-center gap-2 text-sm font-semibold
-                                text-gray-800 mb-3">
-                <span className="text-base">🏷️</span> Budget Range
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                <DollarSign className="h-4 w-4 text-emerald-600" /> Budget Level <span className="text-emerald-600">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {BUDGET_OPTIONS.map(b => {
@@ -499,137 +458,108 @@ export default function CreateTripPage() {
                   return (
                     <button
                       key={b.value}
+                      type="button"
                       onClick={() => setBudgetRange(b.value)}
-                      className={`relative flex flex-col gap-0.5 p-4 rounded-xl
-                                  border text-left transition-all
-                                  ${active
-                                    ? "border-[#1a5c2a] bg-green-50"
-                                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                                  }`}
+                      className={`relative flex flex-col gap-1 p-4 rounded-2xl border text-left transition-all ${
+                        active
+                          ? "border-emerald-600 bg-emerald-50/70 shadow-sm"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/70"
+                      }`}
                     >
                       {active && (
-                        <span className="absolute top-2 right-2 text-[#1a5c2a] text-base">
-                          ✅
-                        </span>
+                        <CheckCircle2 className="absolute top-3 right-3 h-4 w-4 text-emerald-700" />
                       )}
-                      <span className="text-lg mb-0.5">{b.emoji}</span>
-                      <span className={`text-sm font-semibold ${active ? "text-[#1a5c2a]" : "text-gray-800"}`}>
+                      <span className="text-xl">{b.emoji}</span>
+                      <span className={`text-xs font-bold uppercase tracking-wider ${active ? "text-emerald-950" : "text-slate-800"}`}>
                         {b.label}
                       </span>
-                      <span className="text-xs text-gray-400">{b.sub}</span>
-                      <span className="text-xs text-gray-400">{b.price}</span>
+                      <span className="text-3xs text-slate-500 font-medium">{b.sub}</span>
+                      <span className="text-3xs font-semibold text-emerald-700 mt-1">{b.price}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="border-t border-gray-100 mb-6" />
+            <div className="border-t border-gray-100 my-6" />
 
             {/* ── Special Notes ── */}
-            <div className="mb-7">
-              <label className="flex items-center gap-2 text-sm font-semibold
-                                text-gray-800 mb-3">
-                <span className="text-base">📝</span> Special Notes
-                <span className="text-xs font-normal text-gray-400">(optional)</span>
+            <div className="mb-8">
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                <FileText className="h-4 w-4 text-emerald-600" /> Special Notes & Preferences
+                <span className="text-3xs font-medium text-slate-400 normal-case ml-1">(Optional)</span>
               </label>
               <textarea
                 value={specialNotes}
                 onChange={e => setSpecialNotes(e.target.value)}
-                placeholder="Any special requirements, preferences or notes for the AI planner... e.g. vegetarian food, no extreme activities, travelling with elderly parents"
+                placeholder="Mention any specific requirements... e.g. vegetarian food, photography focus, travelling with toddlers, beach stops"
                 rows={3}
                 maxLength={300}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3
-                           text-sm text-gray-800 placeholder-gray-400 outline-none
-                           focus:border-[#1a5c2a] focus:ring-2 focus:ring-green-100
-                           transition-all resize-none"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 resize-none"
               />
-              <p className="text-right text-2xs text-gray-400 mt-1">
+              <p className="text-right text-3xs text-slate-400 mt-1">
                 {specialNotes.length}/300
               </p>
             </div>
 
-            {/* ── Generate with AI button ── */}
-            <button
-              onClick={() => handleSubmit(true)}
-              disabled={loading || aiGenerating || !isValid()}
-              className="w-full py-4 bg-[#1a5c2a] hover:bg-[#14471f] text-white
-                         rounded-2xl font-semibold text-sm transition-colors
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         flex items-center justify-center gap-2 shadow-sm mb-3"
-            >
-              {loading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30
-                                    border-t-white rounded-full animate-spin" />
-                  Generating…
-                </>
-              ) : (
-                <>
-                  <span className="text-base">✨</span>
-                  Generate with AI
-                  <span className="font-normal opacity-80 ml-1">
-                    · Let AI plan your perfect trip
-                  </span>
-                  <span className="ml-1">→</span>
-                </>
-              )}
-            </button>
+            {/* ── Submit Buttons ── */}
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                disabled={loading || aiGenerating || !isValid()}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-800 hover:bg-emerald-900 py-4 px-6 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-900/10 transition-all hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Generating Itinerary...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 text-amber-300" />
+                    <span>Generate with AI Planner</span>
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </>
+                )}
+              </button>
+            </div>
 
-            {/* ── Manual create link ── */}
-            <button
-              onClick={() => handleSubmit(false)}
-              disabled={loading || aiGenerating || !isValid()}
-              className="w-full py-3 border border-gray-200 text-gray-500
-                         rounded-2xl text-sm font-medium hover:bg-gray-50
-                         hover:border-gray-300 transition-colors
-                         disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Create manually (plan yourself)
-            </button>
-
-            {/* Field hint */}
-            {!isValid() ? (
-              <p className="text-center text-xs text-gray-400 mt-3">
-                Fill in all fields to continue
-              </p>
-            ) : (
-              <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
-                🔒 Your data is private &amp; secure
+            {!isValid() && (
+              <p className="text-center text-3xs text-slate-400 mt-3 font-medium">
+                Please complete all required fields (*) to generate your trip
               </p>
             )}
           </div>
 
-          {/* ── Right: AI Travel Tip + What happens next ── */}
-          <div className="lg:col-span-1 flex flex-col gap-6 sticky top-6">
-            <div className="bg-white rounded-3xl shadow-lg border border-green-100 p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">✨</span>
-                <h3 className="text-sm font-bold text-[#1a5c2a]">AI Travel Tip</h3>
-                <span className="ml-auto text-base">💡</span>
+          {/* ── Right Panel: Tips & Process ── */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-emerald-100 p-6">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-emerald-50">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-950">AI Travel Tip</h3>
               </div>
-              <p className="text-xs text-gray-600 mb-4">
-                Pick your style &amp; budget for better AI suggestions.
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Selecting specific travel styles and budget preferences enables our 13-Phase engine to pick optimal routes & hidden gems.
               </p>
               <img
                 src={tipImg}
-                alt="Travel essentials: suitcase, hat, camera and map"
-                className="w-full rounded-xl object-cover"
+                alt="Travel essentials"
+                className="hidden lg:block w-full rounded-2xl object-cover shadow-xs"
               />
             </div>
 
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
-              <h3 className="text-sm font-bold text-[#1a5c2a] mb-4">
-                What happens next?
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-slate-100 p-6">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                What Happens Next?
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-3.5">
                 {NEXT_STEPS.map((step, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-gray-700">
-                    <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center
-                                     justify-center text-sm shrink-0">
+                  <li key={i} className="flex items-center gap-3 text-xs text-slate-700 font-medium">
+                    <span className="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center text-sm shrink-0 border border-emerald-100/50">
                       {step.emoji}
                     </span>
-                    {step.label}
+                    <span>{step.label}</span>
                   </li>
                 ))}
               </ul>

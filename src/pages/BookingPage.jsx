@@ -526,15 +526,8 @@ export default function BookingPage() {
     setCreating(true);
     setError(null);
     try {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
-      let bookingData, endpoint;
-
+      let bookingData;
       if (type === "guide") {
-        endpoint = `${API_BASE}/api/v1/guide-bookings`;
         bookingData = {
           guideId:   parseInt(id),
           startDate,
@@ -543,7 +536,6 @@ export default function BookingPage() {
           totalCost: calcDays(startDate, endDate) * (item?.pricePerDay || 0),
         };
       } else {
-        endpoint = `${API_BASE}/api/v1/vehicle-bookings`;
         bookingData = {
           vehicleId:       parseInt(id),
           pickupDate:      startDate,
@@ -557,21 +549,12 @@ export default function BookingPage() {
         };
       }
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(bookingData),
-      });
-      if (!res.ok) {
-        let msg = `Failed to create booking (${res.status})`;
-        try {
-          const body = await res.json();
-          msg = body.message || body.error || msg;
-        } catch { /* body wasn't JSON */ }
-        throw new Error(msg);
-      }
-      const created = await res.json();
-      setBooking(created);
+      const endpointPath = type === "guide"
+        ? "/api/v1/guide-bookings"
+        : "/api/v1/vehicle-bookings";
+
+      const res = await apiClient.post(endpointPath, bookingData);
+      setBooking(res.data);
       setStep(4);
     } catch (e) {
       console.error("Create booking failed:", e);

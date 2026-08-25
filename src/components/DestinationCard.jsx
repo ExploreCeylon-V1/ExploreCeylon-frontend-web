@@ -11,44 +11,46 @@ const DestinationCard = ({ destination, onExplore }) => {
   const bestMonthsDisplay = formatBestMonths(destination.bestMonths);
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 flex flex-col w-full h-full">
-      <div className="relative w-full aspect-[4/3] bg-gray-300 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col w-full h-full group">
+      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
         <img
           src={image}
           alt={destination.name}
           loading="lazy"
-          className="w-full h-full object-cover block"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-2.5 left-2.5 flex gap-1.5 flex-wrap">
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-white text-gray-800">
+        <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap z-10">
+          <span className="inline-flex items-center gap-1 text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg bg-emerald-900/90 backdrop-blur-md text-emerald-200 border border-emerald-400/30 shadow-md">
             {categoryMeta.icon} {categoryMeta.label}
           </span>
           {destination.featured && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-400 text-white">
+            <span className="inline-flex items-center gap-1 text-3xs font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg bg-amber-500 text-white shadow-md">
               ⭐ Featured
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-1.5 p-4 sm:p-[18px]">
-        <h3 className="text-lg font-bold text-gray-800 m-0">{destination.name}</h3>
-        <p className="text-sm text-gray-500 m-0 flex items-center gap-1">
+      <div className="flex-1 flex flex-col gap-2 p-5">
+        <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors m-0 leading-tight">
+          {destination.name}
+        </h3>
+        <p className="text-xs font-semibold text-slate-500 m-0 flex items-center gap-1">
           📍 {destination.district}, {destination.province}
         </p>
-        <p className="text-sm text-gray-600 mt-1 mb-2 leading-snug line-clamp-2">
+        <p className="text-xs font-medium text-slate-600 mt-1 mb-2 leading-relaxed line-clamp-2">
           {destination.shortDescription || destination.description}
         </p>
 
-        <div className="flex items-center gap-1 text-sm text-gray-700 mb-2">
-          <span className="text-yellow-400">★</span>
+        <div className="flex items-center gap-1 text-xs font-semibold text-slate-700 mb-1">
+          <span className="text-amber-400">★</span>
           <strong>{ratingDisplay}</strong>
           {destination.reviewCount != null && (
-            <span className="text-gray-400">({destination.reviewCount})</span>
+            <span className="text-slate-400 font-normal">({destination.reviewCount} reviews)</span>
           )}
         </div>
 
-        <div className="flex justify-between flex-wrap gap-2 text-xs text-gray-500 mb-3">
+        <div className="flex justify-between flex-wrap gap-2 text-xs font-semibold text-slate-500 mb-3 pt-2 border-t border-slate-100">
           {bestMonthsDisplay && <span>📅 Best: {bestMonthsDisplay}</span>}
           {destination.entryFee && <span>💰 {destination.entryFee}</span>}
         </div>
@@ -56,9 +58,9 @@ const DestinationCard = ({ destination, onExplore }) => {
         <button
           type="button"
           onClick={() => onExplore?.(destination)}
-          className="w-full bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-semibold text-sm rounded-lg py-3 transition-colors duration-150 mt-auto"
+          className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl py-2.5 transition-all shadow-sm hover:shadow-md mt-auto"
         >
-          Explore →
+          Explore Destination →
         </button>
       </div>
     </div>

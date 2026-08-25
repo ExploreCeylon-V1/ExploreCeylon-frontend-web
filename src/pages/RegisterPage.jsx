@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { SuccessModal } from "../components/SuccessModal";
 import { register as registerUser } from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
+import { User, Mail, Lock, Eye, EyeOff, Globe, MessageSquare, ShieldCheck, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
+import logo from "../assets/EC_Logo.png";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan",
@@ -22,25 +24,12 @@ const COUNTRIES = [
 ];
 const LANGUAGES = ["English","Sinhala","Tamil","French","German","Spanish","Italian","Portuguese","Russian","Chinese","Japanese","Korean","Arabic","Hindi"];
 
-const EyeOpen = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>;
-const EyeOff = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>;
-const ChevronDown = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>;
-
-// FIX: InputWrap kiyana component eka main function eken eliyata gaththa. 
-// Eka nisa dan thappara gane meka re-render wenne na. Focus eka nathi wenneth na.
-const InputWrap = ({ icon, children }) => (
-  <div className="relative">
-    <span className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400">{icon}</span>
-    {children}
-  </div>
-);
-
 export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Return the user to wherever the login prompt was triggered, else home.
   const redirectTo = location.state?.from?.pathname || "/";
   const { login: setAuth } = useAuth();
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,167 +80,305 @@ export default function RegisterPage() {
     navigate(redirectTo, { replace: true });
   }
 
-  const inputClasses = "w-full box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-300 focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10";
-  const selectClasses = "w-full appearance-none box-border rounded-2xl border-[1.5px] border-slate-200 bg-white py-2.5 pl-8 pr-8 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/10 cursor-pointer";
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6 font-sans text-slate-900 md:p-12">
-      <div className="grid w-full max-w-[1100px] grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-slate-100 p-4 sm:p-6 md:p-10 font-sans selection:bg-emerald-600 selection:text-white overflow-hidden">
+      {/* ── Background Ambient Light Orbs ── */}
+      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-emerald-200/40 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-teal-200/40 blur-[100px]" />
 
-        {/* ── LEFT PANEL ── */}
-        <section className="relative flex min-h-[280px] flex-col overflow-hidden rounded-[32px] p-10 text-white shadow-2xl">
-          <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-30" />
-          <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(15,62,38,0.62),transparent_36%),linear-gradient(180deg,rgba(15,62,38,0.92)_0%,rgba(15,62,38,0.98)_100%)]" />
-          
-          <div className="relative z-10 flex h-full flex-col gap-8">
-            <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-lg font-bold">E</span>
-              ExploreCeylon
+      {/* ── Main Container ── */}
+      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-xl shadow-emerald-950/5 backdrop-blur-md lg:grid lg:grid-cols-12">
+
+        {/* ── LEFT HERO PANEL ── */}
+        <section className="relative flex flex-col justify-between overflow-hidden p-8 sm:p-10 text-white lg:col-span-5 min-h-[320px] lg:min-h-[680px]">
+          {/* Hero Image Overlay */}
+          <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-40 transition-transform duration-1000 hover:scale-105" />
+          <div className="absolute inset-0 z-0 bg-gradient-to-t from-emerald-950 via-emerald-900/90 to-emerald-800/70" />
+
+          {/* Header Brand */}
+          <div className="relative z-10 flex items-center justify-between">
+            <Link to="/" className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-2 py-1.5 backdrop-blur-md transition-all hover:bg-white/20">
+              <img
+                src={logo}
+                alt="ExploreCeylon Logo"
+                className="h-10 w-10 object-contain"
+              />
+              <span className="text-sm font-bold tracking-wide text-white group-hover:text-emerald-200">
+                ExploreCeylon
+              </span>
+            </Link>
+          </div>
+
+          {/* Hero Main Content */}
+          <div className="relative z-10 my-auto py-6">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-white/15 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-emerald-200">
+              <Sparkles className="h-3 w-3" /> Join 12,000+ Travelers
             </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight text-white mb-3">
+              Start Your Sri Lankan Adventure
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-100/90 leading-relaxed max-w-sm font-medium">
+              Unlock AI-powered trip generation, direct driver & guide bookings, and exclusive hidden local gems across the island.
+            </p>
 
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Join Thousands of Travelers</p>
-              <h1 className="mb-3.5 text-3xl font-semibold leading-[1.2] md:text-4xl">Create Your Account</h1>
-              <p className="m-0 max-w-[320px] text-sm leading-[1.6] text-slate-200/90">
-                Start planning your Sri Lankan adventure with AI-powered itineraries, expert guides, and hidden local gems.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4 rounded-3xl bg-white/10 p-6">
+            {/* Feature Highlights */}
+            <div className="mt-6 space-y-3">
               {[
-                { title: "Personalized Itineraries", desc: "AI-powered trip planning tailored to your preferences" },
-                { title: "Local Expert Guides", desc: "Connect with verified guides who know Sri Lanka best" },
-                { title: "Hidden Gems", desc: "Discover secret spots loved by locals" },
-              ].map((item) => (
-                <div key={item.title} className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50/90 text-base font-bold text-emerald-800">✓</div>
+                { title: "AI-Powered Itineraries", desc: "Tailored daily schedules built for your style" },
+                { title: "Verified Local Experts", desc: "Book drivers and tour guides safely" },
+                { title: "Hidden Gems & Budgeting", desc: "Discover off-the-beaten-path locations" },
+              ].map((f, i) => (
+                <div key={i} className="flex items-start gap-3 rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-300 shrink-0 mt-0.5" />
                   <div>
-                    <p className="m-0 mb-1 text-sm font-semibold text-white">{item.title}</p>
-                    <p className="m-0 text-sm text-slate-200/80">{item.desc}</p>
+                    <p className="text-xs font-bold text-white">{f.title}</p>
+                    <p className="text-3xs text-emerald-100 font-medium">{f.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Footer Badge */}
+          <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-2xs text-emerald-100 font-medium">
+            <span>🇱🇰 Sri Lanka Tourism Platform</span>
+            <span>Free Forever</span>
+          </div>
         </section>
 
-        {/* ── RIGHT PANEL ── */}
-        <main className="flex flex-col justify-center rounded-[32px] bg-white p-7 shadow-[0_4px_40px_rgba(15,23,42,0.06)] md:p-10">
-          <div className="mb-3.5 flex justify-end">
-            <Link to="/" className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        {/* ── RIGHT FORM PANEL ── */}
+        <main className="relative flex flex-col justify-between bg-white p-6 sm:p-10 lg:col-span-7">
+          {/* Top Navbar close button */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Create Free Account ✨
+            </h2>
+            <Link
+              to="/"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
+              aria-label="Close and return home"
+            >
+              ✕
             </Link>
           </div>
 
-          <h1 className="m-0 mb-1 text-2xl font-bold text-slate-900">Create Your Account ✨</h1>
-          <p className="m-0 mb-5 text-sm text-slate-500">Start planning your Sri Lanka adventure</p>
+          <p className="text-xs sm:text-sm text-slate-500 -mt-2 mb-6">
+            Fill in your information below to register your Traveler account
+          </p>
 
           <form className="flex flex-col gap-3.5" onSubmit={handleSubmit}>
             {/* Full Name */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="fullName">Full Name <span className="text-red-500">*</span></label>
-              <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>}>
-                <input id="fullName" type="text" className={inputClasses} placeholder="John Smith" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-              </InputWrap>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="fullName">
+                Full Name <span className="text-emerald-600">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <User className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                <input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Smith"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
+                />
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="reg-email">Email Address <span className="text-red-500">*</span></label>
-              <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>}>
-                <input id="reg-email" type="email" className={inputClasses} placeholder="john@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </InputWrap>
+            {/* Email Address */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="reg-email">
+                Email Address <span className="text-emerald-600">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                <input
+                  id="reg-email"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
+                />
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="reg-password">Password <span className="text-red-500">*</span></label>
-              <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>}>
-                <input id="reg-password" type={showPassword ? "text" : "password"} className={`${inputClasses} pr-[44px]`} placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                <button type="button" className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((v) => !v)}>
-                  {showPassword ? <EyeOff /> : <EyeOpen />}
-                </button>
-              </InputWrap>
-            </div>
-
-            {/* Confirm Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></label>
-              <InputWrap icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>}>
-                <input id="confirmPassword" type={showPassword ? "text" : "password"} className={`${inputClasses} pr-[44px]`} placeholder="Repeat password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                <button type="button" className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((v) => !v)}>
-                  {showPassword ? <EyeOff /> : <EyeOpen />}
-                </button>
-              </InputWrap>
-            </div>
-
-            {/* Nationality & Language */}
+            {/* Passwords Grid */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Nationality</label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-base">🌐</span>
-                  <select className={selectClasses} value={nationality} onChange={(e) => setNationality(e.target.value)}>
+              {/* Password */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="reg-password">
+                  Password <span className="text-emerald-600">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                  <input
+                    id="reg-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 tracking-wide uppercase" htmlFor="confirmPassword">
+                  Confirm Password <span className="text-emerald-600">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                  <input
+                    id="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Repeat password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Nationality & Language Dropdowns */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 tracking-wide uppercase">Nationality</label>
+                <div className="relative flex items-center">
+                  <Globe className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                  <select
+                    value={nationality}
+                    onChange={(e) => setNationality(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-8 text-xs sm:text-sm text-slate-700 outline-none cursor-pointer transition-all focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 appearance-none"
+                  >
                     <option value="">🌍 Select country</option>
-                    {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center text-slate-400"><ChevronDown /></span>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Language</label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-base">💬</span>
-                  <select className={selectClasses} value={language} onChange={(e) => setLanguage(e.target.value)}>
-                    {LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 tracking-wide uppercase">Language</label>
+                <div className="relative flex items-center">
+                  <MessageSquare className="pointer-events-none absolute left-3.5 h-4 w-4 text-slate-400" />
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-8 text-xs sm:text-sm text-slate-700 outline-none cursor-pointer transition-all focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 appearance-none"
+                  >
+                    {LANGUAGES.map((l) => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center text-slate-400"><ChevronDown /></span>
                 </div>
               </div>
             </div>
 
-            {/* Traveler Info Banner */}
-            <div className="mt-2 flex gap-3 rounded-2xl border-[1.5px] border-blue-100 bg-blue-50 p-3.5">
-              <span className="mt-[1px] shrink-0 text-blue-500">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
-              </span>
+            {/* Traveler Account Banner */}
+            <div className="mt-1 flex gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 text-xs">
+              <span className="text-emerald-600 font-bold shrink-0 mt-0.5">ℹ️</span>
               <div>
-                <p className="m-0 mb-1 text-sm text-slate-600">
-                  Your account type: <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-3xs font-bold tracking-[0.6px] text-blue-700">TRAVELER</span>
+                <p className="font-semibold text-emerald-950 mb-0.5">
+                  Default Role: <span className="rounded-full bg-emerald-200/80 px-2 py-0.5 text-3xs font-bold text-emerald-900">TRAVELER</span>
                 </p>
-                <p className="m-0 text-xs text-slate-500">Traveler accounts can plan trips, book guides & vehicles, and track budget. All accounts start as Traveler.</p>
+                <p className="text-slate-600 text-3xs leading-relaxed">
+                  Plan itineraries, book guides & vehicles, and track budget. All accounts start as Traveler.
+                </p>
               </div>
             </div>
 
-            {/* Terms */}
-            <label className="mt-1 flex cursor-pointer items-start gap-2.5 text-sm leading-[1.5] text-slate-600">
-              <input type="checkbox" className="mt-[2px] h-4 w-4 shrink-0 cursor-pointer accent-emerald-600" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
-              <span>I agree to the <Link to="/terms" target="_blank" rel="noreferrer" className="font-semibold text-emerald-600 hover:text-emerald-700">Terms of Service</Link> and <Link to="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-emerald-600 hover:text-emerald-700">Privacy Policy</Link></span>
+            {/* Terms Checkbox */}
+            <label className="mt-1 flex cursor-pointer items-start gap-2.5 text-xs text-slate-600 select-none">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span>
+                I agree to the{" "}
+                <Link to="/terms" target="_blank" rel="noreferrer" className="font-semibold text-emerald-700 hover:underline">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-emerald-700 hover:underline">
+                  Privacy Policy
+                </Link>
+              </span>
             </label>
 
-            {/* Error */}
-            {error && <div className="mt-1 rounded-2xl border-[1.5px] border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700">{error}</div>}
+            {/* Error Message Banner */}
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 flex items-center gap-2 font-medium">
+                <span>⚠️</span> {error}
+              </div>
+            )}
 
-            {/* Submit */}
-            <button type="submit" disabled={loading} className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1a5c3a] py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#134d2f] disabled:cursor-not-allowed disabled:opacity-50">
-              {loading ? "Creating Account..." : <>Create Free Account →</>}
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-800 hover:bg-emerald-900 py-3.5 px-4 text-xs sm:text-sm font-semibold text-white shadow-md shadow-emerald-900/10 transition-all hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Creating Account...</span>
+                </div>
+              ) : (
+                <>
+                  <span>Create Free Account</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-slate-500">
-            Already have an account? <Link to="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">Sign in here →</Link>
-          </p>
+          {/* Footer Link */}
+          <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+            <p className="text-xs sm:text-sm text-slate-500">
+              Already have an account?{" "}
+              <Link to="/login" className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
+                Sign in here →
+              </Link>
+            </p>
+          </div>
+
+          {/* Security SSL Badge */}
+          <div className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/70 py-2 px-3 text-3xs text-slate-400">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            <span>256-bit Bank-Grade SSL Encrypted Registration</span>
+          </div>
         </main>
+
       </div>
 
       <SuccessModal
         isOpen={showSuccessModal}
         title="Account Created!"
         message="Welcome to ExploreCeylon! Your journey to discovering Sri Lanka's wonders begins now."
-        offerText="Welcome Gift: Get 10% off your first booking with code"
-        offerCode="WELCOME10"
-        buttonText="Start Exploring"
-        icon="🌿"
         onButtonClick={handleSuccessModalAction}
         onClose={handleSuccessModalAction}
       />

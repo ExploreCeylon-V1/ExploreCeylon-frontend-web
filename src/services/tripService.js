@@ -1,141 +1,88 @@
-import { getToken } from "../utils/authStorage";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-
-function getAuthHeader() {
-  const token =
-    getToken() ||
-    localStorage.getItem("travelerToken") ||
-    localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import apiClient from "./api";
 
 // ── Get all trips for current user ────────────────────────
 export async function getMyTrips() {
-  const res = await fetch(`${API_BASE}/api/v1/trips/my`, {
-    headers: { ...getAuthHeader() },
-  });
-  if (!res.ok) throw new Error("Failed to load trips");
-  return res.json();
+  const res = await apiClient.get("/api/v1/trips/my");
+  return res.data;
 }
 
 // ── Get single trip by ID ──────────────────────────────────
 export async function getTripById(id) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${id}`, {
-    headers: { ...getAuthHeader() },
-  });
-  if (!res.ok) throw new Error("Trip not found");
-  return res.json();
+  const res = await apiClient.get(`/api/v1/trips/${id}`);
+  return res.data;
 }
 
 // ── Create new trip ────────────────────────────────────────
 export async function createTrip(data) {
-  const res = await fetch(`${API_BASE}/api/v1/trips`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Failed to create trip");
-  }
-  return res.json();
+  const res = await apiClient.post("/api/v1/trips", data);
+  return res.data;
 }
 
 // ── Generate AI itinerary ──────────────────────────────────
 export async function generateAiItinerary(tripId, data) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}/generate-ai`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify({ tripId, ...data }),
-  });
-  if (!res.ok) {
-    // Surface the real reason from the backend instead of a generic message.
-    // The backend's GlobalExceptionHandler returns { "error": "..." } (400),
-    // e.g. "AI response day count mismatch", "AI service returned null
-    // response", or a wrapped Groq/AI-service error (bad key, rate limit,
-    // truncated JSON, DB unreachable).
-    const detail = await res
-      .json()
-      .then((b) => b.error || b.message || b.detail)
-      .catch(() => null);
-    throw new Error(detail || `AI generation failed (HTTP ${res.status})`);
+  try {
+    const res = await apiClient.post(`/api/v1/trips/${tripId}/generate-ai`, {
+      tripId,
+      ...data,
+    });
+    return res.data;
+  } catch (err) {
+    const detail =
+      err.response?.data?.error ||
+      err.response?.data?.message ||
+      err.response?.data?.detail;
+    throw new Error(detail || `AI generation failed (HTTP ${err.response?.status || 500})`);
   }
-  return res.json();
 }
 
 // ── Update trip title ──────────────────────────────────────
 export async function updateTripTitle(tripId, title) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}/title`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify({ title }),
-  });
-  if (!res.ok) throw new Error("Failed to update title");
-  return res.json();
+  const res = await apiClient.patch(`/api/v1/trips/${tripId}/title`, { title });
+  return res.data;
 }
 
 // ── Update trip status ─────────────────────────────────────
 export async function updateTripStatus(tripId, status) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/status?status=${status}`,
-    { method: "PATCH", headers: { ...getAuthHeader() } }
+  const res = await apiClient.patch(
+    `/api/v1/trips/${tripId}/status?status=${status}`
   );
-  if (!res.ok) throw new Error("Failed to update status");
-  return res.json();
+  return res.data;
 }
 
 // ── Delete trip ────────────────────────────────────────────
 export async function deleteTrip(tripId) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}`, {
-    method: "DELETE",
-    headers: { ...getAuthHeader() },
-  });
-  if (!res.ok) throw new Error("Failed to delete trip");
+  await apiClient.delete(`/api/v1/trips/${tripId}`);
 }
 
 // ── Get trip by share token (public) ──────────────────────
 export async function getTripByShareToken(token) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/share/${token}`);
-  if (!res.ok) throw new Error("Trip not found");
-  return res.json();
+  const res = await apiClient.get(`/api/v1/trips/share/${token}`);
+  return res.data;
 }
 
 // ── Update trip day ────────────────────────────────────────
 export async function updateTripDay(tripId, dayId, data) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...getAuthHeader() },
-      body: JSON.stringify(data),
-    }
+  const res = await apiClient.put(
+    `/api/v1/trips/${tripId}/days/${dayId}`,
+    data
   );
-  if (!res.ok) throw new Error("Failed to update day");
-  return res.json();
+  return res.data;
 }
 
 // ── Add item to day ────────────────────────────────────────
 export async function addItemToDay(tripId, dayId, item) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}/items`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getAuthHeader() },
-      body: JSON.stringify(item),
-    }
+  const res = await apiClient.post(
+    `/api/v1/trips/${tripId}/days/${dayId}/items`,
+    item
   );
-  if (!res.ok) throw new Error("Failed to add item");
-  return res.json();
+  return res.data;
 }
 
 // ── Remove item from day ───────────────────────────────────
 export async function removeItemFromDay(tripId, dayId, itemId) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/days/${dayId}/items/${itemId}`,
-    { method: "DELETE", headers: { ...getAuthHeader() } }
+  await apiClient.delete(
+    `/api/v1/trips/${tripId}/days/${dayId}/items/${itemId}`
   );
-  if (!res.ok) throw new Error("Failed to remove item");
 }
 
 // ── Helpers ────────────────────────────────────────────────

@@ -7,8 +7,8 @@ import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import Pagination from "../../components/Pagination";
-import { usePagination } from "../../hooks/usePagination";
+import ShowMoreButton from "../../components/ShowMoreButton";
+import { useShowMore } from "../../hooks/useShowMore";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -157,16 +157,25 @@ export default function VehicleListing() {
     ]
   );
 
-  // Grid view is `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; list view is a
-  // single stacked column at every width.
   const {
-    pageItems: pagedVehicles,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(displayed, {
-    columns: viewMode === "grid" ? { base: 1, sm: 2, lg: 3 } : { base: 1 },
+    visibleItems: visibleVehicles,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(displayed, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [
+      activeTab,
+      district,
+      priceRange,
+      driverOnly,
+      searchQuery,
+      sortBy,
+      startDate,
+      endDate,
+      viewMode,
+    ],
   });
 
   const clearFilters = () => {
@@ -187,33 +196,33 @@ export default function VehicleListing() {
     <div>
       <Navbar />
       <div className="min-h-screen font-sans bg-gray-100">
-        {/* Hero */}
-        <div
-          className="h-64 py-10 bg-green-800 bg-cover bg-center"
-          style={{
-            backgroundImage: `linear-gradient(to top, rgba(22,101,52,0.9), rgba(22,101,52,0.55)), url(${bannerImage})`,
-          }}
-        >
-          <div className="px-6 mx-auto max-w-7xl">
-            <div className="flex items-center gap-1 mb-3 text-sm text-green-200">
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <ChevronRight size={14} />
-              <span>Vehicles</span>
-            </div>
-            <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
-              Find Your Perfect Ride in Sri Lanka
-            </h1>
-            <p className="mb-5 text-sm text-green-200">
-              Tuk-tuks, Cars, Vans & SUVs with local drivers
-            </p>
-            <div className="flex flex-wrap gap-5 text-sm font-medium text-green-100">
-              <span>🚗 {stats.total} Vehicles Available</span>
-              <span>📍 All Districts Covered</span>
+        {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-12 px-4 sm:px-6 lg:px-8 shadow-xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 opacity-60" />
+
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="max-w-4xl text-left space-y-2.5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 text-3xs font-extrabold uppercase tracking-widest text-emerald-300">
+                  <span>🚘</span> Island Transportation
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-snug">
+                Find Your Perfect Ride in <span className="text-amber-300">Sri Lanka</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium max-w-3xl">
+                Tuk-tuks, luxury sedans, spacious vans & safari 4x4s with verified local drivers across all 25 districts.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-emerald-200">
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                  🚗 {stats.total} Vehicles Available
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                  📍 All Districts Covered
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -235,10 +244,10 @@ export default function VehicleListing() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
                   activeTab === tab.key
-                    ? "bg-green-800 text-white border-green-800"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-green-700 hover:text-green-700"
+                    ? "bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-emerald-700 hover:text-emerald-800"
                 }`}
               >
                 {tab.label}
@@ -443,6 +452,12 @@ export default function VehicleListing() {
           {/* Grid / List */}
           {!loading && !error && displayed.length > 0 && (
             <>
+              <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
+                <p>
+                  Showing <strong>{visibleVehicles.length}</strong> of <strong>{displayed.length}</strong> vehicles
+                </p>
+              </div>
+
               <div
                 className={
                   viewMode === "grid"
@@ -450,7 +465,7 @@ export default function VehicleListing() {
                     : "flex flex-col gap-4"
                 }
               >
-                {pagedVehicles.map((vehicle) => (
+                {visibleVehicles.map((vehicle) => (
                   <VehicleCard
                     key={vehicle.id}
                     vehicle={vehicle}
@@ -460,11 +475,11 @@ export default function VehicleListing() {
                 ))}
               </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Vehicles"
+              <ShowMoreButton
+                onClick={showMore}
+                hasMore={hasMore}
+                remainingCount={remainingCount}
+                buttonText="Show More Vehicles"
               />
             </>
           )}

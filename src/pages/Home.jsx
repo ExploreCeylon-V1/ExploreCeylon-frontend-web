@@ -1,8 +1,9 @@
 // 🚨 වැදගත්: useState සහ useEffect මෙතනට අලුතින් එකතු කර ඇත
-import { useState, useEffect } from "react"; // 👈 මේ පේළිය තමයි අඩු වෙලා තිබුණේ
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users } from "lucide-react";
+import { Users, Sparkles, Compass } from "lucide-react";
 import heroImage from "../assets/hero-bg.webp";
+import homeEventBg from "../assets/home_event_background.jpg";
 
 import destinationsService from "../services/destinationsService";
 import guidesService from "../services/guidesService";
@@ -13,6 +14,7 @@ import userService from "../services/userService";
 import DestinationCard from "../components/DestinationCard";
 import { useAuth } from "../hooks/useAuth";
 import { useCountUp } from "../hooks/useCountUp";
+import apiClient from "../services/api";
 
 // ─── Category filter pills (DestinationCategory enum values ekata match wenna oni) ───
 const CATEGORIES = [
@@ -67,6 +69,8 @@ export default function Home() {
   const [userRef, userCountDisplay] = useCountUp(totalUsers);
 
   const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
 
   // ─── Top 3 hidden gems by rating (highest first) ───
   const topGems = [...gems]
@@ -138,89 +142,121 @@ export default function Home() {
       .finally(() => setLoadingDestinations(false));
   };
 
-  const handleSubscribe = () => {
-    // 🚨 TODO: Backend eke newsletter subscribe endpoint එකක් තියෙනවනම් මෙතන connect කරන්න
-    if (!email) return;
-    console.log("Subscribe email:", email);
-    setEmail("");
+  const handleSubscribe = async (e) => {
+    if (e) e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setSubscribeMessage({ text: "Please enter your email address.", type: "error" });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setSubscribeMessage({ text: "Please enter a valid email address.", type: "error" });
+      return;
+    }
+
+    setSubscribing(true);
+    setSubscribeMessage(null);
+
+    try {
+      await apiClient.post("/api/subscribe", { email: cleanEmail });
+      setSubscribeMessage({
+        text: "✨ Thank you for subscribing! We'll send you the best Sri Lanka travel tips.",
+        type: "success",
+      });
+      setEmail("");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setSubscribeMessage({
+          text: "You're already subscribed to ExploreCeylon updates!",
+          type: "warning",
+        });
+      } else {
+        setSubscribeMessage({
+          text: err.response?.data?.message || err.response?.data?.error || "Failed to subscribe. Please try again.",
+          type: "error",
+        });
+      }
+    } finally {
+      setSubscribing(false);
+    }
   };
 
   return (
     <div>
       {/* ══════════════════════════ HERO SECTION ══════════════════════════ */}
       <div
-        className="relative flex flex-col items-center justify-center w-full min-h-screen px-4 overflow-hidden text-center bg-center bg-cover"
+        className="relative flex flex-col items-center justify-center w-full min-h-[90vh] sm:min-h-screen px-4 py-16 sm:py-20 md:py-24 overflow-hidden text-center bg-center bg-cover"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(4,20,14,0.62) 0%, rgba(4,20,14,0.32) 45%, rgba(4,20,14,0.8) 100%), url(${heroImage})`,
+          backgroundImage: `linear-gradient(180deg, rgba(3,18,12,0.72) 0%, rgba(4,20,14,0.45) 45%, rgba(3,18,12,0.85) 100%), url(${heroImage})`,
         }}
       >
-        {/*
-        <div className="absolute top-8 bg-black/40 border border-yellow-500/30 backdrop-blur-sm text-xs text-stone-300 px-4 py-1.5 rounded-full flex items-center gap-1.5 tracking-wide animate-fade-in-up">
-          <span className="text-sm text-yellow-500">🤖</span>
-          <span>
-            Powered by <span className="font-semibold text-white">GPT-4o AI</span>
-          </span>
-          <span className="text-yellow-500">★</span>
-        </div>
-        */}
+        <div className="flex flex-col items-center max-w-4xl mx-auto my-auto space-y-4 sm:space-y-6">
+          {/* Ambient Feature Pill Badge */}
+          <div
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-emerald-950/70 border border-amber-400/35 backdrop-blur-md text-amber-300 text-[10px] sm:text-xs font-bold tracking-wider sm:tracking-widest uppercase shadow-sm animate-fade-in-up"
+            style={{ animationDelay: "0.02s" }}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+            <span>AI-Powered Ceylon Travel Experience</span>
+          </div>
 
-        <div className="flex flex-col items-center max-w-4xl mx-auto mt-12 space-y-6">
-          <h1
-            className="text-5xl font-bold leading-tight tracking-tight text-white md:text-8xl drop-shadow-md animate-fade-in-up"
-            style={{ animationDelay: "0.08s" }}
-          >
-            Discover Sri Lanka
-          </h1>
-          <h2
-            className="text-3xl font-bold tracking-wide md:text-5xl text-amber-500 drop-shadow-md animate-fade-in-up"
-            style={{ animationDelay: "0.18s" }}
-          >
-            Like Never Before
-          </h2>
+          {/* Main Title Hierarchy */}
+          <div className="space-y-1 sm:space-y-2 max-w-full">
+            <h1
+              className="text-4xl xs:text-[2.75rem] sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.15] tracking-tight text-white drop-shadow-lg animate-fade-in-up"
+              style={{ animationDelay: "0.08s" }}
+            >
+              Discover Sri Lanka
+            </h1>
+            <h2
+              className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-md animate-fade-in-up"
+              style={{ animationDelay: "0.18s" }}
+            >
+              Like Never Before
+            </h2>
+          </div>
+
+          {/* Narrative Subtitle */}
           <p
-            className="max-w-xl mt-2 text-sm font-medium leading-relaxed md:text-base text-stone-200 animate-fade-in-up"
+            className="max-w-sm sm:max-w-xl md:max-w-2xl mt-2 sm:mt-3 text-sm sm:text-base md:text-lg font-medium leading-relaxed text-slate-200/95 animate-fade-in-up drop-shadow-xs"
             style={{ animationDelay: "0.28s" }}
           >
-            AI-powered travel planning with real local data. <br />
-            <span className="opacity-90">
-              From ancient kingdoms to hidden beaches — your perfect Sri Lanka trip starts here.
+            <span className="block font-medium">AI-powered travel planning with real local data.</span>
+            <span className="block mt-1 sm:mt-1.5 text-slate-100 font-normal opacity-95">
+              From ancient kingdoms to hidden tropical beaches — your perfect Sri Lanka trip starts here.
             </span>
           </p>
 
+          {/* Action Buttons */}
           <div
-            className="flex flex-col items-center w-full gap-4 pt-6 sm:flex-row sm:w-auto animate-fade-in-up"
+            className="flex flex-col items-center justify-center w-full max-w-xs sm:max-w-none gap-3 sm:gap-4 pt-4 sm:pt-6 sm:flex-row sm:w-auto animate-fade-in-up"
             style={{ animationDelay: "0.38s" }}
           >
             <button
               onClick={() => navigate("/trips/new")}
-              className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-8 py-3.5 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 text-sm md:text-base"
+              className="group w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-300 shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/40 hover:-translate-y-0.5 text-sm md:text-base border border-emerald-400/30 cursor-pointer text-center whitespace-nowrap"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M5 2a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0V6H3a1 1 0 110-2h1V3a1 1 0 011-1zm12 7a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1zm-11 2.5a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zm4-7.5a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75V7zm3.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1l7-7a1 1 0 000-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Generate AI Trip — Free
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+              <span>Generate AI Trip — Free</span>
             </button>
 
             <Link
               to="/destinations"
-              className="w-full sm:w-auto bg-white hover:bg-stone-100 text-emerald-900 font-semibold px-8 py-3.5 rounded-lg transition-all duration-200 shadow-lg hover:-translate-y-0.5 text-sm md:text-base border border-stone-200 text-center block"
+              className="group w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-bold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg border border-white/25 hover:border-white/50 hover:-translate-y-0.5 text-sm md:text-base text-center flex items-center justify-center gap-2 hover:text-amber-300 whitespace-nowrap"
             >
-              Browse Destinations
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300/90 group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+              <span>Browse Destinations</span>
             </Link>
           </div>
         </div>
 
-        {/* Scroll cue */}
-        <div className="absolute z-10 hidden -translate-x-1/2 sm:block left-1/2 bottom-24 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        {/* Scroll Cue */}
+        <div className="absolute z-10 hidden -translate-x-1/2 sm:block left-1/2 bottom-8 sm:bottom-12 md:bottom-16 animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
-
       </div>
 
       {/* ══════════════════════════ STATS + JOIN CARD ══════════════════════════ */}
@@ -363,12 +399,6 @@ export default function Home() {
               >
                 🚀 Generate My Trip with AI →
               </button>
-              <button
-                onClick={() => navigate("/trips/new?mode=manual")}
-                className="px-6 py-3 text-sm font-semibold text-white border rounded-lg border-white/30 hover:bg-white/10"
-              >
-                📝 Plan Manually Instead
-              </button>
             </div>
             <p className="mt-3 text-xs text-stone-400">Free to use • No credit card required</p>
           </div>
@@ -476,57 +506,101 @@ export default function Home() {
       </div>
 
       {/* ══════════════════════════ UPCOMING EVENTS ══════════════════════════ */}
-      <div className="px-4 py-16 bg-stone-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      <div className="relative w-full px-4 py-16 lg:py-20 overflow-hidden bg-slate-950">
+        {/* Full-Width Background Image Layer */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
+          style={{ backgroundImage: `url(${homeEventBg})` }}
+        />
+        
+        {/* Lighter, Natural Glow Overlay - Designed to mirror Hidden Gems & AI Hero section full-width treatments */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/60 via-slate-900/40 to-slate-950/60 backdrop-blur-[0.5px]" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/40" />
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold text-stone-900">
+              <p className="mb-2 text-xs font-bold tracking-widest text-amber-400 uppercase">
+                FESTIVALS & SEASONS
+              </p>
+              <h2 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl tracking-tight">
                 📅 Upcoming Sri Lanka Events
               </h2>
-              <p className="mt-1 text-sm text-stone-500">Plan around festivals and seasons</p>
+              <p className="mt-2 text-xs sm:text-sm text-stone-200 leading-relaxed max-w-lg">
+                Plan your AI trip around historic pageants, beach kite festivals & seasonal cultural events
+              </p>
             </div>
-            <Link to="/events" className="flex items-center text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-              View Full Calendar <span className="ml-1">›</span>
+
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-full px-4 py-2 transition-all backdrop-blur-md shadow-xs active:scale-95"
+            >
+              <span>View Full Calendar</span>
+              <span className="text-base leading-none">›</span>
             </Link>
           </div>
 
+          {/* Cards Carousel */}
           {loadingEvents ? (
-            <div className="py-12 text-center text-stone-400">Loading events...</div>
+            <div className="py-16 text-center text-slate-300 font-semibold text-xs flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <span>Loading upcoming Sri Lankan events...</span>
+            </div>
           ) : (
-            <div className="flex gap-4 pb-2 overflow-x-auto">
+            <div className="flex gap-5 pb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {events.map((ev) => (
-                <div key={ev.id} className="min-w-[220px] bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
-                  <div className="relative h-28">
-                    <img
-                      src={ev.imageUrls?.[0]}
-                      alt={ev.title}
-                      loading="lazy"
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://placehold.co/400x200?text=" + encodeURIComponent(ev.title || "Event");
-                      }}
-                    />
-                    <span className="absolute px-2 py-0.5 text-3xs font-semibold rounded-full top-2 left-2 bg-white/90 text-stone-700">
-                      {ev.category}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-stone-400">
-                        {ev.startDate ? new Date(ev.startDate).toLocaleDateString("en-US", { month: "short" }) : ""}
+                <div
+                  key={ev.id}
+                  className="group min-w-[240px] max-w-[260px] flex-1 flex flex-col justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+                >
+                  <div>
+                    {/* Image Container with Fallback */}
+                    <div className="relative h-32 w-full overflow-hidden bg-slate-100">
+                      <img
+                        src={ev.imageUrls?.[0] || "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=500&q=80"}
+                        alt={ev.title}
+                        loading="lazy"
+                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=500&q=80";
+                        }}
+                      />
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider rounded-full bg-slate-900/80 text-amber-300 border border-amber-300/30 backdrop-blur-md shadow-xs">
+                        {ev.category || "FESTIVAL"}
                       </span>
                     </div>
-                    <h3 className="mb-1 text-sm font-bold text-stone-900">{ev.title}</h3>
-                    <p className="mb-1 text-xs text-stone-500">📍 {ev.location || ev.region}</p>
-                    <p className="mb-3 text-xs text-stone-400">📆 {formatEventRange(ev.startDate, ev.endDate)}</p>
+
+                    {/* Body */}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-3xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                          {ev.startDate ? new Date(ev.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Upcoming"}
+                        </span>
+                      </div>
+                      <h3 className="mb-1.5 text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-800 transition-colors">
+                        {ev.title}
+                      </h3>
+                      <p className="mb-1 text-xs font-semibold text-slate-600 truncate">
+                        📍 {ev.location || ev.region || "Sri Lanka"}
+                      </p>
+                      <p className="mb-3 text-3xs text-slate-400 font-medium">
+                        📆 {formatEventRange(ev.startDate, ev.endDate)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Footer Action Button */}
+                  <div className="p-4 pt-0">
                     <button
                       onClick={() => navigate(`/trips/new?eventId=${ev.id}`)}
-                      className="w-full py-1.5 text-xs font-semibold border rounded-lg text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                      className="w-full py-2 px-3 text-xs font-bold rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
                     >
-                      + Add to Trip
+                      <span>+ Add to Trip</span>
                     </button>
                   </div>
+
                 </div>
               ))}
             </div>
@@ -661,23 +735,47 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-2 mt-8 sm:flex-row">
+          <form onSubmit={handleSubscribe} className="flex flex-col items-center justify-center gap-2 mt-8 sm:flex-row max-w-md mx-auto">
             <label htmlFor="newsletter-email" className="sr-only">Email address</label>
             <input
               id="newsletter-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={subscribing}
               placeholder="📧 Enter your email for travel tips..."
-              className="w-full sm:w-72 px-4 py-2.5 text-sm text-stone-900 bg-white border border-stone-200 rounded-lg outline-none placeholder:text-stone-400 focus:border-emerald-500"
+              className="w-full sm:w-72 px-4 py-2.5 text-sm text-stone-900 bg-white border border-stone-200 rounded-lg outline-none placeholder:text-stone-400 focus:border-emerald-500 disabled:opacity-50"
             />
             <button
-              onClick={handleSubscribe}
-              className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg bg-amber-500 text-emerald-950 hover:bg-amber-400 transition-colors"
+              type="submit"
+              disabled={subscribing}
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg bg-amber-500 text-emerald-950 hover:bg-amber-400 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              Subscribe →
+              {subscribing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-emerald-950 border-t-transparent rounded-full animate-spin" />
+                  <span>Subscribing...</span>
+                </>
+              ) : (
+                <span>Subscribe →</span>
+              )}
             </button>
-          </div>
+          </form>
+
+          {subscribeMessage && (
+            <div
+              className={`mt-3 text-xs font-semibold max-w-md mx-auto px-4 py-2 rounded-lg transition-all ${
+                subscribeMessage.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : subscribeMessage.type === "warning"
+                  ? "bg-amber-50 text-amber-900 border border-amber-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {subscribeMessage.text}
+            </div>
+          )}
+
           <p className="mt-2 text-xs text-stone-400">No spam. Unsubscribe anytime.</p>
         </div>
       </div>

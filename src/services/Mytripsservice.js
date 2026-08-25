@@ -1,34 +1,22 @@
-// MyTripsService.js
-// All API calls and pure utility functions for the My Trips feature
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+import apiClient from "./api";
 
 // ─── Trip CRUD ────────────────────────────────────────────────────────────────
 
-export async function fetchMyTrips(token) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/my`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Failed to load trips");
-  return res.json();
+export async function fetchMyTrips() {
+  const res = await apiClient.get("/api/v1/trips/my");
+  return res.data;
 }
 
-export async function deleteTrip(tripId, token) {
-  const res = await fetch(`${API_BASE}/api/v1/trips/${tripId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Delete failed");
+export async function deleteTrip(tripId) {
+  await apiClient.delete(`/api/v1/trips/${tripId}`);
   return true;
 }
 
-export async function updateTripStatus(tripId, newStatus, token) {
-  const res = await fetch(
-    `${API_BASE}/api/v1/trips/${tripId}/status?status=${newStatus}`,
-    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } },
+export async function updateTripStatus(tripId, newStatus) {
+  const res = await apiClient.patch(
+    `/api/v1/trips/${tripId}/status?status=${newStatus}`
   );
-  if (!res.ok) throw new Error("Status update failed");
-  return res.json();
+  return res.data;
 }
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
@@ -86,29 +74,67 @@ export function filterTrips(trips, { activeFilter, search }) {
 }
 
 export function countByStatus(trips) {
+  if (!trips) return {};
   return {
     All: trips.length,
     DRAFT: trips.filter((t) => t.status === "DRAFT").length,
+    GENERATED: trips.filter((t) => t.status === "GENERATED").length,
+    PLANNING: trips.filter((t) => t.status === "PLANNING").length,
     CONFIRMED: trips.filter((t) => t.status === "CONFIRMED").length,
+    ACTIVE: trips.filter((t) => t.status === "ACTIVE").length,
     COMPLETED: trips.filter((t) => t.status === "COMPLETED").length,
+    CANCELLED: trips.filter((t) => t.status === "CANCELLED").length,
   };
 }
 
 // ─── Static lookup maps ───────────────────────────────────────────────────────
 
-export const STATUS_FILTERS = ["All", "DRAFT", "CONFIRMED", "COMPLETED"];
+export const STATUS_FILTERS = ["All", "DRAFT", "GENERATED", "PLANNING", "CONFIRMED", "ACTIVE", "COMPLETED", "CANCELLED"];
 
 export const STATUS_META = {
-  DRAFT:     { label: "Draft",     emoji: "📝", color: "text-gray-500",  bg: "bg-gray-100"  },
+  DRAFT:     { label: "Draft",     emoji: "📝", color: "text-gray-600",  bg: "bg-gray-100"  },
+  GENERATED: { label: "Generated", emoji: "⚡", color: "text-amber-800", bg: "bg-amber-100" },
+  PLANNING:  { label: "Planning",  emoji: "✏️", color: "text-emerald-800", bg: "bg-emerald-100" },
   CONFIRMED: { label: "Confirmed", emoji: "✅", color: "text-green-800", bg: "bg-green-100" },
-  COMPLETED: { label: "Completed", emoji: "✔️", color: "text-blue-800",  bg: "bg-blue-100"  },
+  STARTED:   { label: "Started",   emoji: "🚗", color: "text-purple-800", bg: "bg-purple-100" },
+  ACTIVE:    { label: "Active",    emoji: "🚗", color: "text-purple-800", bg: "bg-purple-100" },
+  COMPLETED: { label: "Completed", emoji: "🏁", color: "text-blue-800",  bg: "bg-blue-100"  },
+  CANCELLED: { label: "Cancelled", emoji: "🚫", color: "text-red-800",   bg: "bg-red-100"   },
+  ARCHIVED:  { label: "Archived",  emoji: "📦", color: "text-gray-500",  bg: "bg-gray-100"  },
 };
 
 export const FILTER_LABEL = {
   DRAFT: "Draft",
+  GENERATED: "Generated",
+  PLANNING: "Planning",
   CONFIRMED: "Confirmed",
   COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
 };
+
+export async function restoreTrip(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/restore`);
+  return res.data;
+}
+
+export async function fetchTripActivityLogs(tripId) {
+  try {
+    const res = await apiClient.get(`/api/v1/planner/${tripId}/activity-logs`);
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
+export async function revokeShareToken(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/share/revoke`);
+  return res.data;
+}
+
+export async function regenerateShareToken(tripId) {
+  const res = await apiClient.post(`/api/v1/planner/${tripId}/share/regenerate`);
+  return res.data;
+}
 
 export const STYLE_EMOJI = {
   ADVENTURE:   "🏔️",

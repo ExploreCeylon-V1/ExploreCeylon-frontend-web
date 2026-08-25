@@ -65,6 +65,9 @@ apiClient.interceptors.response.use(
         clearAuth();
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
+          // Suppress promise rejection propagation while the page is navigating away
+          // so React components do not render flash error states like "Failed to load trips".
+          return new Promise(() => {});
         }
       }
     }

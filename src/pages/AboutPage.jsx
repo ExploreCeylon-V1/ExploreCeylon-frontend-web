@@ -7,6 +7,8 @@ import punsisiPhoto from "../assets/punsisi.jpeg";
 import shehanPhoto from "../assets/shehan.jpeg";
 import kaveeshaPhoto from "../assets/kaveesha.jpeg";
 import nethmiPhoto from "../assets/nethmi.jpeg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLinkedin, faGithub } from "@fortawesome/free-brands-svg-icons";
 
 // ── Team Members ───────────────────────────────────────────
 const TEAM = [
@@ -18,7 +20,7 @@ const TEAM = [
     photo: dhaneshPhoto,
     initials: "DL",
     color: "from-[#1a5c2a] to-[#2d7a3a]",
-    social: { linkedin: "#", github: "#" },
+    social: { linkedin: "https://www.linkedin.com/in/dhanesh-ganearachchi-9a0953381/", github: "https://github.com/dhanesh-lakshan" },
   },
   {
     name: "Kaveesha Gayanjana",
@@ -28,7 +30,7 @@ const TEAM = [
     photo: kaveeshaPhoto,
     initials: "KG",
     color: "from-blue-600 to-blue-800",
-    social: { linkedin: "#", github: "#" },
+    social: { linkedin: "https://www.linkedin.com/in/kaveesha-gayanjana-5a380331a/", github: "https://github.com/bhooz" },
   },
   {
     name: "Shehan Balasooriya",
@@ -38,7 +40,7 @@ const TEAM = [
     photo: shehanPhoto,
     initials: "SB",
     color: "from-purple-600 to-purple-800",
-    social: { linkedin: "#", github: "#" },
+    social: { linkedin: "#", github: "https://github.com/ShehanBalasooriya" },
   },
   {
     name: "Nethmi Rashipaba",
@@ -49,7 +51,7 @@ const TEAM = [
     photo: nethmiPhoto,
     initials: "NR",
     color: "from-orange-500 to-orange-700",
-    social: { linkedin: "#", github: "#" },
+    social: { linkedin: "https://www.linkedin.com/in/nethmi-rashipaba-00a7b3393/", github: "https://github.com/NRash07" },
   },
   {
     name: "Punsisi Jayasinghe",
@@ -59,7 +61,7 @@ const TEAM = [
     photo: punsisiPhoto,
     initials: "PJ",
     color: "from-pink-500 to-pink-700",
-    social: { linkedin: "#", github: "#" },
+    social: { linkedin: "#", github: "https://github.com/PunsisiJayasinghe" },
   },
 ];
 
@@ -90,17 +92,17 @@ const VALUES = [
 // ── Milestones ──────────────────────────────────────────────
 const MILESTONES = [
   {
-    year: "2024",
+    year: "2025",
     title: "The Idea",
     desc: "ExploreCeylon was born from a simple question: why is it so hard to plan an authentic Sri Lanka trip?",
   },
   {
-    year: "2025",
+    year: "2026",
     title: "Building",
     desc: "Our team of five spent months talking to travelers, guides, and local businesses to understand the real problems.",
   },
   {
-    year: "2025",
+    year: "2026",
     title: "AI Integration",
     desc: "We integrated our LLaMA-powered trip planner, making personalized itinerary generation possible for everyone.",
   },
@@ -369,7 +371,7 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
               <p>
-                It was 2024 when our founder Dhanesh Lakshan sat with four
+                It was 2025 when our founder Dhanesh Lakshan sat with four
                 friends and asked:{" "}
                 <em>
                   "Why is it so hard for tourists to discover the real Sri
@@ -388,7 +390,8 @@ export default function AboutPage() {
                 wasn't just another booking platform — it needed a
                 <strong className="text-gray-800">
                   {" "}
-                  smart travel companion 
+                  smart travel companion
+                  {" "} 
                 </strong>
                  that could understand each traveler's unique preferences and
                 match them with authentic local experiences.
@@ -406,7 +409,7 @@ export default function AboutPage() {
             <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
             <div className="space-y-8">
               {MILESTONES.map((m, i) => (
-                <div key={m.year} className="flex gap-6 relative">
+                <div key={`${m.year}-${m.title}`} className="flex gap-6 relative">
                   <div
                     className="flex-shrink-0 w-10 h-10 rounded-full bg-[#1a5c2a]
                                   flex items-center justify-center text-white text-xs
@@ -552,21 +555,29 @@ export default function AboutPage() {
               <div className="flex gap-3">
                 <a
                   href={TEAM[0].social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
                   className="flex items-center gap-1.5 text-xs font-semibold
                              text-gray-600 border border-gray-200 px-4 py-2
                              rounded-xl hover:border-[#1a5c2a] hover:text-[#1a5c2a]
                              transition-colors"
                 >
-                  💼 LinkedIn
+                  <FontAwesomeIcon icon={faLinkedin} size="lg" />
+                  <span>LinkedIn</span>
                 </a>
                 <a
                   href={TEAM[0].social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub"
                   className="flex items-center gap-1.5 text-xs font-semibold
                              text-gray-600 border border-gray-200 px-4 py-2
                              rounded-xl hover:border-[#1a5c2a] hover:text-[#1a5c2a]
                              transition-colors"
                 >
-                  🐙 GitHub
+                  <FontAwesomeIcon icon={faGithub} size="lg" />
+                  <span>GitHub</span>
                 </a>
               </div>
             </div>
@@ -635,19 +646,25 @@ export default function AboutPage() {
                 <div className="flex gap-2 mt-4">
                   <a
                     href={member.social.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex-1 text-center text-[10px] font-semibold
                                border border-gray-200 py-1.5 rounded-lg text-gray-500
                                hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
                   >
-                    💼 LinkedIn
+                    <FontAwesomeIcon icon={faLinkedin} />
+                    <span>LinkedIn</span>
                   </a>
                   <a
                     href={member.social.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex-1 text-center text-[10px] font-semibold
                                border border-gray-200 py-1.5 rounded-lg text-gray-500
                                hover:border-[#1a5c2a] hover:text-[#1a5c2a] transition-colors"
                   >
-                    🐙 GitHub
+                    <FontAwesomeIcon icon={faGithub} />
+                    <span>GitHub</span>
                   </a>
                 </div>
               </div>
@@ -678,30 +695,31 @@ export default function AboutPage() {
                 with us? Or just want to say hello? Our team is always here.
               </p>
 
-              <div className="space-y-5 mb-8">
+              <div className="space-y-5">
                 {[
                   {
                     icon: "📧",
                     label: "Email Us",
-                    value: "hello@exploreceylon.lk",
-                    href: "mailto:hello@exploreceylon.lk",
+                    value: "exploreceylonadmin@gmail.com",
+                    href: "mailto:exploreceylonadmin@gmail.com",
                   },
                   {
                     icon: "📞",
                     label: "Call Us",
-                    value: "+94 11 234 5678",
-                    href: "tel:+94112345678",
+                    value: "+94 72 623 6519",
+                    href: "tel:+94726236519",
                   },
                   {
                     icon: "📍",
                     label: "Find Us",
-                    value: "Colombo 03, Western Province, Sri Lanka",
-                    href: null,
+                    value: "ExploreCeylon.com",
+                    href: "https://exploreceylon.me/",
+                    external: true,
                   },
                   {
                     icon: "🕐",
                     label: "Working Hours",
-                    value: "Mon–Fri, 9:00 AM – 6:00 PM (IST)",
+                    value: "24/7",
                     href: null,
                   },
                 ].map((c) => (
@@ -720,7 +738,9 @@ export default function AboutPage() {
                       {c.href ? (
                         <a
                           href={c.href}
-                          className="text-sm text-[#1a5c2a] font-medium hover:underline"
+                          target={c.external ? "_blank" : undefined}
+                          rel={c.external ? "noopener noreferrer" : undefined}
+                          className="text-sm text-[#1a5c2a] font-bold hover:underline"
                         >
                           {c.value}
                         </a>
@@ -732,34 +752,6 @@ export default function AboutPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Social */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-3">
-                  Follow Us
-                </p>
-                <div className="flex gap-2">
-                  {[
-                    { icon: "📘", label: "Facebook", href: "#" },
-                    { icon: "📸", label: "Instagram", href: "#" },
-                    { icon: "🐦", label: "Twitter", href: "#" },
-                    { icon: "💼", label: "LinkedIn", href: "#" },
-                    { icon: "🐙", label: "GitHub", href: "#" },
-                  ].map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      title={s.label}
-                      className="w-10 h-10 bg-white border border-gray-200
-                                 rounded-xl flex items-center justify-center
-                                 text-lg hover:border-[#1a5c2a] hover:bg-green-50
-                                 transition-colors shadow-sm"
-                    >
-                      {s.icon}
-                    </a>
-                  ))}
-                </div>
               </div>
             </div>
 

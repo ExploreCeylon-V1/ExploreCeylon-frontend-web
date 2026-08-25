@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  Bookmark,
   Sparkles,
   Landmark,
   PawPrint,
@@ -12,6 +13,7 @@ import {
 // Maps backend Event.EventCategory enum -> UI label, icon, color classes
 export const CATEGORY_META = {
   ALL: { label: "All Events", icon: CalendarDays, badge: "bg-emerald-700 text-white" },
+  BOOKMARKS: { label: "Bookmarks", icon: Bookmark, badge: "bg-amber-500 text-slate-950 font-extrabold" },
   FESTIVAL: { label: "Festival", icon: Sparkles, badge: "bg-pink-100 text-pink-700" },
   RELIGIOUS: { label: "Religious", icon: Landmark, badge: "bg-amber-100 text-amber-700" },
   WILDLIFE: { label: "Wildlife", icon: PawPrint, badge: "bg-lime-100 text-lime-700" },
