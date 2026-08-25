@@ -6,6 +6,7 @@ import GemReviews from '../components/GemReviews';
 import AddToTripCard from '../components/AddToTripCard';
 import NearbyGems from '../components/NearbyGems';
 import SubmitGemCta from '../components/SubmitGemCta';
+import ImageGallery from '../components/ImageGallery';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getNearbyGems } from '../utils/geo';
@@ -20,8 +21,6 @@ const GemDetail = () => {
   const [nearbyGems, setNearbyGems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activePhoto, setActivePhoto] = useState(0);
-  const [showGallery, setShowGallery] = useState(false);
 
   const fetchGem = async () => {
     try {
@@ -32,7 +31,6 @@ const GemDetail = () => {
         hiddenGemsService.getAllGems(),
       ]);
       setGem(gemData);
-      setActivePhoto(0);
 
       const approvedGems = (allGems || []).filter((g) => g.approved);
       setNearbyGems(getNearbyGems(gemData, approvedGems, 3));
@@ -102,52 +100,7 @@ const GemDetail = () => {
           </div>
 
           {/* Photo gallery */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div
-                className="sm:col-span-2 relative rounded-xl overflow-hidden aspect-[16/10] bg-gray-300 cursor-pointer"
-                onClick={() => setShowGallery(true)}
-                >
-                <img
-                    src={photos[activePhoto]}
-                    alt={gem.title}
-                    className="w-full h-full object-cover"
-                />
-
-                <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-                    View Photos
-                </div>
-            </div>
-            <div className="grid grid-rows-2 gap-3">
-              {photos.slice(1, 3).map((photo, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setActivePhoto(idx + 1);
-                    setShowGallery(true);
-                  }}
-                  className="relative rounded-xl overflow-hidden aspect-[16/9] sm:aspect-auto bg-gray-800"
-                >
-                  <img
-                    src={photo}
-                    alt={`${gem.title} ${idx + 2}`}
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                  {idx === 1 && photos.length > 3 && (
-                    <div
-                        className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-semibold text-sm cursor-pointer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowGallery(true);
-                        }}
-                        >
-                        +{photos.length - 3} more photos
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
+          <ImageGallery images={photos} title={gem.title} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main column */}
@@ -285,64 +238,6 @@ const GemDetail = () => {
           </div>
         </div>
       </div>
-
-      {showGallery && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
-
-            {/* Close Button */}
-            <button
-            onClick={() => setShowGallery(false)}
-            className="absolute top-6 right-6 text-white text-4xl z-[10000]"
-            >
-            ×
-            </button>
-
-            {/* Previous */}
-            {photos.length > 1 && (
-            <button
-                onClick={() =>
-                setActivePhoto(
-                    activePhoto === 0
-                    ? photos.length - 1
-                    : activePhoto - 1
-                )
-                }
-                className="absolute left-4 z-[10000] text-white text-5xl px-4"
-            >
-                ‹
-            </button>
-            )}
-
-            {/* Image */}
-            <img
-            src={photos[activePhoto]}
-            alt=""
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-[90vw] max-h-[85vh] object-contain"
-            />
-
-            {/* Next */}
-            {photos.length > 1 && (
-            <button
-                onClick={() =>
-                setActivePhoto(
-                    activePhoto === photos.length - 1
-                    ? 0
-                    : activePhoto + 1
-                )
-                }
-                className="absolute right-4 z-[10000] text-white text-5xl px-4"
-            >
-                ›
-            </button>
-            )}
-
-            {/* Counter */}
-            <div className="absolute bottom-6 text-white text-sm bg-black/60 px-4 py-2 rounded-full">
-            {activePhoto + 1} / {photos.length}
-            </div>
-        </div>
-      )}
 
       <Footer />
     </>
