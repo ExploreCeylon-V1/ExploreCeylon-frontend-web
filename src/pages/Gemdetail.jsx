@@ -7,6 +7,7 @@ import AddToTripCard from '../components/AddToTripCard';
 import NearbyGems from '../components/NearbyGems';
 import SubmitGemCta from '../components/SubmitGemCta';
 import ImageGallery from '../components/ImageGallery';
+import ErrorBoundary from '../components/ErrorBoundary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getNearbyGems } from '../utils/geo';
@@ -196,7 +197,9 @@ const GemDetail = () => {
               )}
 
               {/* Reviews */}
-              <GemReviews gemId={gem.id} onReviewAdded={fetchGem} />
+              <ErrorBoundary title="Unable to load reviews" message="Reviews section encountered a problem loading.">
+                <GemReviews gemId={gem.id} onReviewAdded={fetchGem} />
+              </ErrorBoundary>
             </div>
 
             {/* Sidebar */}
