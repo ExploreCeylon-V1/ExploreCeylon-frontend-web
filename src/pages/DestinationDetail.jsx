@@ -11,6 +11,7 @@ import AddToTripCard from '../components/AddToTripCard';
 import GuideMiniCard from '../components/GuideMiniCard';
 import DestinationReviews from '../components/DestinationReviews';
 import ImageGallery from '../components/ImageGallery';
+import ErrorBoundary from '../components/ErrorBoundary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -353,10 +354,12 @@ const DestinationDetail = () => {
               )}
 
               {/* Reviews */}
-              <DestinationReviews
-                destinationId={destination.id}
-                onReviewAdded={fetchDestination}
-              />
+              <ErrorBoundary title="Unable to load reviews" message="Reviews section encountered a problem loading.">
+                <DestinationReviews
+                  destinationId={destination.id}
+                  onReviewAdded={fetchDestination}
+                />
+              </ErrorBoundary>
             </div>
 
             {/* Sidebar */}
