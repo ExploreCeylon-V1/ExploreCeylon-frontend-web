@@ -6,6 +6,8 @@ import bannerImage from "../assets/Banner.jpg";
 import GemCard from "../components/GemCard";
 import { GEM_CATEGORIES } from "../components/gemCategories";
 import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -104,6 +106,16 @@ const HiddenGems = () => {
 
     return result;
   }, [approvedGems, activeCategory, districtFilter, searchTerm, sortBy]);
+
+  const {
+    pageItems: paginatedGems,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredGems, {
+    columns: viewMode === "list" ? { base: 1 } : { base: 1, sm: 2, lg: 3 },
+    rows: 10,
+  });
 
   const handleViewDetails = (gem) => {
     navigate(`/hidden-gems/${gem.id}`);
@@ -245,7 +257,7 @@ const HiddenGems = () => {
 
           {/* Result count */}
           <p className="mb-4 text-sm text-gray-500">
-            Showing <strong>{filteredGems.length}</strong> approved gem{filteredGems.length !== 1 ? "s" : ""}
+            Showing <strong>{paginatedGems.length}</strong> of <strong>{filteredGems.length}</strong> approved gem{filteredGems.length !== 1 ? "s" : ""}
           </p>
 
           {loading && (
@@ -282,7 +294,7 @@ const HiddenGems = () => {
                     : 'flex flex-col gap-4'
                 }
               >
-                {filteredGems.map((gem) => (
+                {paginatedGems.map((gem) => (
                   <GemCard
                     key={gem.id}
                     gem={gem}
@@ -291,6 +303,12 @@ const HiddenGems = () => {
                   />
                 ))}
               </div>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Hidden Gems"
+              />
             </ErrorBoundary>
           )}
         </div>

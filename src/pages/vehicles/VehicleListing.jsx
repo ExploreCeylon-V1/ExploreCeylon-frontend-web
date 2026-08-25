@@ -8,6 +8,8 @@ import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import ErrorBoundary from "../../components/ErrorBoundary";
+import Pagination from "../../components/Pagination";
+import { usePagination } from "../../hooks/usePagination";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -156,7 +158,15 @@ export default function VehicleListing() {
     ]
   );
 
-
+  const {
+    pageItems: paginatedVehicles,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(displayed, {
+    columns: viewMode === "list" ? { base: 1 } : { base: 1, sm: 2, lg: 3 },
+    rows: 10,
+  });
 
   const clearFilters = () => {
     setDistrict("");
@@ -435,7 +445,7 @@ export default function VehicleListing() {
                     : "flex flex-col gap-4"
                 }
               >
-                {displayed.map((vehicle) => (
+                {paginatedVehicles.map((vehicle) => (
                   <VehicleCard
                     key={vehicle.id}
                     vehicle={vehicle}
@@ -444,6 +454,12 @@ export default function VehicleListing() {
                   />
                 ))}
               </div>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Vehicles"
+              />
             </ErrorBoundary>
           )}
         </div>
