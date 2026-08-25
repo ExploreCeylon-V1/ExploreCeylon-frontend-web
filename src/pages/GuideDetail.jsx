@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import guidesService from '../services/guidesService';
 import GuideReviews from '../components/GuideReviews';
+import ErrorBoundary from '../components/ErrorBoundary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../hooks/useCart';
@@ -547,10 +548,12 @@ const GuideDetail = () => {
               </div>
 
               {/* ── Reviews — now handled by GuideReviews component ── */}
-              <GuideReviews
-                guideId={id}
-                onReviewAdded={fetchGuide}
-              />
+              <ErrorBoundary title="Unable to load reviews" message="Guide reviews section encountered a problem loading.">
+                <GuideReviews
+                  guideId={id}
+                  onReviewAdded={fetchGuide}
+                />
+              </ErrorBoundary>
 
             </div>
 
