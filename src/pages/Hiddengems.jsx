@@ -7,8 +7,8 @@ import GemCard from "../components/GemCard";
 import { GEM_CATEGORIES } from "../components/gemCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Pagination from "../components/Pagination";
-import { usePagination } from "../hooks/usePagination";
+import ShowMoreButton from "../components/ShowMoreButton";
+import { useShowMore } from "../hooks/useShowMore";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -106,17 +106,15 @@ const HiddenGems = () => {
     return result;
   }, [approvedGems, activeCategory, districtFilter, searchTerm, sortBy]);
 
-  // Grid view is `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`; list view is a
-  // single stacked column at every width.
   const {
-    pageItems: pagedGems,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(filteredGems, {
-    columns:
-      viewMode === "grid" ? { base: 1, md: 2, lg: 3 } : { base: 1 },
+    visibleItems: visibleGems,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(filteredGems, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [activeCategory, districtFilter, searchTerm, sortBy, viewMode],
   });
 
   const handleViewDetails = (gem) => {
@@ -258,8 +256,8 @@ const HiddenGems = () => {
           </div>
 
           {/* Result count */}
-          <p ref={listRef} className="mb-4 text-sm text-gray-500">
-            Showing <strong>{filteredGems.length}</strong> approved gems
+          <p className="mb-4 text-sm text-gray-500">
+            Showing <strong>{visibleGems.length}</strong> of <strong>{filteredGems.length}</strong> approved gems
           </p>
 
           {loading && (
@@ -296,7 +294,7 @@ const HiddenGems = () => {
                     : "flex flex-col gap-4"
                 }
               >
-                {pagedGems.map((gem) => (
+                {visibleGems.map((gem) => (
                   <GemCard
                     key={gem.id}
                     gem={gem}
@@ -306,11 +304,11 @@ const HiddenGems = () => {
                 ))}
               </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Hidden gems"
+              <ShowMoreButton
+                onClick={showMore}
+                hasMore={hasMore}
+                remainingCount={remainingCount}
+                buttonText="Show More Hidden Gems"
               />
             </>
           )}

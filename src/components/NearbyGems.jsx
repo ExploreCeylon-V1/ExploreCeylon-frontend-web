@@ -1,19 +1,32 @@
 import { Link } from 'react-router-dom';
 import { getCategoryMeta } from './gemCategories';
+import ShowMoreButton from './ShowMoreButton';
+import { useShowMore } from '../hooks/useShowMore';
 
 /**
  * NearbyGems
  * @param {Array} gems - pre-computed nearby gems, each with a distanceKm field
  *                        (see utils/geo.js getNearbyGems)
  */
-const NearbyGems = ({ gems }) => {
+const NearbyGems = ({ gems = [] }) => {
+  const {
+    visibleItems: visibleGems,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(gems, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [gems],
+  });
+
   if (!gems?.length) return null;
 
   return (
     <div className="bg-white rounded-xl p-5 sm:p-6">
       <h2 className="font-bold text-gray-800 mb-4">More Hidden Gems Nearby</h2>
       <div className="flex flex-col">
-        {gems.map((gem) => {
+        {visibleGems.map((gem) => {
           const categoryMeta = getCategoryMeta(gem.category);
           const ratingDisplay = gem.rating != null ? gem.rating.toFixed(1) : '—';
 
@@ -38,6 +51,13 @@ const NearbyGems = ({ gems }) => {
             </div>
           );
         })}
+
+        <ShowMoreButton
+          onClick={showMore}
+          hasMore={hasMore}
+          remainingCount={remainingCount}
+          buttonText="Show More Nearby Gems"
+        />
       </div>
     </div>
   );

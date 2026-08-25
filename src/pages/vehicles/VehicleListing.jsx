@@ -7,8 +7,8 @@ import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import Pagination from "../../components/Pagination";
-import { usePagination } from "../../hooks/usePagination";
+import ShowMoreButton from "../../components/ShowMoreButton";
+import { useShowMore } from "../../hooks/useShowMore";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -157,16 +157,25 @@ export default function VehicleListing() {
     ]
   );
 
-  // Grid view is `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; list view is a
-  // single stacked column at every width.
   const {
-    pageItems: pagedVehicles,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(displayed, {
-    columns: viewMode === "grid" ? { base: 1, sm: 2, lg: 3 } : { base: 1 },
+    visibleItems: visibleVehicles,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(displayed, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [
+      activeTab,
+      district,
+      priceRange,
+      driverOnly,
+      searchQuery,
+      sortBy,
+      startDate,
+      endDate,
+      viewMode,
+    ],
   });
 
   const clearFilters = () => {
@@ -443,6 +452,12 @@ export default function VehicleListing() {
           {/* Grid / List */}
           {!loading && !error && displayed.length > 0 && (
             <>
+              <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
+                <p>
+                  Showing <strong>{visibleVehicles.length}</strong> of <strong>{displayed.length}</strong> vehicles
+                </p>
+              </div>
+
               <div
                 className={
                   viewMode === "grid"
@@ -450,7 +465,7 @@ export default function VehicleListing() {
                     : "flex flex-col gap-4"
                 }
               >
-                {pagedVehicles.map((vehicle) => (
+                {visibleVehicles.map((vehicle) => (
                   <VehicleCard
                     key={vehicle.id}
                     vehicle={vehicle}
@@ -460,11 +475,11 @@ export default function VehicleListing() {
                 ))}
               </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Vehicles"
+              <ShowMoreButton
+                onClick={showMore}
+                hasMore={hasMore}
+                remainingCount={remainingCount}
+                buttonText="Show More Vehicles"
               />
             </>
           )}

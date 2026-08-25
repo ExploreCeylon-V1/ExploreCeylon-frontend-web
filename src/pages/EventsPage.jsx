@@ -9,8 +9,8 @@ import AddToTripModal from "../components/AddToTripModal";
 import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Pagination from "../components/Pagination";
-import { usePagination } from "../hooks/usePagination";
+import ShowMoreButton from "../components/ShowMoreButton";
+import { useShowMore } from "../hooks/useShowMore";
 import { useAuth } from "../hooks/useAuth";
 import { getSavedEventIds, toggleSavedEventId } from "../utils/eventBookmarks";
 
@@ -116,12 +116,15 @@ export default function EventsPage() {
   }, [events, searchQuery, activeCategory, savedIds, selectedDate]);
 
   const {
-    pageItems: pagedEvents,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(filteredEvents, { columns: { base: 1 } });
+    visibleItems: visibleEvents,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(filteredEvents, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [searchQuery, activeCategory, selectedDate],
+  });
 
   const toggleSave = (id) => {
     const updated = toggleSavedEventId(user, id);
@@ -401,29 +404,31 @@ export default function EventsPage() {
             )}
 
             {/* Event cards */}
-            {!loading && !error && pagedEvents.length > 0 && (
-              <div className="flex flex-col gap-4">
-                {pagedEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    saved={savedIds.has(event.id)}
-                    onSave={toggleSave}
-                    onViewDetails={(id) => navigate(`/events/${id}`)}
-                    onAddToTrip={(evt) => setSelectedTripEvent(evt)}
-                  />
-                ))}
-              </div>
-            )}
+            {!loading && !error && visibleEvents.length > 0 && (
+              <>
+                <div className="mb-3 text-xs text-gray-500 font-semibold">
+                  Showing <strong>{visibleEvents.length}</strong> of <strong>{filteredEvents.length}</strong> events
+                </div>
+                <div className="flex flex-col gap-4">
+                  {visibleEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      saved={savedIds.has(event.id)}
+                      onSave={toggleSave}
+                      onViewDetails={(id) => navigate(`/events/${id}`)}
+                      onAddToTrip={(evt) => setSelectedTripEvent(evt)}
+                    />
+                  ))}
+                </div>
 
-            {/* Pagination */}
-            {!loading && (
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Events"
-              />
+                <ShowMoreButton
+                  onClick={showMore}
+                  hasMore={hasMore}
+                  remainingCount={remainingCount}
+                  buttonText="Show More Events"
+                />
+              </>
             )}
           </div>
         </div>
