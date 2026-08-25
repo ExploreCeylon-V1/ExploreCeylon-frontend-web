@@ -10,6 +10,7 @@ import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ShowMoreButton from "../components/ShowMoreButton";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { useShowMore } from "../hooks/useShowMore";
 import { useAuth } from "../hooks/useAuth";
 import { getSavedEventIds, toggleSavedEventId } from "../utils/eventBookmarks";
@@ -405,7 +406,7 @@ export default function EventsPage() {
 
             {/* Event cards */}
             {!loading && !error && visibleEvents.length > 0 && (
-              <>
+              <ErrorBoundary title="Unable to load events" message="There was a problem rendering the events section.">
                 <div className="mb-3 text-xs text-gray-500 font-semibold">
                   Showing <strong>{visibleEvents.length}</strong> of <strong>{filteredEvents.length}</strong> events
                 </div>
@@ -428,7 +429,7 @@ export default function EventsPage() {
                   remainingCount={remainingCount}
                   buttonText="Show More Events"
                 />
-              </>
+              </ErrorBoundary>
             )}
           </div>
         </div>
