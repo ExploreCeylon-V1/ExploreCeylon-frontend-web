@@ -6,6 +6,7 @@ import bannerImage from "../assets/Banner.jpg";
 import DestinationCard from "../components/DestinationCard";
 import FeaturedCarousel from "../components/FeaturedCarousel";
 import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
+import ErrorBoundary from "../components/ErrorBoundary";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -226,7 +227,7 @@ const Destinations = () => {
 
           {/* Result count */}
           <p className="mb-4 text-sm text-gray-500">
-            Showing <strong>{visibleDestinations.length}</strong> of <strong>{filteredDestinations.length}</strong> destinations
+            Showing <strong>{filteredDestinations.length}</strong> destination{filteredDestinations.length !== 1 ? "s" : ""}
           </p>
 
           {loading && (
@@ -255,15 +256,17 @@ const Destinations = () => {
           )}
 
           {!loading && !error && filteredDestinations.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDestinations.map((destination) => (
-                <DestinationCard
-                  key={destination.id}
-                  destination={destination}
-                  onExplore={handleExplore}
-                />
-              ))}
-            </div>
+            <ErrorBoundary title="Unable to load destinations" message="There was a problem rendering the destinations grid.">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredDestinations.map((destination) => (
+                  <DestinationCard
+                    key={destination.id}
+                    destination={destination}
+                    onExplore={handleExplore}
+                  />
+                ))}
+              </div>
+            </ErrorBoundary>
           )}
         </div>
       </div>
