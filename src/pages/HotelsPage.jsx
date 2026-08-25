@@ -4,6 +4,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
 import ShowMoreButton from "../components/ShowMoreButton";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { useShowMore } from "../hooks/useShowMore";
 import { buildBookingComUrl } from "../utils/hotelLinks";
 import { useRequireAuth } from "../hooks/useRequireAuth";

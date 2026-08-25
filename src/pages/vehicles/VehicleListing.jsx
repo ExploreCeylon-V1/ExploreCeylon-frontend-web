@@ -8,6 +8,7 @@ import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import ShowMoreButton from "../../components/ShowMoreButton";
+import ErrorBoundary from "../../components/ErrorBoundary";
 import { useShowMore } from "../../hooks/useShowMore";
 
 const TABS = [
@@ -451,7 +452,7 @@ export default function VehicleListing() {
 
           {/* Grid / List */}
           {!loading && !error && displayed.length > 0 && (
-            <>
+            <ErrorBoundary title="Unable to load vehicles" message="There was a problem rendering the vehicles section.">
               <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
                 <p>
                   Showing <strong>{visibleVehicles.length}</strong> of <strong>{displayed.length}</strong> vehicles
@@ -481,7 +482,7 @@ export default function VehicleListing() {
                 remainingCount={remainingCount}
                 buttonText="Show More Vehicles"
               />
-            </>
+            </ErrorBoundary>
           )}
         </div>
       </div>

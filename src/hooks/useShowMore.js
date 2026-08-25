@@ -14,11 +14,13 @@ export function useShowMore(items = [], options = {}) {
 
   const [visibleCount, setVisibleCount] = useState(initialCount);
 
-  // Reset visibleCount back to initialCount whenever resetDeps change
+  // Safely serialize resetDeps to primitive string to prevent object/array reference infinite loops
+  const resetKey = JSON.stringify(resetDeps);
+
+  // Reset visibleCount back to initialCount whenever resetDeps values change
   useEffect(() => {
     setVisibleCount(initialCount);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCount, ...resetDeps]);
+  }, [initialCount, resetKey]);
 
   const totalCount = Array.isArray(items) ? items.length : 0;
   const visibleItems = Array.isArray(items)
