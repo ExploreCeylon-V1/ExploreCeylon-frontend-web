@@ -7,8 +7,6 @@ import GemCard from "../components/GemCard";
 import { GEM_CATEGORIES } from "../components/gemCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ShowMoreButton from "../components/ShowMoreButton";
-import { useShowMore } from "../hooks/useShowMore";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -105,17 +103,6 @@ const HiddenGems = () => {
 
     return result;
   }, [approvedGems, activeCategory, districtFilter, searchTerm, sortBy]);
-
-  const {
-    visibleItems: visibleGems,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(filteredGems, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [activeCategory, districtFilter, searchTerm, sortBy, viewMode],
-  });
 
   const handleViewDetails = (gem) => {
     navigate(`/hidden-gems/${gem.id}`);
@@ -286,31 +273,22 @@ const HiddenGems = () => {
           )}
 
           {!loading && !error && filteredGems.length > 0 && (
-            <>
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    : "flex flex-col gap-4"
-                }
-              >
-                {visibleGems.map((gem) => (
-                  <GemCard
-                    key={gem.id}
-                    gem={gem}
-                    viewMode={viewMode}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
-
-              <ShowMoreButton
-                onClick={showMore}
-                hasMore={hasMore}
-                remainingCount={remainingCount}
-                buttonText="Show More Hidden Gems"
-              />
-            </>
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                  : 'flex flex-col gap-4'
+              }
+            >
+              {filteredGems.map((gem) => (
+                <GemCard
+                  key={gem.id}
+                  gem={gem}
+                  viewMode={viewMode}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>

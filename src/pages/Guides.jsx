@@ -6,8 +6,6 @@ import bannerImage from "../assets/Banner.jpg";
 import { SRI_LANKA_DISTRICTS } from "../components/SriLankaDistricts";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ShowMoreButton from "../components/ShowMoreButton";
-import { useShowMore } from "../hooks/useShowMore";
 
 const RATING_OPTIONS = [
   { value: 5, label: "★★★★★", sub: "5.0" },
@@ -238,30 +236,7 @@ const Guides = () => {
     sortBy,
   ]);
 
-  // Grid view is `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; list view is a
-  // single stacked column at every width. Swapping the toggle changes the
-  // column map, so page size recomputes on the spot.
-  const {
-    visibleItems: visibleGuides,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(filteredGuides, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [
-      searchTerm,
-      district,
-      selectedLanguages,
-      selectedSpecialties,
-      maxPrice,
-      minRating,
-      sortBy,
-      startDate,
-      endDate,
-      viewMode,
-    ],
-  });
+
 
   const handleClearAll = () => {
     setSearchTerm("");
@@ -593,7 +568,7 @@ const Guides = () => {
                           : "flex flex-col gap-4"
                       }
                     >
-                      {visibleGuides.map((guide) => {
+                      {filteredGuides.map((guide) => {
                         const ratingDisplay =
                           guide.rating != null ? guide.rating.toFixed(1) : "—";
                         const specialtyTags = (guide.specialties || "")
@@ -755,13 +730,6 @@ const Guides = () => {
                         );
                       })}
                     </div>
-
-                    <ShowMoreButton
-                      onClick={showMore}
-                      hasMore={hasMore}
-                      remainingCount={remainingCount}
-                      buttonText="Show More Guides"
-                    />
                   </>
                 )}
             </div>

@@ -8,8 +8,6 @@ import FeaturedCarousel from "../components/FeaturedCarousel";
 import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ShowMoreButton from "../components/ShowMoreButton";
-import { useShowMore } from "../hooks/useShowMore";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -109,17 +107,6 @@ const Destinations = () => {
 
     return result;
   }, [destinations, activeCategory, provinceFilter, searchTerm, sortBy]);
-
-  const {
-    visibleItems: visibleDestinations,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(filteredDestinations, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [activeCategory, provinceFilter, searchTerm, sortBy],
-  });
 
   const handleExplore = (destination) => {
     navigate(`/destinations/${destination.id}`);
@@ -268,24 +255,15 @@ const Destinations = () => {
           )}
 
           {!loading && !error && filteredDestinations.length > 0 && (
-            <>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {visibleDestinations.map((destination) => (
-                  <DestinationCard
-                    key={destination.id}
-                    destination={destination}
-                    onExplore={handleExplore}
-                  />
-                ))}
-              </div>
-
-              <ShowMoreButton
-                onClick={showMore}
-                hasMore={hasMore}
-                remainingCount={remainingCount}
-                buttonText="Show More Destinations"
-              />
-            </>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredDestinations.map((destination) => (
+                <DestinationCard
+                  key={destination.id}
+                  destination={destination}
+                  onExplore={handleExplore}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>
