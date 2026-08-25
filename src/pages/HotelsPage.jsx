@@ -772,7 +772,7 @@ export default function HotelsPage() {
           </div>
 
           {/* Right Side: Main Hotel List Content Area */}
-          <div ref={listRef} className="w-full space-y-6 lg:col-span-8">
+          <div className="w-full space-y-6 lg:col-span-8">
             {/* Header Control Row */}
             <div className="flex flex-col w-full pt-2 pb-5 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between">
               {/* Left Side: Title, Sub-details */}

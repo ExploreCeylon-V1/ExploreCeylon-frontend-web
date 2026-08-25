@@ -265,7 +265,7 @@ export default function EventsPage() {
           </aside>
 
           {/* ── RIGHT: Events list ── */}
-          <div ref={listRef} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             {/* ── SEARCH BAR ── */}
             <div className="bg-white border border-slate-100 rounded-2xl p-3.5 sm:p-4 shadow-sm mb-5 flex items-center gap-3">
               <Search size={18} className="text-emerald-700 shrink-0" />
