@@ -9,9 +9,7 @@ import AddToTripModal from "../components/AddToTripModal";
 import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ShowMoreButton from "../components/ShowMoreButton";
 import ErrorBoundary from "../components/ErrorBoundary";
-import { useShowMore } from "../hooks/useShowMore";
 import { useAuth } from "../hooks/useAuth";
 import { getSavedEventIds, toggleSavedEventId } from "../utils/eventBookmarks";
 
@@ -115,17 +113,6 @@ export default function EventsPage() {
 
     return list.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
   }, [events, searchQuery, activeCategory, savedIds, selectedDate]);
-
-  const {
-    visibleItems: visibleEvents,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(filteredEvents, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [searchQuery, activeCategory, selectedDate],
-  });
 
   const toggleSave = (id) => {
     const updated = toggleSavedEventId(user, id);
@@ -405,13 +392,10 @@ export default function EventsPage() {
             )}
 
             {/* Event cards */}
-            {!loading && !error && visibleEvents.length > 0 && (
+            {!loading && !error && filteredEvents.length > 0 && (
               <ErrorBoundary title="Unable to load events" message="There was a problem rendering the events section.">
-                <div className="mb-3 text-xs text-gray-500 font-semibold">
-                  Showing <strong>{visibleEvents.length}</strong> of <strong>{filteredEvents.length}</strong> events
-                </div>
                 <div className="flex flex-col gap-4">
-                  {visibleEvents.map((event) => (
+                  {filteredEvents.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -422,13 +406,6 @@ export default function EventsPage() {
                     />
                   ))}
                 </div>
-
-                <ShowMoreButton
-                  onClick={showMore}
-                  hasMore={hasMore}
-                  remainingCount={remainingCount}
-                  buttonText="Show More Events"
-                />
               </ErrorBoundary>
             )}
           </div>
