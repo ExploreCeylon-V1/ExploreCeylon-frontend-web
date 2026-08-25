@@ -8,8 +8,8 @@ import FeaturedCarousel from "../components/FeaturedCarousel";
 import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Pagination from "../components/Pagination";
-import { usePagination } from "../hooks/usePagination";
+import ShowMoreButton from "../components/ShowMoreButton";
+import { useShowMore } from "../hooks/useShowMore";
 
 const SORT_OPTIONS = [
   { value: "rating_desc", label: "Highest Rated" },
@@ -110,15 +110,15 @@ const Destinations = () => {
     return result;
   }, [destinations, activeCategory, provinceFilter, searchTerm, sortBy]);
 
-  // Grid is `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` — 10 rows per page.
   const {
-    pageItems: pagedDestinations,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(filteredDestinations, {
-    columns: { base: 1, md: 2, lg: 3 },
+    visibleItems: visibleDestinations,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(filteredDestinations, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [activeCategory, provinceFilter, searchTerm, sortBy],
   });
 
   const handleExplore = (destination) => {
@@ -238,8 +238,8 @@ const Destinations = () => {
           </div>
 
           {/* Result count */}
-          <p ref={listRef} className="mb-4 text-sm text-gray-500">
-            Showing <strong>{filteredDestinations.length}</strong> destinations
+          <p className="mb-4 text-sm text-gray-500">
+            Showing <strong>{visibleDestinations.length}</strong> of <strong>{filteredDestinations.length}</strong> destinations
           </p>
 
           {loading && (
@@ -270,7 +270,7 @@ const Destinations = () => {
           {!loading && !error && filteredDestinations.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {pagedDestinations.map((destination) => (
+                {visibleDestinations.map((destination) => (
                   <DestinationCard
                     key={destination.id}
                     destination={destination}
@@ -279,11 +279,11 @@ const Destinations = () => {
                 ))}
               </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Destinations"
+              <ShowMoreButton
+                onClick={showMore}
+                hasMore={hasMore}
+                remainingCount={remainingCount}
+                buttonText="Show More Destinations"
               />
             </>
           )}

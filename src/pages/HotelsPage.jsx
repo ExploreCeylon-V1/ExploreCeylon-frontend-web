@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
-import Pagination from "../components/Pagination";
-import { usePagination } from "../hooks/usePagination";
+import ShowMoreButton from "../components/ShowMoreButton";
+import { useShowMore } from "../hooks/useShowMore";
 import { buildBookingComUrl } from "../utils/hotelLinks";
 import { useRequireAuth } from "../hooks/useRequireAuth";
 import bannerImage from "../assets/Banner.jpg";
@@ -422,15 +422,24 @@ export default function HotelsPage() {
     sortBy,
   ]);
 
-  // Hotels render as a single stacked column at every breakpoint, so a "row"
-  // is one card — 10 rows = 10 hotels per page.
   const {
-    pageItems: pagedHotels,
-    page,
-    totalPages,
-    setPage,
-    listRef,
-  } = usePagination(sortedHotels, { columns: { base: 1 } });
+    visibleItems: visibleHotels,
+    hasMore,
+    remainingCount,
+    showMore,
+  } = useShowMore(sortedHotels, {
+    initialCount: 5,
+    increment: 5,
+    resetDeps: [
+      maxPrice,
+      anyStarSelected,
+      stars,
+      guestRating,
+      localPicksOnly,
+      sortBy,
+      location,
+    ],
+  });
 
   return (
     <div className="w-full min-h-screen pb-12 font-sans bg-gray-100">
@@ -921,33 +930,33 @@ export default function HotelsPage() {
 
             {/* DYNAMIC HOTEL CARDS CONTAINER */}
             {!isLoading && sortedHotels.length > 0 && (
-              <HotelResultsErrorBoundary>
-                <div className="flex flex-col w-full gap-4">
-                  {pagedHotels.map((hotelItem) => (
-                    <HotelCard
-                      key={hotelItem.hotelId || hotelItem.name}
-                      hotel={hotelItem}
-                      nightsCount={nightsCount}
-                      searchParams={{
-                        checkIn,
-                        checkOut,
-                        adults: adultsCount,
-                        rooms: roomsCount,
-                      }}
-                      onViewDetails={setSelectedHotel}
-                    />
-                  ))}
-                </div>
-              </HotelResultsErrorBoundary>
-            )}
+              <>
+                <HotelResultsErrorBoundary>
+                  <div className="flex flex-col w-full gap-4">
+                    {visibleHotels.map((hotelItem) => (
+                      <HotelCard
+                        key={hotelItem.hotelId || hotelItem.name}
+                        hotel={hotelItem}
+                        nightsCount={nightsCount}
+                        searchParams={{
+                          checkIn,
+                          checkOut,
+                          adults: adultsCount,
+                          rooms: roomsCount,
+                        }}
+                        onViewDetails={setSelectedHotel}
+                      />
+                    ))}
+                  </div>
+                </HotelResultsErrorBoundary>
 
-            {!isLoading && (
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                label="Hotels"
-              />
+                <ShowMoreButton
+                  onClick={showMore}
+                  hasMore={hasMore}
+                  remainingCount={remainingCount}
+                  buttonText="Show More Hotels"
+                />
+              </>
             )}
           </div>
         </div>

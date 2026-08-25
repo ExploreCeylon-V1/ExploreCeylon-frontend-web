@@ -10,6 +10,7 @@ import { parseTravelTimeFrom, parseActivities, parseNearbyGemTitles } from '../u
 import AddToTripCard from '../components/AddToTripCard';
 import GuideMiniCard from '../components/GuideMiniCard';
 import DestinationReviews from '../components/DestinationReviews';
+import ImageGallery from '../components/ImageGallery';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -24,7 +25,6 @@ const DestinationDetail = () => {
   const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const fetchDestination = async () => {
@@ -33,7 +33,6 @@ const DestinationDetail = () => {
       setError(null);
       const data = await destinationsService.getById(id);
       setDestination(data);
-      setActivePhoto(0);
       setShowFullDescription(false);
 
       // Resolve nearbyGems titles -> real gem objects
@@ -135,33 +134,7 @@ const DestinationDetail = () => {
           </div>
 
           {/* Photo gallery */}
-          <div className="relative rounded-xl overflow-hidden aspect-[16/8] bg-gray-300 mb-3">
-            <img
-              src={photos[activePhoto]}
-              alt={destination.name}
-              className="w-full h-full object-cover"
-            />
-            <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-              {activePhoto + 1}/{photos.length}
-            </span>
-          </div>
-
-          {photos.length > 1 && (
-            <div className="flex gap-2 mb-6 overflow-x-auto">
-              {photos.map((photo, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActivePhoto(idx)}
-                  className={`flex-shrink-0 w-20 h-14 rounded-md overflow-hidden border-2 ${
-                    idx === activePhoto ? 'border-[#2D6A4F]' : 'border-transparent'
-                  }`}
-                >
-                  <img src={photo} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+          <ImageGallery images={photos} title={destination.name} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main column */}
