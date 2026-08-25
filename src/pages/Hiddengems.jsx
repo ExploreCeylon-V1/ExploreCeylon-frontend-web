@@ -5,6 +5,9 @@ import hiddenGemsService from "../services/Hiddengemsservice";
 import bannerImage from "../assets/Banner.jpg";
 import GemCard from "../components/GemCard";
 import { GEM_CATEGORIES } from "../components/gemCategories";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -103,6 +106,16 @@ const HiddenGems = () => {
 
     return result;
   }, [approvedGems, activeCategory, districtFilter, searchTerm, sortBy]);
+
+  const {
+    pageItems: paginatedGems,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredGems, {
+    columns: viewMode === "list" ? { base: 1 } : { base: 1, sm: 2, lg: 3 },
+    rows: 10,
+  });
 
   const handleViewDetails = (gem) => {
     navigate(`/hidden-gems/${gem.id}`);
@@ -244,7 +257,7 @@ const HiddenGems = () => {
 
           {/* Result count */}
           <p className="mb-4 text-sm text-gray-500">
-            Showing <strong>{visibleGems.length}</strong> of <strong>{filteredGems.length}</strong> approved gems
+            Showing <strong>{paginatedGems.length}</strong> of <strong>{filteredGems.length}</strong> approved gem{filteredGems.length !== 1 ? "s" : ""}
           </p>
 
           {loading && (
@@ -273,22 +286,30 @@ const HiddenGems = () => {
           )}
 
           {!loading && !error && filteredGems.length > 0 && (
-            <div
-              className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
-                  : 'flex flex-col gap-4'
-              }
-            >
-              {filteredGems.map((gem) => (
-                <GemCard
-                  key={gem.id}
-                  gem={gem}
-                  viewMode={viewMode}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
+            <ErrorBoundary title="Unable to load hidden gems" message="There was a problem rendering the hidden gems grid.">
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                    : 'flex flex-col gap-4'
+                }
+              >
+                {paginatedGems.map((gem) => (
+                  <GemCard
+                    key={gem.id}
+                    gem={gem}
+                    viewMode={viewMode}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Hidden Gems"
+              />
+            </ErrorBoundary>
           )}
         </div>
       </div>

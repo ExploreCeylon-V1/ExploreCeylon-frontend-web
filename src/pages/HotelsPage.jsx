@@ -4,6 +4,8 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
 import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import { buildBookingComUrl } from "../utils/hotelLinks";
 import { useRequireAuth } from "../hooks/useRequireAuth";
 import bannerImage from "../assets/Banner.jpg";
@@ -421,7 +423,15 @@ export default function HotelsPage() {
     sortBy,
   ]);
 
-
+  const {
+    pageItems: paginatedHotels,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(sortedHotels, {
+    columns: { base: 1 },
+    rows: 10,
+  });
 
   return (
     <div className="w-full min-h-screen pb-12 font-sans bg-gray-100">
@@ -772,7 +782,7 @@ export default function HotelsPage() {
           </div>
 
           {/* Right Side: Main Hotel List Content Area */}
-          <div ref={listRef} className="w-full space-y-6 lg:col-span-8">
+          <div className="w-full space-y-6 lg:col-span-8">
             {/* Header Control Row */}
             <div className="flex flex-col w-full pt-2 pb-5 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between">
               {/* Left Side: Title, Sub-details */}
@@ -781,7 +791,7 @@ export default function HotelsPage() {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {isLoading
                       ? "Searching hotels..."
-                      : `Showing ${sortedHotels.length} hotels in ${location?.trim() ? location : "Sri Lanka"}`}
+                      : `Showing ${paginatedHotels.length} of ${sortedHotels.length} hotels in ${location?.trim() ? location : "Sri Lanka"}`}
                   </h2>
                   <p className="text-sm font-medium text-gray-500 mt-0.5">
                     {checkIn && checkOut ? (
@@ -914,7 +924,7 @@ export default function HotelsPage() {
             {!isLoading && sortedHotels.length > 0 && (
               <HotelResultsErrorBoundary>
                 <div className="flex flex-col w-full gap-4">
-                  {sortedHotels.map((hotelItem) => (
+                  {paginatedHotels.map((hotelItem) => (
                     <HotelCard
                       key={hotelItem.hotelId || hotelItem.name}
                       hotel={hotelItem}
@@ -929,6 +939,12 @@ export default function HotelsPage() {
                     />
                   ))}
                 </div>
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  label="Hotels"
+                />
               </HotelResultsErrorBoundary>
             )}
           </div>

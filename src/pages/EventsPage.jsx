@@ -10,6 +10,8 @@ import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import { useAuth } from "../hooks/useAuth";
 import { getSavedEventIds, toggleSavedEventId } from "../utils/eventBookmarks";
 
@@ -113,6 +115,16 @@ export default function EventsPage() {
 
     return list.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
   }, [events, searchQuery, activeCategory, savedIds, selectedDate]);
+
+  const {
+    pageItems: paginatedEvents,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredEvents, {
+    columns: { base: 1 },
+    rows: 10,
+  });
 
   const toggleSave = (id) => {
     const updated = toggleSavedEventId(user, id);
@@ -265,7 +277,7 @@ export default function EventsPage() {
           </aside>
 
           {/* ── RIGHT: Events list ── */}
-          <div ref={listRef} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             {/* ── SEARCH BAR ── */}
             <div className="bg-white border border-slate-100 rounded-2xl p-3.5 sm:p-4 shadow-sm mb-5 flex items-center gap-3">
               <Search size={18} className="text-emerald-700 shrink-0" />
@@ -302,7 +314,7 @@ export default function EventsPage() {
                 </h2>
                 {!loading && (
                   <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                    Showing <strong className="text-slate-900">{filteredEvents.length}</strong> event
+                    Showing <strong className="text-slate-900">{paginatedEvents.length}</strong> of <strong className="text-slate-900">{filteredEvents.length}</strong> event
                     {filteredEvents.length !== 1 ? "s" : ""}
                   </p>
                 )}
@@ -395,7 +407,7 @@ export default function EventsPage() {
             {!loading && !error && filteredEvents.length > 0 && (
               <ErrorBoundary title="Unable to load events" message="There was a problem rendering the events section.">
                 <div className="flex flex-col gap-4">
-                  {filteredEvents.map((event) => (
+                  {paginatedEvents.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -406,6 +418,12 @@ export default function EventsPage() {
                     />
                   ))}
                 </div>
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  label="Events"
+                />
               </ErrorBoundary>
             )}
           </div>

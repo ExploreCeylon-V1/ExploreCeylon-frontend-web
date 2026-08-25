@@ -6,6 +6,9 @@ import bannerImage from "../assets/Banner.jpg";
 import DestinationCard from "../components/DestinationCard";
 import FeaturedCarousel from "../components/FeaturedCarousel";
 import { DESTINATION_CATEGORIES } from "../components/destinationCategories";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -107,6 +110,16 @@ const Destinations = () => {
 
     return result;
   }, [destinations, activeCategory, provinceFilter, searchTerm, sortBy]);
+
+  const {
+    pageItems: paginatedDestinations,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredDestinations, {
+    columns: { base: 1, md: 2, lg: 3 },
+    rows: 10,
+  });
 
   const handleExplore = (destination) => {
     navigate(`/destinations/${destination.id}`);
@@ -226,7 +239,7 @@ const Destinations = () => {
 
           {/* Result count */}
           <p className="mb-4 text-sm text-gray-500">
-            Showing <strong>{visibleDestinations.length}</strong> of <strong>{filteredDestinations.length}</strong> destinations
+            Showing <strong>{paginatedDestinations.length}</strong> of <strong>{filteredDestinations.length}</strong> destination{filteredDestinations.length !== 1 ? "s" : ""}
           </p>
 
           {loading && (
@@ -255,15 +268,23 @@ const Destinations = () => {
           )}
 
           {!loading && !error && filteredDestinations.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDestinations.map((destination) => (
-                <DestinationCard
-                  key={destination.id}
-                  destination={destination}
-                  onExplore={handleExplore}
-                />
-              ))}
-            </div>
+            <ErrorBoundary title="Unable to load destinations" message="There was a problem rendering the destinations grid.">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedDestinations.map((destination) => (
+                  <DestinationCard
+                    key={destination.id}
+                    destination={destination}
+                    onExplore={handleExplore}
+                  />
+                ))}
+              </div>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Destinations"
+              />
+            </ErrorBoundary>
           )}
         </div>
       </div>

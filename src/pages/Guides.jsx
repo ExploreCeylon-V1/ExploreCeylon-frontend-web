@@ -4,6 +4,9 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import guidesService from "../services/guidesService";
 import bannerImage from "../assets/Banner.jpg";
 import { SRI_LANKA_DISTRICTS } from "../components/SriLankaDistricts";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -236,7 +239,15 @@ const Guides = () => {
     sortBy,
   ]);
 
-
+  const {
+    pageItems: paginatedGuides,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredGuides, {
+    columns: viewMode === "list" ? { base: 1 } : { base: 1, sm: 2, lg: 3 },
+    rows: 10,
+  });
 
   const handleClearAll = () => {
     setSearchTerm("");
@@ -504,7 +515,7 @@ const Guides = () => {
               <div className="lg:col-span-3">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-xs font-semibold text-slate-500">
-                    Showing <strong className="text-slate-900">{visibleGuides.length}</strong> of <strong className="text-slate-900">{filteredGuides.length}</strong> verified guides
+                    Showing <strong className="text-slate-900">{paginatedGuides.length}</strong> of <strong className="text-slate-900">{filteredGuides.length}</strong> verified guide{filteredGuides.length !== 1 ? "s" : ""}
                   </p>
                   <div className="flex overflow-hidden bg-white border border-slate-200 rounded-xl shadow-2xs">
                     <button
@@ -560,7 +571,7 @@ const Guides = () => {
                 )}
 
                 {!loading && !error && filteredGuides.length > 0 && (
-                  <>
+                  <ErrorBoundary title="Unable to load guides" message="There was a problem rendering the guides list.">
                     <div
                       className={
                         viewMode === "grid"
@@ -568,7 +579,7 @@ const Guides = () => {
                           : "flex flex-col gap-4"
                       }
                     >
-                      {filteredGuides.map((guide) => {
+                      {paginatedGuides.map((guide) => {
                         const ratingDisplay =
                           guide.rating != null ? guide.rating.toFixed(1) : "—";
                         const specialtyTags = (guide.specialties || "")
@@ -730,7 +741,13 @@ const Guides = () => {
                         );
                       })}
                     </div>
-                  </>
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                      label="Guides"
+                    />
+                  </ErrorBoundary>
                 )}
             </div>
           </div>
