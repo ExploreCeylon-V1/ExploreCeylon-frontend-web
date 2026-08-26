@@ -11,17 +11,7 @@ import { MapPin, Calendar, Users, Compass, DollarSign, FileText, Sparkles, Arrow
 
 // ── Constants ──────────────────────────────────────────────
 const TRAVEL_STYLES = [
-  // Existing travel styles
   { value: "ADVENTURE",        label: "Adventure",          emoji: "🏔️" },
-  { value: "CULTURAL",         label: "Cultural",           emoji: "🏛️" },
-  { value: "RELAXATION",       label: "Relaxation",         emoji: "🌴" },
-  { value: "FAMILY",           label: "Family",             emoji: "👨‍👩‍👧" },
-  { value: "HONEYMOON",        label: "Honeymoon",          emoji: "💑" },
-  { value: "PILGRIMAGE",       label: "Pilgrimage",         emoji: "🛕" },
-  { value: "WILDLIFE",         label: "Wildlife",           emoji: "🦁" },
-  { value: "PHOTOGRAPHY",      label: "Photography",        emoji: "📸" },
-
-  // Unified 8-category set (Phase 1 additive)
   { value: "CULTURE_HERITAGE", label: "Culture & Heritage", emoji: "🏛️" },
   { value: "RELIGIOUS",        label: "Religious",          emoji: "🛕" },
   { value: "WILDLIFE_NATURE",  label: "Wildlife & Nature",  emoji: "🦁" },

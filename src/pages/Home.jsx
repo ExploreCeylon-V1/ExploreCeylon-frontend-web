@@ -18,14 +18,14 @@ import apiClient from "../services/api";
 
 // ─── Category filter pills (DestinationCategory enum values ekata match wenna oni) ───
 const CATEGORIES = [
-  { label: "Beach", value: "BEACH", emoji: "🏖️" },
-  { label: "Cultural", value: "CULTURAL", emoji: "🎭" },
-  { label: "Wildlife", value: "WILDLIFE", emoji: "🦁" },
-  { label: "Hill", value: "HILL", emoji: "⛰️" },
-  { label: "Surf", value: "SURF", emoji: "🏄" },
-  { label: "Heritage", value: "HERITAGE", emoji: "🏛️" },
-  { label: "Religious", value: "RELIGIOUS", emoji: "🙏" },
-  { label: "City", value: "CITY", emoji: "🏙️" },
+  { label: "Adventure",          value: "ADVENTURE",        emoji: "🏔️" },
+  { label: "Culture & Heritage", value: "CULTURE_HERITAGE", emoji: "🏛️" },
+  { label: "Religious",          value: "RELIGIOUS",        emoji: "🛕" },
+  { label: "Wildlife & Nature",  value: "WILDLIFE_NATURE",  emoji: "🦁" },
+  { label: "Beach & Coast",      value: "BEACH_COAST",      emoji: "🏖️" },
+  { label: "Hill Country",       value: "HILL_COUNTRY",     emoji: "⛰️" },
+  { label: "Scenic Views",       value: "SCENIC_VIEWS",     emoji: "🌄" },
+  { label: "City & Urban",       value: "CITY_URBAN",       emoji: "🏙️" },
 ];
 
 // ─── Format an event's start/end LocalDate strings into a short display range ───

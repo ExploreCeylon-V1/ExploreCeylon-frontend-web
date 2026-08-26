@@ -138,13 +138,6 @@ export async function regenerateShareToken(tripId) {
 
 export const STYLE_EMOJI = {
   ADVENTURE:        "🏔️",
-  CULTURAL:         "🏛️",
-  RELAXATION:       "🌴",
-  FAMILY:           "👨‍👩‍👧",
-  HONEYMOON:        "💑",
-  PILGRIMAGE:       "🛕",
-  WILDLIFE:         "🦁",
-  PHOTOGRAPHY:      "📸",
   CULTURE_HERITAGE: "🏛️",
   RELIGIOUS:        "🛕",
   WILDLIFE_NATURE:  "🦁",
