@@ -142,7 +142,7 @@ function FileDropzone({ label, file, preview, error, onSelect, onRemove, hint })
 }
 
 export default function VerificationPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -186,6 +186,9 @@ export default function VerificationPage() {
       setStatusData(data);
       if (data.nationality) {
         setNationality(data.nationality);
+      }
+      if (updateUser && data.status && data.status !== user?.kycStatus) {
+        updateUser({ kycStatus: data.status, nationality: data.nationality || user?.nationality });
       }
     } catch (err) {
       console.error("Failed to load verification status:", err);
@@ -277,6 +280,9 @@ export default function VerificationPage() {
       });
 
       setStatusData(res);
+      if (updateUser && res?.status) {
+        updateUser({ kycStatus: res.status, nationality: res.nationality || nationality });
+      }
       handleRemoveFront();
       handleRemoveBack();
     } catch (err) {
