@@ -39,6 +39,7 @@ import PaymentCancelPage   from "./pages/PaymentCancelPage";
 import AboutPage from "./pages/AboutPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import VerificationPage from "./pages/VerificationPage";
 import MaintenanceGate from "./components/MaintenanceGate";
 
 // MainLayout eken thama Navbar saha Footer render karanne.
@@ -70,6 +71,7 @@ function App() {
             <Route path="/" element={<Home />} />
             {/* Anith pages meke pahalin add karanna */}
             <Route path="/hotels" element={<HotelsPage />} />
+            <Route path="/verification" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
           </Route>
 
           {/* 2. Auth pages (Navbar & Footer NATHI) */}

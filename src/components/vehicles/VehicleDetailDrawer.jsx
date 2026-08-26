@@ -4,11 +4,13 @@ import { X } from "lucide-react";
 import { vehicleService } from "../../services/vehicleService";
 import { useCart } from "../../hooks/useCart";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { useAuth } from "../../hooks/useAuth";
 import VehicleReviews from "../VehicleReviews";
 import apiClient from "../../services/api";
 
 export default function VehicleDetailDrawer({ vehicleId, onClose }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
   const requireAuth = useRequireAuth();
   const [vehicle, setVehicle] = useState(null);
@@ -400,7 +402,11 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                 <button
                   onClick={() =>
                     requireAuth(
-                      () =>
+                      () => {
+                        if (user?.kycStatus !== "APPROVED") {
+                          navigate("/verification");
+                          return;
+                        }
                         addToCart({
                           type: "vehicle",
                           id: vehicle.id,
@@ -416,7 +422,8 @@ export default function VehicleDetailDrawer({ vehicleId, onClose }) {
                             whatsappNumber: vehicle.whatsappNumber,
                             languages: vehicle.driverLanguages,
                           },
-                        }),
+                        });
+                      },
                       {
                         title: "Sign in required",
                         message: "Please sign in or create an account to add vehicles to your cart."

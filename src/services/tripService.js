@@ -85,6 +85,34 @@ export async function removeItemFromDay(tripId, dayId, itemId) {
   );
 }
 
+// ── Add Day to Trip (Append Only) ──────────────────────────
+export async function addDayToTrip(tripId, data) {
+  try {
+    const res = await apiClient.post(`/api/v1/trips/${tripId}/days`, data);
+    return res.data;
+  } catch (err) {
+    const detail =
+      err.response?.data?.error ||
+      err.response?.data?.message ||
+      err.response?.data?.detail;
+    throw new Error(detail || `Failed to add day (HTTP ${err.response?.status || 500})`);
+  }
+}
+
+// ── Remove Last Day from Trip ──────────────────────────────
+export async function removeDayFromTrip(tripId, dayId) {
+  try {
+    const res = await apiClient.delete(`/api/v1/trips/${tripId}/days/${dayId}`);
+    return res.data;
+  } catch (err) {
+    const detail =
+      err.response?.data?.error ||
+      err.response?.data?.message ||
+      err.response?.data?.detail;
+    throw new Error(detail || `Failed to remove day (HTTP ${err.response?.status || 500})`);
+  }
+}
+
 // ── Helpers ────────────────────────────────────────────────
 export function formatDateRange(start, end) {
   const s = new Date(start);
