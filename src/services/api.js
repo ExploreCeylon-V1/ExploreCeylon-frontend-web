@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
 // Access tokens are short-lived (15 min); a plain axios call (not apiClient) avoids
 // re-entering these interceptors. Concurrent 401s share one in-flight refresh call.
 let refreshPromise = null;
-function refreshAccessToken() {
+export function refreshAccessToken() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return Promise.reject(new Error("No refresh token"));
 
