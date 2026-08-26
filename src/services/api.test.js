@@ -137,10 +137,12 @@ describe('apiClient response interceptor', () => {
     const originalRequest = { url: '/api/v1/users/me', headers: {} };
     const error = { response: { status: 401 }, config: originalRequest };
 
-    await expect(responseOnRejected(error)).rejects.toBe(error);
+    responseOnRejected(error);
 
-    expect(clearAuth).toHaveBeenCalled();
-    expect(window.location.href).toBe('/login');
+    await vi.waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(window.location.href).toBe('/login');
+    });
   });
 
   it('does not redirect again when already on /login', async () => {

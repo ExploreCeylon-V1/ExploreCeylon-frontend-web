@@ -12,14 +12,24 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
  */
 export function connectChatSocket({ conversationId, onMessage }) {
   const token = getToken();
+  if (!token) {
+    return null;
+  }
 
   const client = new Client({
-    webSocketFactory: () => new SockJS(`${API_BASE}/ws-chat?token=${encodeURIComponent(token)}`),
-    reconnectDelay: 4000,
+    webSocketFactory: () =>
+      new SockJS(`${API_BASE}/ws-chat?token=${encodeURIComponent(token)}`, null, {
+        // Restrict to modern transports — prevents legacy iframe.html 404s and jsonp MIME errors
+        transports: ["websocket", "xhr-streaming", "xhr-polling"],
+      }),
+    reconnectDelay: 5000,
     onConnect: () => {
       client.subscribe(`/topic/chat.${conversationId}`, (frame) => {
         onMessage(JSON.parse(frame.body));
       });
+    },
+    onStompError: (frame) => {
+      console.warn("Chat STOMP broker error:", frame?.headers?.["message"] || "Unknown STOMP error");
     },
   });
 
