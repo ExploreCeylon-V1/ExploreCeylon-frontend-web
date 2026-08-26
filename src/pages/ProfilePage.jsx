@@ -542,6 +542,86 @@ function SectionProfile({ user, onToast, onUpdateUser }) {
           </div>
         )}
       </div>
+
+      {/* Identity Verification (KYC Gate) */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900 mb-4">
+          🛡️ Government Identity Verification (KYC)
+        </h3>
+        {user?.kycStatus === "APPROVED" ? (
+          <div className="flex items-center justify-between gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">✅</span>
+              <div>
+                <p className="text-sm font-bold text-green-800">Identity Verified & Approved</p>
+                <p className="text-xs text-green-600">
+                  Full booking access is unlocked for tour guides and vehicles.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/verification"
+              className="px-3.5 py-1.5 border border-green-300 text-green-800 bg-white hover:bg-green-100/60 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+            >
+              View Details →
+            </Link>
+          </div>
+        ) : user?.kycStatus === "PENDING" ? (
+          <div className="flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⏳</span>
+              <div>
+                <p className="text-sm font-bold text-amber-800">ID Verification Under Review</p>
+                <p className="text-xs text-amber-700">
+                  Our administrators are reviewing your submission.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/verification"
+              className="px-3.5 py-1.5 border border-amber-300 text-amber-900 bg-white hover:bg-amber-100/60 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+            >
+              Check Status →
+            </Link>
+          </div>
+        ) : user?.kycStatus === "REJECTED" ? (
+          <div className="flex items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">❌</span>
+              <div>
+                <p className="text-sm font-bold text-red-800">ID Verification Rejected</p>
+                <p className="text-xs text-red-600">
+                  Please review the admin feedback and submit a new photo.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/verification"
+              className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+            >
+              Re-submit Documents →
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🪪</span>
+              <div>
+                <p className="text-sm font-bold text-slate-800">ID Verification Required</p>
+                <p className="text-xs text-slate-500">
+                  Upload your NIC, Driving License, or Passport to book certified guides and vehicles.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/verification"
+              className="px-4 py-2 bg-[#1a5c2a] hover:bg-[#14471f] text-white rounded-xl text-xs font-semibold transition-colors flex-shrink-0"
+            >
+              Verify Identity →
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1577,7 +1657,7 @@ function StarRating({ value = 0, onChange }) {
 // ═══════════════════════════════════════════════════════════
 // SECTION: Cart
 // ═══════════════════════════════════════════════════════════
-function SectionCart({ onToast }) {
+function SectionCart({ onToast, user }) {
   const { cartItems, removeFromCart, updateDates } = useCart();
   const navigate = useNavigate();
 
@@ -1732,6 +1812,11 @@ function SectionCart({ onToast }) {
                     onToast("Please select dates first", "error");
                     return;
                   }
+                  if (user?.kycStatus !== "APPROVED") {
+                    onToast("Government ID verification is required to book vehicles and tour guides.", "error");
+                    navigate("/verification");
+                    return;
+                  }
                   navigate(`/booking/${item.type}/${item.id}`, {
                     state: {
                       item,
@@ -1876,7 +1961,7 @@ export default function ProfilePage() {
     ),
     trips: <SectionTrips token={token} />,
     bookings: <SectionBookings token={token} user={user} onToast={showToast} />,
-    cart: <SectionCart onToast={showToast} />,
+    cart: <SectionCart onToast={showToast} user={user} />,
   };
 
   return (

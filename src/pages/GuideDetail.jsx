@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../hooks/useCart';
 import { useRequireAuth } from '../hooks/useRequireAuth';
+import { useAuth } from '../hooks/useAuth';
 
 const PLACEHOLDER_PHOTO =
   'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=60';
@@ -31,6 +32,7 @@ const onlyDigits = (str) => (str || '').replace(/\D/g, '');
 const GuideDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
   const requireAuth = useRequireAuth();
 
@@ -660,7 +662,11 @@ const GuideDetail = () => {
                     disabled={!guide.available}
                     onClick={() =>
                       requireAuth(
-                        () =>
+                        () => {
+                          if (user?.kycStatus !== "APPROVED") {
+                            navigate("/verification");
+                            return;
+                          }
                           addToCart({
                             type: 'guide',
                             id: guide.id,
@@ -674,7 +680,8 @@ const GuideDetail = () => {
                               phone: guide.phone,
                               whatsappNumber: guide.whatsappNumber,
                             },
-                          }),
+                          });
+                        },
                         {
                           title: "Sign in required",
                           message: "Please sign in or create an account to add guides to your cart."
