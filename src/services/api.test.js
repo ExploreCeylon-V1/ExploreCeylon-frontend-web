@@ -55,12 +55,22 @@ describe('apiClient request interceptor', () => {
     vi.clearAllMocks();
   });
 
-  it('adds an Authorization header when a token is present', () => {
+  it('adds an Authorization header when a token is present and no header exists', () => {
     getToken.mockReturnValue('abc123');
 
     const config = requestOnFulfilled({ headers: {} });
 
     expect(config.headers.Authorization).toBe('Bearer abc123');
+  });
+
+  it('does NOT overwrite an existing Authorization header (e.g. from retry logic)', () => {
+    getToken.mockReturnValue('stale-token');
+
+    const config = requestOnFulfilled({
+      headers: { Authorization: 'Bearer fresh-new-token' },
+    });
+
+    expect(config.headers.Authorization).toBe('Bearer fresh-new-token');
   });
 
   it('leaves the config untouched when there is no token', () => {
@@ -95,7 +105,12 @@ describe('apiClient response interceptor', () => {
 
   it('refreshes the token and retries the original request on a 401', async () => {
     getRefreshToken.mockReturnValue('refresh-token-value');
-    mockAxiosPost.mockResolvedValue({ data: { accessToken: 'new-access-token' } });
+    mockAxiosPost.mockResolvedValue({
+      data: {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token-value',
+      },
+    });
     mockInstance.mockResolvedValue({ data: 'retried-ok' });
 
     const originalRequest = { url: '/api/v1/users/me', headers: {} };
@@ -107,7 +122,7 @@ describe('apiClient response interceptor', () => {
       expect.stringContaining('/api/v1/auth/refresh-token'),
       { refreshToken: 'refresh-token-value' }
     );
-    expect(updateAccessToken).toHaveBeenCalledWith('new-access-token');
+    expect(updateAccessToken).toHaveBeenCalledWith('new-access-token', 'new-refresh-token-value');
     expect(originalRequest._retried).toBe(true);
     expect(originalRequest.headers.Authorization).toBe('Bearer new-access-token');
     expect(mockInstance).toHaveBeenCalledWith(originalRequest);
@@ -116,7 +131,12 @@ describe('apiClient response interceptor', () => {
 
   it('calls headers.set() when originalRequest.headers is an AxiosHeaders instance', async () => {
     getRefreshToken.mockReturnValue('refresh-token-value');
-    mockAxiosPost.mockResolvedValue({ data: { accessToken: 'new-access-token' } });
+    mockAxiosPost.mockResolvedValue({
+      data: {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token-value',
+      },
+    });
     mockInstance.mockResolvedValue({ data: 'retried-ok' });
 
     const mockHeaders = {

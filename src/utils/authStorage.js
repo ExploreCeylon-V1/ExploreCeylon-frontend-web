@@ -37,9 +37,22 @@ export function getRefreshToken() {
 }
 
 /** Swap in a freshly-issued access token, keeping it in whichever store currently holds auth. */
-export function updateAccessToken(token) {
-  const store = localStorage.getItem(TOKEN_KEY) ? localStorage : sessionStorage;
-  store.setItem(TOKEN_KEY, token);
+export function updateAccessToken(token, refreshToken = null) {
+  const hasLocal = localStorage.getItem(TOKEN_KEY) !== null || localStorage.getItem(USER_KEY) !== null;
+  const hasSession = sessionStorage.getItem(TOKEN_KEY) !== null || sessionStorage.getItem(USER_KEY) !== null;
+
+  if (hasLocal) {
+    localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+  if (hasSession) {
+    sessionStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+  if (!hasLocal && !hasSession) {
+    localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
 }
 
 /** Parsed user object, or null if absent/corrupted. */
