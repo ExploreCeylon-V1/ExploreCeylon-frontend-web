@@ -28,8 +28,8 @@ export async function generateAiItinerary(tripId, data) {
     return res.data;
   } catch (err) {
     const detail =
-      err.response?.data?.error ||
       err.response?.data?.message ||
+      err.response?.data?.error ||
       err.response?.data?.detail;
     throw new Error(detail || `AI generation failed (HTTP ${err.response?.status || 500})`);
   }
@@ -92,8 +92,8 @@ export async function addDayToTrip(tripId, data) {
     return res.data;
   } catch (err) {
     const detail =
-      err.response?.data?.error ||
       err.response?.data?.message ||
+      err.response?.data?.error ||
       err.response?.data?.detail;
     throw new Error(detail || `Failed to add day (HTTP ${err.response?.status || 500})`);
   }
@@ -106,8 +106,8 @@ export async function removeDayFromTrip(tripId, dayId) {
     return res.data;
   } catch (err) {
     const detail =
-      err.response?.data?.error ||
       err.response?.data?.message ||
+      err.response?.data?.error ||
       err.response?.data?.detail;
     throw new Error(detail || `Failed to remove day (HTTP ${err.response?.status || 500})`);
   }
