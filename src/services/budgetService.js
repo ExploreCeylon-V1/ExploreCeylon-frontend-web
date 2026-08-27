@@ -92,6 +92,22 @@ const budgetService = {
     });
     return res.data;
   },
+
+  /**
+   * GET /api/v1/budget/trip/{tripId}/syncable-bookings
+   */
+  getSyncableBookings: async (tripId) => {
+    const res = await apiClient.get(`/api/v1/budget/trip/${tripId}/syncable-bookings`);
+    return res.data;
+  },
+
+  /**
+   * POST /api/v1/budget/trip/{tripId}/sync-booking/{type}/{bookingId}
+   */
+  syncBookingToBudget: async (tripId, type, bookingId) => {
+    const res = await apiClient.post(`/api/v1/budget/trip/${tripId}/sync-booking/${type}/${bookingId}`);
+    return res.data;
+  },
 };
 
 export default budgetService;

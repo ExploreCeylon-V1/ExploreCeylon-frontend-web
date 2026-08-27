@@ -113,6 +113,18 @@ export async function removeDayFromTrip(tripId, dayId) {
   }
 }
 
+// ── Get Syncable Bookings for Trip ─────────────────────────
+export async function getSyncableBookings(tripId) {
+  const res = await apiClient.get(`/api/v1/trips/${tripId}/syncable-bookings`);
+  return res.data;
+}
+
+// ── Sync Booking to Trip Budget ────────────────────────────
+export async function syncBookingToBudget(tripId, type, bookingId) {
+  const res = await apiClient.post(`/api/v1/trips/${tripId}/budget/sync-booking/${type}/${bookingId}`);
+  return res.data;
+}
+
 // ── Helpers ────────────────────────────────────────────────
 export function formatDateRange(start, end) {
   const s = new Date(start);
