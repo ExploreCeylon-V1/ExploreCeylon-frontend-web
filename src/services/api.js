@@ -14,9 +14,21 @@ const apiClient = axios.create({
 // 1. Request Interceptor: Hama API call ekakatama token eka auto add kireema
 apiClient.interceptors.request.use(
   (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const existingAuth = typeof config.headers?.get === "function"
+      ? config.headers.get("Authorization")
+      : config.headers?.Authorization;
+
+    if (!existingAuth) {
+      const token = getToken();
+      if (token) {
+        if (typeof config.headers?.set === "function") {
+          config.headers.set("Authorization", `Bearer ${token}`);
+        } else if (config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        } else {
+          config.headers = { Authorization: `Bearer ${token}` };
+        }
+      }
     }
     return config;
   },
@@ -34,7 +46,7 @@ export function refreshAccessToken() {
     refreshPromise = axios
       .post(`${API_BASE}/api/v1/auth/refresh-token`, { refreshToken })
       .then((res) => {
-        updateAccessToken(res.data.accessToken);
+        updateAccessToken(res.data.accessToken, res.data.refreshToken);
         return res.data.accessToken;
       })
       .finally(() => { refreshPromise = null; });
@@ -64,6 +76,7 @@ apiClient.interceptors.response.use(
         }
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          originalRequest.headers.authorization = `Bearer ${newAccessToken}`;
         } else {
           originalRequest.headers = { Authorization: `Bearer ${newAccessToken}` };
         }
