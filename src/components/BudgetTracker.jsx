@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import {
   CheckCircle2, AlertTriangle, AlertCircle, Plus, RefreshCw, Pencil,
   Trash2, Search, TrendingUp, Download, Copy, Share2, X,
-  BarChart3, ArrowLeftRight, Lightbulb, Ban, Database,
+  BarChart3, ArrowLeftRight, Lightbulb, Ban, Database, Car, Users as UsersIcon,
 } from "lucide-react";
 import budgetService from "../services/budgetService";
 import { DEFAULT_USD_TO_LKR_RATE } from "../utils/currencyUtils";
@@ -417,6 +417,14 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
   const [copied, setCopied]         = useState(false);
   const expensePanelRef = useRef(null);
 
+  // Sync Bookings modal state
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncableBookings, setSyncableBookings] = useState([]);
+  const [loadingSyncable, setLoadingSyncable] = useState(false);
+  const [syncingId, setSyncingId] = useState(null);
+  const [syncError, setSyncError] = useState(null);
+  const [syncSuccessMsg, setSyncSuccessMsg] = useState(null);
+
   const isLive = mode === "LIVE";
   const tripDays = countDays(trip?.startDate, trip?.endDate);
   const tripTitle = trip?.title || "Sri Lanka Adventure";
@@ -717,18 +725,75 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
     setEditingAllocations(null);
   }
 
-  // Bookings auto-add to the budget server-side when they're created;
-  // "Sync Bookings" creates the budget if needed, repairs the dates of
-  // any auto-added items saved before that logic recorded the booking's
-  // real date (so they show up correctly in the daily chart), and refetches.
-  async function handleSyncBookings() {
-    if (!isLive) { setMode("ON_TRACK"); return; }
+  // ── Sync Bookings Handlers ──────────────────────────────
+  async function handleOpenSyncModal() {
+    if (!isLive) {
+      setMode("ON_TRACK");
+      return;
+    }
+    if (!trip?.id) return;
+    setShowSyncModal(true);
+    setLoadingSyncable(true);
+    setSyncError(null);
+    setSyncSuccessMsg(null);
     try {
-      const id = await ensureBudget();
-      await budgetService.repairAutoAddedDates(id);
+      await ensureBudget();
+      const data = await budgetService.getSyncableBookings(trip.id);
+      setSyncableBookings(data || []);
+    } catch (err) {
+      console.error("Failed to load syncable bookings:", err);
+      setSyncError(err?.response?.data?.message || err?.message || "Failed to load bookings");
+    } finally {
+      setLoadingSyncable(false);
+    }
+  }
+
+  async function handleSyncBookings() {
+    await handleOpenSyncModal();
+  }
+
+  async function handleSyncSingleBooking(booking) {
+    if (!trip?.id || !booking) return;
+    setSyncingId(booking.bookingId);
+    setSyncError(null);
+    try {
+      await budgetService.syncBookingToBudget(trip.id, booking.bookingType, booking.bookingId);
       await loadLive();
-    } catch {
-      alert("Failed to sync bookings");
+      setSyncableBookings(prev => prev.map(b => 
+        (b.bookingId === booking.bookingId && b.bookingType === booking.bookingType)
+          ? { ...b, isSynced: true }
+          : b
+      ));
+      setSyncSuccessMsg(`Synced ${booking.providerName} to budget!`);
+      setTimeout(() => setSyncSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error("Failed to sync booking:", err);
+      setSyncError(err?.response?.data?.message || err?.message || "Failed to sync booking");
+    } finally {
+      setSyncingId(null);
+    }
+  }
+
+  async function handleSyncAll() {
+    if (!trip?.id) return;
+    const unsynced = syncableBookings.filter(b => !b.isSynced);
+    if (unsynced.length === 0) return;
+
+    setSyncingId("ALL");
+    setSyncError(null);
+    try {
+      for (const b of unsynced) {
+        await budgetService.syncBookingToBudget(trip.id, b.bookingType, b.bookingId);
+      }
+      await loadLive();
+      setSyncableBookings(prev => prev.map(b => ({ ...b, isSynced: true })));
+      setSyncSuccessMsg(`Successfully synced ${unsynced.length} booking(s) to budget!`);
+      setTimeout(() => setSyncSuccessMsg(null), 3500);
+    } catch (err) {
+      console.error("Failed to sync all bookings:", err);
+      setSyncError(err?.response?.data?.message || err?.message || "Failed to sync all bookings");
+    } finally {
+      setSyncingId(null);
     }
   }
   function scrollToExpenses() {
@@ -1443,6 +1508,198 @@ export default function BudgetTracker({ trip, onBudgetChange }) {
           </div>
         </div>
       </div>
+
+      {/* ── Sync Bookings Modal ────────────────────────────── */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-gray-100 flex items-start justify-between gap-4 bg-gradient-to-r from-emerald-50/60 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 shadow-sm">
+                  <RefreshCw size={20} className={loadingSyncable ? "animate-spin" : ""} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 leading-snug">
+                    Sync Bookings to Trip Budget
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Import confirmed vehicle & guide bookings into this trip's budget items.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSyncModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Notification banners */}
+            {syncSuccessMsg && (
+              <div className="mx-6 mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                <span>{syncSuccessMsg}</span>
+              </div>
+            )}
+            {syncError && (
+              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle size={16} className="text-red-600 shrink-0" />
+                <span>{syncError}</span>
+              </div>
+            )}
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+              {loadingSyncable ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-gray-400">
+                  <RefreshCw size={24} className="animate-spin text-emerald-600" />
+                  <p className="text-xs font-medium">Checking for confirmed bookings...</p>
+                </div>
+              ) : syncableBookings.length === 0 ? (
+                <div className="py-10 text-center space-y-3">
+                  <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                    <Database size={24} />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">No confirmed bookings found</p>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                    You don't have any confirmed vehicle rentals or tour guide bookings yet. When you complete a booking advance payment, it will appear here for 1-click sync.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Summary Bar */}
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-100 flex-wrap">
+                    <span className="text-xs font-semibold text-gray-600">
+                      {syncableBookings.filter(b => !b.isSynced).length > 0 ? (
+                        <span className="text-emerald-700 font-bold">
+                          {syncableBookings.filter(b => !b.isSynced).length} new booking(s) available
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">All bookings are synced with your budget</span>
+                      )}
+                    </span>
+                    {syncableBookings.some(b => !b.isSynced) && (
+                      <button
+                        onClick={handleSyncAll}
+                        disabled={syncingId !== null}
+                        className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        {syncingId === "ALL" ? (
+                          <>
+                            <RefreshCw size={12} className="animate-spin" /> Syncing All...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={13} /> Sync All Available
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* List of Bookings */}
+                  <div className="space-y-3">
+                    {syncableBookings.map((b) => {
+                      const isVehicle = b.bookingType === "VEHICLE";
+                      const isThisSyncing = syncingId === b.bookingId;
+                      return (
+                        <div
+                          key={`${b.bookingType}-${b.bookingId}`}
+                          className={`p-4 rounded-2xl border transition-all ${
+                            b.isSynced
+                              ? "bg-gray-50/80 border-gray-200/80 opacity-80"
+                              : "bg-white border-emerald-100 hover:border-emerald-300 shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                isVehicle ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"
+                              }`}>
+                                {isVehicle ? <Car size={18} /> : <UsersIcon size={18} />}
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    isVehicle ? "bg-amber-100 text-amber-900" : "bg-purple-100 text-purple-900"
+                                  }`}>
+                                    {isVehicle ? "Vehicle" : "Guide"}
+                                  </span>
+                                  <span className="text-[10px] font-medium text-gray-500">
+                                    #{b.referenceId}
+                                  </span>
+                                  {b.tripId === trip?.id && (
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-semibold">
+                                      This Trip
+                                    </span>
+                                  )}
+                                </div>
+                                <h4 className="text-sm font-bold text-gray-900">
+                                  {b.providerName}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                  {b.startDate} {b.endDate && b.endDate !== b.startDate ? `– ${b.endDate}` : ""}
+                                  {b.vehicleNumber && ` · Plate: ${b.vehicleNumber}`}
+                                </p>
+                                {b.notes && (
+                                  <p className="text-[11px] text-gray-400 italic">
+                                    Req: {b.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                              <div className="text-sm font-bold text-gray-900">
+                                ${b.totalCost?.toFixed(2)}
+                              </div>
+                              {b.isSynced ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
+                                  <CheckCircle2 size={12} /> Synced
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => handleSyncSingleBooking(b)}
+                                  disabled={syncingId !== null}
+                                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                  {isThisSyncing ? (
+                                    <>
+                                      <RefreshCw size={12} className="animate-spin" /> Syncing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus size={12} /> Sync to Budget
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+              <span>Automatic duplicate prevention enabled</span>
+              <button
+                onClick={() => setShowSyncModal(false)}
+                className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-xl font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
