@@ -18,6 +18,7 @@ import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
 import { downloadTripPdf } from "../utils/tripPdf";
+import { filterEventsForTrip } from "../utils/sriLankaRouteDistricts";
 import {
   Calendar, Wallet, MapPin, FileText, ChevronDown,
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
@@ -845,70 +846,9 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
 
 // ── Events Suggestion List Widget ─────────────────────────────
 function TripEventsSuggestionWidget({ trip, events = [], detailCatalog, className = "" }) {
-  const tripDistricts = useMemo(() => {
-    const set = new Set();
-    if (trip?.startingPoint) set.add(trip.startingPoint.toLowerCase().trim());
-    if (trip?.fromLocation) set.add(trip.fromLocation.toLowerCase().trim());
-    if (trip?.toLocation) set.add(trip.toLocation.toLowerCase().trim());
-
-    (trip?.days || []).forEach((day) => {
-      if (day.region) set.add(day.region.toLowerCase().trim());
-      (day.items || []).forEach((item) => {
-        if (item.notes) set.add(item.notes.toLowerCase().trim());
-        const match = resolveItemMatch(item, detailCatalog);
-        if (match?.record?.district) set.add(match.record.district.toLowerCase().trim());
-        if (match?.record?.region) set.add(match.record.region.toLowerCase().trim());
-        if (match?.record?.province) set.add(match.record.province.toLowerCase().trim());
-      });
-    });
-    return set;
-  }, [trip, detailCatalog]);
-
   const matchedEvents = useMemo(() => {
-    const list = Array.isArray(events) ? events : [];
-    if (list.length === 0) return [];
-
-    return list.filter((e) => {
-      // 1. Date overlap check
-      if (trip?.startDate && trip?.endDate && e.startDate && e.endDate) {
-        if (e.startDate > trip.endDate || e.endDate < trip.startDate) {
-          return false;
-        }
-      }
-
-      // 2. Island-wide or district match
-      const r = (e.region || "").toLowerCase().trim();
-      const l = (e.location || "").toLowerCase().trim();
-      const isIsland =
-        !r ||
-        r === "island-wide" ||
-        r === "islandwide" ||
-        r === "island wide" ||
-        r === "all" ||
-        r === "all regions" ||
-        r === "national" ||
-        r === "sri lanka" ||
-        r === "across sri lanka" ||
-        l === "island-wide" ||
-        l === "islandwide" ||
-        l === "island wide" ||
-        l === "sri lanka" ||
-        l === "all";
-
-      if (isIsland) return true;
-
-      for (const dist of tripDistricts) {
-        if (!dist) continue;
-        if (
-          (r && (r.includes(dist) || dist.includes(r))) ||
-          (l && (l.includes(dist) || dist.includes(l)))
-        ) {
-          return true;
-        }
-      }
-      return false;
-    });
-  }, [events, trip?.startDate, trip?.endDate, tripDistricts]);
+    return filterEventsForTrip(events, trip, detailCatalog);
+  }, [events, trip, detailCatalog]);
 
   return (
     <div className={`bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between h-full ${className}`}>
@@ -957,6 +897,11 @@ function TripEventsSuggestionWidget({ trip, events = [], detailCatalog, classNam
               ? formatDateShort(event.startDate)
               : `${formatDateShort(event.startDate)} – ${formatDateShort(event.endDate)}`;
 
+            const locDisplay =
+              event.location && event.region && event.location.trim().toLowerCase() !== event.region.trim().toLowerCase()
+                ? `${event.location}, ${event.region}`
+                : event.location || event.region || "Sri Lanka";
+
             return (
               <div
                 key={event.id}
@@ -987,10 +932,10 @@ function TripEventsSuggestionWidget({ trip, events = [], detailCatalog, classNam
                       {event.title}
                     </h4>
 
-                    {(event.location || event.region) && (
+                    {locDisplay && (
                       <p className="text-3xs font-semibold text-slate-500 flex items-center gap-1 mt-0.5 line-clamp-1">
                         <MapPin size={10} className="text-emerald-700 shrink-0" />
-                        {event.location ? `${event.location}, ${event.region}` : event.region}
+                        {locDisplay}
                       </p>
                     )}
 
@@ -1999,8 +1944,8 @@ export default function TripDetailPage() {
             {[
               { value: `${days} Days`, label: "Trip Duration", Icon: Calendar, color: "text-emerald-700 bg-emerald-50 border-emerald-100" },
               { value: `$${Number(totalCost > 0 ? totalCost : (budgetTotal || 0)).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
-              { value: `${locations} Regions`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
-              { value: `${totalItems} Activities`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
+              { value: `${locations} Districts`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
+              { value: `${totalItems} Places`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
             ].map(s => (
               <div key={s.label}
                 className="bg-white rounded-2xl border border-slate-100 p-4

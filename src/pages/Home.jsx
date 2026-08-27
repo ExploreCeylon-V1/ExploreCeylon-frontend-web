@@ -224,7 +224,7 @@ export default function Home() {
           >
             <span className="block font-medium">AI-powered travel planning with real local data.</span>
             <span className="block mt-1 sm:mt-1.5 text-slate-100 font-normal opacity-95">
-              From ancient kingdoms to hidden tropical beaches — your perfect Sri Lanka trip starts here.
+              From ancient kingdoms to hidden tropical beaches - your perfect Sri Lanka trip starts here.
             </span>
           </p>
 
@@ -238,7 +238,7 @@ export default function Home() {
               className="group w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2.5 transition-all duration-300 shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/40 hover:-translate-y-0.5 text-sm md:text-base border border-emerald-400/30 cursor-pointer text-center whitespace-nowrap"
             >
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
-              <span>Generate AI Trip — Free</span>
+              <span>Generate My Trip with AI →</span>
             </button>
 
             <Link
@@ -263,7 +263,7 @@ export default function Home() {
       <div className="px-4 py-14 sm:py-16 bg-[#1A2035]">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-white sm:text-3xl">We only deliver results.</h2>
-          <p className="mt-1 text-sm text-stone-400">No icons — just the numbers that matter.</p>
+          <p className="mt-1 text-sm text-stone-400">No icons - just the numbers that matter.</p>
 
           {statsLoading ? (
             <div className="py-10 text-stone-500">Loading stats...</div>
@@ -379,7 +379,7 @@ export default function Home() {
             </h2>
             <p className="max-w-lg mt-4 text-sm leading-relaxed text-stone-200 md:text-base">
               Tell us your travel style, budget and interests. Our GPT-4o AI builds a day-by-day itinerary using
-              real destinations, local guides and hidden gems — monsoon-aware, geography-optimized.
+              real destinations, local guides and hidden gems - monsoon-aware, geography-optimized.
             </p>
 
             <div className="flex flex-wrap gap-2 mt-6">
@@ -648,7 +648,7 @@ export default function Home() {
             </h2>
             <p className="max-w-lg mt-4 text-sm leading-relaxed text-stone-300">
               {gems.length || 15} lesser-known destinations curated by locals. From secret waterfalls to hidden
-              beaches — places guidebooks don't mention.
+              beaches - places guidebooks don't mention.
             </p>
 
             <div className="flex flex-wrap gap-2 mt-6">
@@ -725,7 +725,7 @@ export default function Home() {
               onClick={() => navigate("/trips/new")}
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-amber-500 text-emerald-950 transition-all duration-200 hover:bg-amber-400 hover:-translate-y-0.5 shadow-lg"
             >
-              🚀 Generate AI Trip — Free
+              🚀 Generate AI Trip - Free
             </button>
             <button
               onClick={() => navigate("/destinations")}
