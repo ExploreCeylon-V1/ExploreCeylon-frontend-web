@@ -114,6 +114,24 @@ describe('apiClient response interceptor', () => {
     expect(result).toEqual({ data: 'retried-ok' });
   });
 
+  it('calls headers.set() when originalRequest.headers is an AxiosHeaders instance', async () => {
+    getRefreshToken.mockReturnValue('refresh-token-value');
+    mockAxiosPost.mockResolvedValue({ data: { accessToken: 'new-access-token' } });
+    mockInstance.mockResolvedValue({ data: 'retried-ok' });
+
+    const mockHeaders = {
+      set: vi.fn(),
+    };
+    const originalRequest = { url: '/api/v1/trips/23/days', headers: mockHeaders };
+    const error = { response: { status: 401 }, config: originalRequest };
+
+    const result = await responseOnRejected(error);
+
+    expect(mockHeaders.set).toHaveBeenCalledWith('Authorization', 'Bearer new-access-token');
+    expect(mockInstance).toHaveBeenCalledWith(originalRequest);
+    expect(result).toEqual({ data: 'retried-ok' });
+  });
+
   it('does not retry a request a second time (_retried guard)', async () => {
     const originalRequest = { url: '/api/v1/users/me', headers: {}, _retried: true };
     const error = { response: { status: 401 }, config: originalRequest };

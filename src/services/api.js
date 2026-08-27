@@ -59,7 +59,14 @@ apiClient.interceptors.response.use(
       originalRequest._retried = true;
       try {
         const newAccessToken = await refreshAccessToken();
-        originalRequest.headers = { ...originalRequest.headers, Authorization: `Bearer ${newAccessToken}` };
+        if (typeof originalRequest.headers?.set === "function") {
+          originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
+        }
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        } else {
+          originalRequest.headers = { Authorization: `Bearer ${newAccessToken}` };
+        }
         return apiClient(originalRequest);
       } catch {
         clearAuth();
