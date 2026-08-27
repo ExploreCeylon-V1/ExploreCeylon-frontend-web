@@ -203,4 +203,39 @@ describe('apiClient response interceptor', () => {
     await expect(responseOnRejected(error)).rejects.toBe(error);
     expect(mockAxiosPost).not.toHaveBeenCalled();
   });
+
+  it('queues concurrent 401 requests and retries all of them with the same fresh token on a single refresh call', async () => {
+    getRefreshToken.mockReturnValue('refresh-token-value');
+    let resolveRefresh;
+    const refreshPromise = new Promise((resolve) => {
+      resolveRefresh = resolve;
+    });
+    mockAxiosPost.mockReturnValue(refreshPromise);
+    mockInstance.mockResolvedValue({ data: 'ok' });
+
+    const req1 = { url: '/api/v1/trips/23/days', headers: {} };
+    const req2 = { url: '/api/v1/trips/23/days', headers: {} };
+    const err1 = { response: { status: 401 }, config: req1 };
+    const err2 = { response: { status: 401 }, config: req2 };
+
+    const p1 = responseOnRejected(err1);
+    const p2 = responseOnRejected(err2);
+
+    expect(mockAxiosPost).toHaveBeenCalledTimes(1);
+
+    resolveRefresh({
+      data: {
+        accessToken: 'shared-fresh-token',
+        refreshToken: 'shared-fresh-refresh',
+      },
+    });
+
+    const [res1, res2] = await Promise.all([p1, p2]);
+
+    expect(mockAxiosPost).toHaveBeenCalledTimes(1);
+    expect(req1.headers.Authorization).toBe('Bearer shared-fresh-token');
+    expect(req2.headers.Authorization).toBe('Bearer shared-fresh-token');
+    expect(res1).toEqual({ data: 'ok' });
+    expect(res2).toEqual({ data: 'ok' });
+  });
 });

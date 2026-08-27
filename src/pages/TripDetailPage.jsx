@@ -1273,12 +1273,14 @@ export default function TripDetailPage() {
   const [addDayTargetArea, setAddDayTargetArea] = useState("");
   const [addDayStyles,     setAddDayStyles]     = useState(["ADVENTURE", "CULTURE_HERITAGE"]);
   const [addingDay,        setAddingDay]        = useState(false);
+  const isAddingDayRef                          = useRef(false);
   const [addDayError,      setAddDayError]      = useState(null);
 
   // Remove Day State
   const [removeDayModalOpen, setRemoveDayModalOpen] = useState(false);
   const [dayToRemove,        setDayToRemove]        = useState(null);
   const [removingDay,        setRemovingDay]        = useState(false);
+  const isRemovingDayRef                            = useRef(false);
   const [removeDayError,     setRemoveDayError]     = useState(null);
 
   const allTargetLocations = useMemo(() => {
@@ -1300,6 +1302,7 @@ export default function TripDetailPage() {
   }
 
   async function handleAddDay() {
+    if (isAddingDayRef.current) return;
     if (!addDayTargetArea.trim()) {
       setAddDayError("Please select or enter a target destination/district.");
       return;
@@ -1308,6 +1311,7 @@ export default function TripDetailPage() {
       setAddDayError("Please select at least one travel category for the new day.");
       return;
     }
+    isAddingDayRef.current = true;
     setAddDayError(null);
     setAddingDay(true);
     try {
@@ -1334,12 +1338,14 @@ export default function TripDetailPage() {
     } catch (err) {
       setAddDayError(err.message || "Failed to add day. Please try again.");
     } finally {
+      isAddingDayRef.current = false;
       setAddingDay(false);
     }
   }
 
   async function handleRemoveDay() {
-    if (!dayToRemove) return;
+    if (!dayToRemove || isRemovingDayRef.current) return;
+    isRemovingDayRef.current = true;
     setRemoveDayError(null);
     setRemovingDay(true);
     try {
@@ -1360,6 +1366,7 @@ export default function TripDetailPage() {
     } catch (err) {
       setRemoveDayError(err.message || "Failed to remove day.");
     } finally {
+      isRemovingDayRef.current = false;
       setRemovingDay(false);
     }
   }

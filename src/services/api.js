@@ -35,6 +35,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Concurrency Subscriber Queue for 401 Retries
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Access tokens are short-lived (15 min); a plain axios call (not apiClient) avoids
 // re-entering these interceptors. Concurrent 401s share one in-flight refresh call.
 let refreshPromise = null;
@@ -68,9 +83,30 @@ apiClient.interceptors.response.use(
     const isAuthEndpoint = url.includes("/api/v1/auth/");
 
     if (status === 401 && !isAuthEndpoint && !originalRequest._retried) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest._retried = true;
+            if (typeof originalRequest.headers?.set === "function") {
+              originalRequest.headers.set("Authorization", `Bearer ${token}`);
+            }
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              originalRequest.headers.authorization = `Bearer ${token}`;
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retried = true;
+      isRefreshing = true;
+
       try {
         const newAccessToken = await refreshAccessToken();
+        processQueue(null, newAccessToken);
         if (typeof originalRequest.headers?.set === "function") {
           originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
         }
@@ -81,7 +117,8 @@ apiClient.interceptors.response.use(
           originalRequest.headers = { Authorization: `Bearer ${newAccessToken}` };
         }
         return apiClient(originalRequest);
-      } catch {
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
         clearAuth();
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
@@ -89,6 +126,8 @@ apiClient.interceptors.response.use(
           // so React components do not render flash error states like "Failed to load trips".
           return new Promise(() => {});
         }
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
