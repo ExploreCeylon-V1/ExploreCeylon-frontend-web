@@ -1,12 +1,13 @@
-// Maps to HiddenGem.GemCategory enum values exactly (BEACH, WATERFALL, RUINS, VIEWPOINT, VILLAGE, CAFE, TEMPLE)
+// Maps to HiddenGem.GemCategory enum values exactly
 export const GEM_CATEGORIES = [
-  { value: 'BEACH', label: 'Beach', icon: '🏖️' },
-  { value: 'WATERFALL', label: 'Waterfall', icon: '💧' },
-  { value: 'RUINS', label: 'Ruins', icon: '🏛️' },
-  { value: 'VIEWPOINT', label: 'Viewpoint', icon: '🧭' },
-  { value: 'VILLAGE', label: 'Village', icon: '🏘️' },
-  { value: 'CAFE', label: 'Cafe', icon: '☕' },
-  { value: 'TEMPLE', label: 'Temple', icon: '🛕' },
+  { value: 'ADVENTURE',        label: 'Adventure',          icon: '🏔️' },
+  { value: 'CULTURE_HERITAGE', label: 'Culture & Heritage', icon: '🏛️' },
+  { value: 'RELIGIOUS',        label: 'Religious',          icon: '🛕' },
+  { value: 'WILDLIFE_NATURE',  label: 'Wildlife & Nature',  icon: '🦁' },
+  { value: 'BEACH_COAST',      label: 'Beach & Coast',      icon: '🏖️' },
+  { value: 'HILL_COUNTRY',     label: 'Hill Country',       icon: '⛰️' },
+  { value: 'SCENIC_VIEWS',     label: 'Scenic Views',       icon: '🌄' },
+  { value: 'CITY_URBAN',       label: 'City & Urban',       icon: '🏙️' },
 ];
 
 export const getCategoryMeta = (categoryValue) =>

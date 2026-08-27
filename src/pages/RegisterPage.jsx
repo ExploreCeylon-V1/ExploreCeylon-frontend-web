@@ -66,6 +66,7 @@ export default function RegisterPage() {
         email: data.email || email,
         role: data.role || "TRAVELER",
         avatarUrl: data.avatarUrl,
+        kycStatus: data.kycStatus || "NOT_SUBMITTED",
       }, true, data.refreshToken);
       setShowSuccessModal(true);
     } catch (err) {

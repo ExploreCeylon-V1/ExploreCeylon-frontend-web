@@ -35,7 +35,7 @@ const TEAM = [
   {
     name: "Shehan Balasooriya",
     role: "Head of Design & UX",
-    quote: '"Great design is invisible — it just feels right."',
+    quote: '"Great design is invisible - it just feels right."',
     bio: "Crafts every pixel of the ExploreCeylon experience. Believes that beautiful interfaces inspire people to explore more.",
     photo: shehanPhoto,
     initials: "SB",
@@ -70,7 +70,7 @@ const VALUES = [
   {
     icon: "🌿",
     title: "Authentic Experiences",
-    desc: "We connect travelers with real, local Sri Lankan culture — not tourist traps. Every recommendation comes from people who love this island.",
+    desc: "We connect travelers with real, local Sri Lankan culture - not tourist traps. Every recommendation comes from people who love this island.",
   },
   {
     icon: "🤖",
@@ -85,7 +85,7 @@ const VALUES = [
   {
     icon: "🔒",
     title: "Trust & Transparency",
-    desc: "Clear pricing, verified guides, secure payments, and honest reviews. No hidden fees, no surprises — just great travel experiences.",
+    desc: "Clear pricing, verified guides, secure payments, and honest reviews. No hidden fees, no surprises - just great travel experiences.",
   },
 ];
 
@@ -381,13 +381,13 @@ export default function AboutPage() {
               <p>
                 Existing travel platforms were either too generic or didn't
                 connect travelers with the authentic experiences that make Sri
-                Lanka truly special — the hidden beaches, the local tea estates,
+                Lanka truly special - the hidden beaches, the local tea estates,
                 the centuries-old temples off the beaten path.
               </p>
               <p>
                 We spent months talking to travelers, local guides, and small
                 business owners. The insight was clear: what Sri Lanka needed
-                wasn't just another booking platform — it needed a
+                wasn't just another booking platform - it needed a
                 <strong className="text-gray-800">
                   {" "}
                   smart travel companion

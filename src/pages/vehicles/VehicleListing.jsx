@@ -7,8 +7,9 @@ import VehicleDetailDrawer from "../../components/vehicles/VehicleDetailDrawer";
 import { vehicleService } from "../../services/vehicleService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import ShowMoreButton from "../../components/ShowMoreButton";
-import { useShowMore } from "../../hooks/useShowMore";
+import ErrorBoundary from "../../components/ErrorBoundary";
+import Pagination from "../../components/Pagination";
+import { usePagination } from "../../hooks/usePagination";
 
 const TABS = [
   { key: "ALL", label: "All Vehicles" },
@@ -158,24 +159,13 @@ export default function VehicleListing() {
   );
 
   const {
-    visibleItems: visibleVehicles,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(displayed, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [
-      activeTab,
-      district,
-      priceRange,
-      driverOnly,
-      searchQuery,
-      sortBy,
-      startDate,
-      endDate,
-      viewMode,
-    ],
+    pageItems: paginatedVehicles,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(displayed, {
+    columns: viewMode === "list" ? { base: 1 } : { base: 1, sm: 2, lg: 3 },
+    rows: 10,
   });
 
   const clearFilters = () => {
@@ -411,10 +401,6 @@ export default function VehicleListing() {
               </div>
             ))}
           </div>
-          */}
-
-          <div ref={listRef} />
-
           {/* Loading */}
           {loading && (
             <div className="flex flex-col items-center justify-center gap-4 py-20 text-gray-500">
@@ -451,13 +437,7 @@ export default function VehicleListing() {
 
           {/* Grid / List */}
           {!loading && !error && displayed.length > 0 && (
-            <>
-              <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
-                <p>
-                  Showing <strong>{visibleVehicles.length}</strong> of <strong>{displayed.length}</strong> vehicles
-                </p>
-              </div>
-
+            <ErrorBoundary title="Unable to load vehicles" message="There was a problem rendering the vehicles section.">
               <div
                 className={
                   viewMode === "grid"
@@ -465,7 +445,7 @@ export default function VehicleListing() {
                     : "flex flex-col gap-4"
                 }
               >
-                {visibleVehicles.map((vehicle) => (
+                {paginatedVehicles.map((vehicle) => (
                   <VehicleCard
                     key={vehicle.id}
                     vehicle={vehicle}
@@ -474,14 +454,13 @@ export default function VehicleListing() {
                   />
                 ))}
               </div>
-
-              <ShowMoreButton
-                onClick={showMore}
-                hasMore={hasMore}
-                remainingCount={remainingCount}
-                buttonText="Show More Vehicles"
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                label="Vehicles"
               />
-            </>
+            </ErrorBoundary>
           )}
         </div>
       </div>

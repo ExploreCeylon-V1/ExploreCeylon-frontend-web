@@ -1,14 +1,13 @@
 // Maps to Destination.DestinationCategory enum values exactly
 export const DESTINATION_CATEGORIES = [
-  { value: 'BEACH', label: 'Beach', icon: '🏖️' },
-  { value: 'CULTURAL', label: 'Cultural', icon: '🏛️' },
-  { value: 'WILDLIFE', label: 'Wildlife', icon: '🐘' },
-  { value: 'HILL', label: 'Hill', icon: '⛰️' },
-  { value: 'SURF', label: 'Surf', icon: '🏄' },
-  { value: 'ADVENTURE', label: 'Adventure', icon: '🧭' },
-  { value: 'HERITAGE', label: 'Heritage', icon: '🏯' },
-  { value: 'RELIGIOUS', label: 'Religious', icon: '🙏' },
-  { value: 'CITY', label: 'City', icon: '🏙️' },
+  { value: 'ADVENTURE',        label: 'Adventure',          icon: '🏔️' },
+  { value: 'CULTURE_HERITAGE', label: 'Culture & Heritage', icon: '🏛️' },
+  { value: 'RELIGIOUS',        label: 'Religious',          icon: '🛕' },
+  { value: 'WILDLIFE_NATURE',  label: 'Wildlife & Nature',  icon: '🦁' },
+  { value: 'BEACH_COAST',      label: 'Beach & Coast',      icon: '🏖️' },
+  { value: 'HILL_COUNTRY',     label: 'Hill Country',       icon: '⛰️' },
+  { value: 'SCENIC_VIEWS',     label: 'Scenic Views',       icon: '🌄' },
+  { value: 'CITY_URBAN',       label: 'City & Urban',       icon: '🏙️' },
 ];
 
 export const getDestinationCategoryMeta = (categoryValue) =>

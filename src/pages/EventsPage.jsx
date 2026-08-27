@@ -9,8 +9,9 @@ import AddToTripModal from "../components/AddToTripModal";
 import { CATEGORY_META, CATEGORY_LIST } from "../utils/eventCategoryMeta";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ShowMoreButton from "../components/ShowMoreButton";
-import { useShowMore } from "../hooks/useShowMore";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import { useAuth } from "../hooks/useAuth";
 import { getSavedEventIds, toggleSavedEventId } from "../utils/eventBookmarks";
 
@@ -116,14 +117,13 @@ export default function EventsPage() {
   }, [events, searchQuery, activeCategory, savedIds, selectedDate]);
 
   const {
-    visibleItems: visibleEvents,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(filteredEvents, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [searchQuery, activeCategory, selectedDate],
+    pageItems: paginatedEvents,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(filteredEvents, {
+    columns: { base: 1 },
+    rows: 10,
   });
 
   const toggleSave = (id) => {
@@ -277,7 +277,7 @@ export default function EventsPage() {
           </aside>
 
           {/* ── RIGHT: Events list ── */}
-          <div ref={listRef} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             {/* ── SEARCH BAR ── */}
             <div className="bg-white border border-slate-100 rounded-2xl p-3.5 sm:p-4 shadow-sm mb-5 flex items-center gap-3">
               <Search size={18} className="text-emerald-700 shrink-0" />
@@ -314,7 +314,7 @@ export default function EventsPage() {
                 </h2>
                 {!loading && (
                   <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                    Showing <strong className="text-slate-900">{filteredEvents.length}</strong> event
+                    Showing <strong className="text-slate-900">{paginatedEvents.length}</strong> of <strong className="text-slate-900">{filteredEvents.length}</strong> event
                     {filteredEvents.length !== 1 ? "s" : ""}
                   </p>
                 )}
@@ -404,13 +404,10 @@ export default function EventsPage() {
             )}
 
             {/* Event cards */}
-            {!loading && !error && visibleEvents.length > 0 && (
-              <>
-                <div className="mb-3 text-xs text-gray-500 font-semibold">
-                  Showing <strong>{visibleEvents.length}</strong> of <strong>{filteredEvents.length}</strong> events
-                </div>
+            {!loading && !error && filteredEvents.length > 0 && (
+              <ErrorBoundary title="Unable to load events" message="There was a problem rendering the events section.">
                 <div className="flex flex-col gap-4">
-                  {visibleEvents.map((event) => (
+                  {paginatedEvents.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -421,14 +418,13 @@ export default function EventsPage() {
                     />
                   ))}
                 </div>
-
-                <ShowMoreButton
-                  onClick={showMore}
-                  hasMore={hasMore}
-                  remainingCount={remainingCount}
-                  buttonText="Show More Events"
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  label="Events"
                 />
-              </>
+              </ErrorBoundary>
             )}
           </div>
         </div>

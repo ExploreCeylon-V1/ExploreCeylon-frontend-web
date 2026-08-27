@@ -137,14 +137,14 @@ export async function regenerateShareToken(tripId) {
 }
 
 export const STYLE_EMOJI = {
-  ADVENTURE:   "🏔️",
-  CULTURAL:    "🏛️",
-  RELAXATION:  "🌴",
-  FAMILY:      "👨‍👩‍👧",
-  HONEYMOON:   "💑",
-  PILGRIMAGE:  "🛕",
-  WILDLIFE:    "🦁",
-  PHOTOGRAPHY: "📸",
+  ADVENTURE:        "🏔️",
+  CULTURE_HERITAGE: "🏛️",
+  RELIGIOUS:        "🛕",
+  WILDLIFE_NATURE:  "🦁",
+  BEACH_COAST:      "🏖️",
+  HILL_COUNTRY:     "⛰️",
+  SCENIC_VIEWS:     "🌄",
+  CITY_URBAN:       "🏙️",
 };
 
 export const BUDGET_EMOJI = {

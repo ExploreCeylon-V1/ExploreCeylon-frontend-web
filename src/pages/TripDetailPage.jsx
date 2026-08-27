@@ -6,7 +6,10 @@ import Footer from "../components/Footer";
 import TripMapPanel from "../components/TripMapPanel";
 import BudgetTracker from "../components/BudgetTracker";
 import TripGenerationLoader from "../components/TripGenerationLoader";
-import { getTripById, updateTripTitle, updateTripStatus, generateAiItinerary, removeItemFromDay, addItemToDay } from "../services/tripService";
+import { getTripById, updateTripTitle, updateTripStatus, generateAiItinerary, removeItemFromDay, addItemToDay, addDayToTrip, removeDayFromTrip } from "../services/tripService";
+import { SRI_LANKA_DISTRICTS } from "../components/SriLankaDistricts";
+import { getDestinationCategoryMeta } from "../components/destinationCategories";
+import { CATEGORY_META } from "../utils/eventCategoryMeta";
 import budgetService from "../services/budgetService";
 import destinationsService from "../services/destinationsService";
 import hiddenGemsService from "../services/Hiddengemsservice";
@@ -15,12 +18,13 @@ import guidesService from "../services/guidesService";
 import { vehicleService } from "../services/vehicleService";
 import { getDistanceKm } from "../utils/geo";
 import { downloadTripPdf } from "../utils/tripPdf";
+import { filterEventsForTrip } from "../utils/sriLankaRouteDistricts";
 import {
   Calendar, Wallet, MapPin, FileText, ChevronDown,
   ArrowLeft, Share2, CheckCircle2, Sparkles, UserPlus,
   PartyPopper, Lightbulb, Sunrise, Sun, Moon,
   Pencil, RefreshCw, Check, X, Gem, Compass, Route, Download,
-  Users, Trash2,
+  Users, Trash2, Plus, AlertCircle, CalendarX,
 } from "lucide-react";
 
 // ============================================================================
@@ -90,7 +94,6 @@ const ITEM_TYPE_META = {
 const NEARBY_CATEGORIES = [
   { value: "DESTINATION", label: "Destination" },
   { value: "GEM",         label: "Hidden Gem" },
-  { value: "EVENT",       label: "Event" },
 ];
 
 // §2 — time-of-day slots. There's no slot field on the backend TripDayItem,
@@ -100,6 +103,24 @@ const TIME_SLOTS = [
   { key: "morning",   label: "Morning",   time: "Start of day",  Icon: Sunrise },
   { key: "afternoon", label: "Afternoon", time: "Midday",        Icon: Sun },
   { key: "evening",   label: "Evening",   time: "Later",         Icon: Moon },
+];
+
+const ADD_DAY_TRAVEL_STYLES = [
+  { value: "ADVENTURE",        label: "Adventure",          emoji: "🏔️" },
+  { value: "CULTURE_HERITAGE", label: "Culture & Heritage", emoji: "🏛️" },
+  { value: "RELIGIOUS",        label: "Religious",          emoji: "🛕" },
+  { value: "WILDLIFE_NATURE",  label: "Wildlife & Nature",  emoji: "🦁" },
+  { value: "BEACH_COAST",      label: "Beach & Coast",      emoji: "🏖️" },
+  { value: "HILL_COUNTRY",     label: "Hill Country",       emoji: "⛰️" },
+  { value: "SCENIC_VIEWS",     label: "Scenic Views",       emoji: "🌄" },
+  { value: "CITY_URBAN",       label: "City & Urban",       emoji: "🏙️" },
+];
+
+const POPULAR_DESTINATION_HUBS = [
+  "Ella", "Sigiriya", "Kandy", "Galle", "Mirissa", "Nuwara Eliya",
+  "Bentota", "Yala", "Arugam Bay", "Trincomalee", "Tangalle",
+  "Dambulla", "Anuradhapura", "Polonnaruwa", "Jaffna", "Negombo",
+  "Colombo", "Weligama", "Hikkaduwa", "Matara", "Kalutara", "Matale"
 ];
 
 function bucketItemsIntoSlots(items) {
@@ -370,8 +391,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
     const addedRefIds = new Set(
       (day?.items || [])
         .filter(i => category === "GEM" ? i?.type === "GEM" : i?.type === "ACTIVITY")
-        .filter(i => category === "EVENT" ? i?.title?.startsWith("Festival:") : true)
-        .filter(i => category === "DESTINATION" ? !i?.title?.startsWith("Festival:") : true)
+        .filter(i => !i?.title?.startsWith("Festival:"))
         .map(i => i?.referenceId)
         .filter(Boolean)
     );
@@ -385,11 +405,6 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
         } else if (category === "GEM") {
           const data = await hiddenGemsService.getNearby(center.lat, center.lng, 9);
           results = (data || []).filter(g => g && !addedRefIds.has(String(g.id)));
-        } else {
-          const data = await eventService.getTripSyncEvents(trip?.startDate, trip?.endDate);
-          results = (data || [])
-            .filter(e => e && e.latitude != null && e.longitude != null)
-            .filter(e => !addedRefIds.has(String(e.id)));
         }
         const withDistance = results
           .map(r => ({ ...r, distanceKm: getDistanceKm(center.lat, center.lng, r.latitude, r.longitude) }))
@@ -414,11 +429,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
 
   async function handleAdd(suggestion) {
     setAddingId(suggestion.id);
-    const payload = category === "EVENT"
-      ? { type: "ACTIVITY", referenceId: String(suggestion.id),
-          title: `Festival: ${suggestion.title}`, cost: 0, currency: "USD",
-          notes: suggestion.region }
-      : category === "GEM"
+    const payload = category === "GEM"
       ? { type: "GEM", referenceId: String(suggestion.id),
           title: suggestion.title, cost: 0, currency: "USD",
           notes: suggestion.district }
@@ -504,7 +515,7 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
                   const image = category === "DESTINATION"
                     ? (s.coverImageUrl || s.imageUrls?.[0])
                     : s.imageUrls?.[0];
-                  const subtitle = category === "EVENT" ? s.region : s.district;
+                  const subtitle = s.district;
                   return (
                     <div key={s.id}
                       className="border border-gray-200 rounded-xl overflow-hidden
@@ -569,7 +580,8 @@ function AddNearbySection({ day, trip, tripId, token, detailCatalog, onItemAdded
 }
 
 function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
-                   isActive, onClick, detailCatalog, dayIndex }) {
+                   isActive, onClick, detailCatalog, dayIndex,
+                   isLastDay, totalDays, onRemoveDayClick }) {
   const [deletingId, setDeletingId] = useState(null);
 
   const dayTotal = (day?.items || []).reduce((s, i) => s + (Number(i?.cost) || 0), 0);
@@ -621,10 +633,30 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 shrink-0 ml-2">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-2">
           <span className="text-xs font-extrabold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
             ${Number(dayTotal || 0).toFixed(2)}
           </span>
+          {isLastDay && totalDays > 1 && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveDayClick?.(day);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  onRemoveDayClick?.(day);
+                }
+              }}
+              title={`Remove Day ${day.dayNumber}`}
+              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-rose-50 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+            >
+              <Trash2 size={13} />
+            </span>
+          )}
           <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-emerald-100 transition-colors">
             <ChevronDown
               size={16}
@@ -812,143 +844,122 @@ function DayCard({ day, trip, tripId, token, onItemAdded, onItemDeleted,
   );
 }
 
-//  Editable Trip Intelligence Panel (Phase 8 & 10 Integration)
-function EditableTripIntelligencePanel({ trip, onApplyEdit, disabled }) {
-  const [customPrompt, setCustomPrompt] = useState("");
-
-  const allStops = useMemo(() => {
-    const list = [];
-    if (trip && trip.days) {
-      trip.days.forEach(d => {
-        (d.items || []).forEach(item => {
-          const name = item.title || item.name;
-          if (name) {
-            list.push({ name, dayNumber: d.dayNumber, region: d.region });
-          }
-        });
-      });
-    }
-    return list;
-  }, [trip]);
-
-  const presets = useMemo(() => {
-    const list = [];
-
-    // 1. Dynamic Replace Stop (from actual trip)
-    if (allStops.length > 0) {
-      const stopToReplace = allStops[0].name;
-      const shortName = stopToReplace.length > 18 ? stopToReplace.slice(0, 15) + "..." : stopToReplace;
-      list.push({
-        label: `✏️ Replace ${shortName}`,
-        prompt: `Replace ${stopToReplace} with a nearby attraction`
-      });
-    } else {
-      list.push({ label: "✏️ Replace Stop", prompt: "Replace a stop with a nearby attraction" });
-    }
-
-    // 2. Dynamic Add Stop
-    const regionName = trip?.toLocation || (trip?.days && trip.days[0]?.region) || "Sri Lanka";
-    list.push({
-      label: `➕ Add Stop`,
-      prompt: `Add a stop in ${regionName}`
-    });
-
-    // 3. Dynamic Remove Stop(s) (from actual trip)
-    if (allStops.length > 0) {
-      const firstStop = allStops[0].name;
-      const shortFirst = firstStop.length > 18 ? firstStop.slice(0, 15) + "..." : firstStop;
-      list.push({
-        label: `➖ Remove ${shortFirst}`,
-        prompt: `Remove ${firstStop}`
-      });
-
-      if (allStops.length > 1 && allStops[1].name !== firstStop) {
-        const secondStop = allStops[1].name;
-        const shortSecond = secondStop.length > 18 ? secondStop.slice(0, 15) + "..." : secondStop;
-        list.push({
-          label: `➖ Remove ${shortSecond}`,
-          prompt: `Remove ${secondStop}`
-        });
-      }
-    } else {
-      list.push({ label: "➖ Remove Stop", prompt: "Remove a stop from itinerary" });
-    }
-
-    // 4. Dynamic Shift Schedule (from actual trip)
-    if (allStops.length > 0) {
-      const shiftStop = allStops[0];
-      const targetDay = (trip?.days && trip.days.length > 1)
-        ? (shiftStop.dayNumber === 1 ? 2 : 1)
-        : 1;
-      const shortShift = shiftStop.name.length > 15 ? shiftStop.name.slice(0, 12) + "..." : shiftStop.name;
-      list.push({
-        label: `📅 Move ${shortShift}`,
-        prompt: `Move ${shiftStop.name} to Day ${targetDay}`
-      });
-    } else {
-      list.push({ label: "📅 Shift Schedule", prompt: "Move a stop to a different day" });
-    }
-
-    // 5. Generic Presets (Start 9:00 AM preset removed entirely)
-    list.push({ label: "🚗 Less Driving", prompt: "Reduce driving time and optimize route" });
-    list.push({ label: "👨‍👩‍👧 Family Friendly", prompt: "Make the trip family friendly with light walking" });
-    list.push({ label: "💰 Reduce Budget", prompt: "Reduce budget target to LKR 50,000" });
-
-    return list;
-  }, [allStops, trip]);
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!customPrompt.trim()) return;
-    onApplyEdit(customPrompt);
-    setCustomPrompt("");
-  }
+// ── Events Suggestion List Widget ─────────────────────────────
+function TripEventsSuggestionWidget({ trip, events = [], detailCatalog, className = "" }) {
+  const matchedEvents = useMemo(() => {
+    return filterEventsForTrip(events, trip, detailCatalog);
+  }, [events, trip, detailCatalog]);
 
   return (
-    <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 rounded-3xl p-6 shadow-md text-white h-full flex flex-col justify-between border border-emerald-800/50">
+    <div className={`bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between h-full ${className}`}>
       <div>
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <Sparkles size={18} className="text-amber-300 animate-pulse" />
-          <h2 className="text-base sm:text-lg font-black text-white">AI Itinerary Intelligence</h2>
-          <span className="ml-auto text-3xs font-extrabold uppercase tracking-wider bg-white/10 border border-white/20 px-3 py-1 rounded-full text-emerald-200">
-            Pipeline 13.0
-          </span>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-800 flex items-center justify-center shrink-0 font-bold">
+              <PartyPopper size={18} />
+            </div>
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Events & Festivals</h2>
+          </div>
+          {matchedEvents.length > 0 && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-3xs font-extrabold text-purple-900">
+              <Sparkles size={11} className="text-purple-600" />
+              {matchedEvents.length} Event{matchedEvents.length > 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        <p className="text-xs text-emerald-100/90 mb-4 leading-relaxed font-medium">
-          Customize &amp; adapt your Sri Lanka journey in real time. Pick a preset or type custom edits to re-generate affected days.
-        </p>
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {presets.map((p) => (
-            <button
-              key={p.label}
-              onClick={() => setCustomPrompt(p.prompt)}
-              disabled={disabled}
-              className="text-3xs font-bold px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-emerald-100 transition-all disabled:opacity-50 text-left cursor-pointer"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
+        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 font-medium">
+          Local celebrations, cultural festivals, and seasonal events happening along your journey during your travel dates.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap sm:flex-nowrap pt-2">
-        <input
-          type="text"
-          value={customPrompt}
-          onChange={(e) => setCustomPrompt(e.target.value)}
-          placeholder="e.g. Replace Temple of Tooth with Ambuluwawa..."
-          disabled={disabled}
-          className="flex-1 px-4 py-2.5 rounded-xl bg-white text-slate-900 placeholder-slate-400 text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-400 border-none min-w-[200px]"
-        />
-        <button
-          type="submit"
-          disabled={disabled || !customPrompt.trim()}
-          className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 shadow-sm"
-        >
-          <Sparkles size={14} /> Apply Edits
-        </button>
-      </form>
+      {matchedEvents.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-6 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 my-auto py-8">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-2.5">
+            <CalendarX size={20} />
+          </div>
+          <p className="text-xs font-extrabold text-slate-800 mb-1">No Events Scheduled for Your Dates</p>
+          <p className="text-3xs text-slate-500 font-medium max-w-xs leading-relaxed">
+            There are currently no events or festivals listed for your travel dates (
+            {trip?.startDate && trip?.endDate
+              ? `${formatDateShort(trip.startDate)} – ${formatDateShort(trip.endDate)}`
+              : "selected dates"}
+            ) along this route.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3 pt-2 border-t border-slate-100 max-h-[260px] overflow-y-auto pr-1">
+          {matchedEvents.map((event) => {
+            const meta = CATEGORY_META[event.category] || CATEGORY_META.ALL;
+            const image = event.imageUrls?.[0] || PLACEHOLDER_ITEM_IMAGE;
+            const isSingleDay = !event.endDate || event.startDate === event.endDate;
+            const dateDisplay = isSingleDay
+              ? formatDateShort(event.startDate)
+              : `${formatDateShort(event.startDate)} – ${formatDateShort(event.endDate)}`;
+
+            const locDisplay =
+              event.location && event.region && event.location.trim().toLowerCase() !== event.region.trim().toLowerCase()
+                ? `${event.location}, ${event.region}`
+                : event.location || event.region || "Sri Lanka";
+
+            return (
+              <div
+                key={event.id}
+                className="flex items-start gap-3 bg-slate-50/70 hover:bg-slate-50 border border-slate-100/90 rounded-2xl p-3 transition-all duration-200 group"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden bg-slate-200 relative shadow-2xs">
+                  <img
+                    src={image}
+                    alt={event.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => { e.currentTarget.src = PLACEHOLDER_ITEM_IMAGE; }}
+                  />
+                </div>
+
+                <div className="min-w-0 flex-1 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between gap-1.5 flex-wrap mb-1">
+                      <span className={`inline-block px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider ${meta.badge || "bg-purple-100 text-purple-800"}`}>
+                        {meta.label || event.category}
+                      </span>
+                      <span className="text-3xs font-bold text-slate-400 flex items-center gap-1">
+                        <Calendar size={11} className="text-emerald-700" />
+                        {dateDisplay}
+                      </span>
+                    </div>
+
+                    <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-emerald-800 transition-colors line-clamp-1">
+                      {event.title}
+                    </h4>
+
+                    {locDisplay && (
+                      <p className="text-3xs font-semibold text-slate-500 flex items-center gap-1 mt-0.5 line-clamp-1">
+                        <MapPin size={10} className="text-emerald-700 shrink-0" />
+                        {locDisplay}
+                      </p>
+                    )}
+
+                    {event.description && (
+                      <p className="text-3xs font-medium text-slate-600 line-clamp-2 mt-1 leading-relaxed">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2.5 flex justify-end">
+                    <Link
+                      to={`/events/${event.id}`}
+                      className="inline-flex items-center gap-1 text-3xs font-extrabold text-emerald-800 hover:text-emerald-950 bg-white border border-emerald-200/80 hover:border-emerald-400 px-2.5 py-1 rounded-lg shadow-2xs transition-all"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1031,6 +1042,29 @@ function buildTripSummary(trip, stops) {
     parts.push(`Along the way you'll experience ${joined}${regionSequence.length > 1 ? ` across ${regionSequence.length} regions` : ""}.`);
   }
   return parts.join(" ");
+}
+
+function getStopCategoryMeta(rawCategory) {
+  if (!rawCategory) return null;
+  const val = typeof rawCategory === "string" ? rawCategory : rawCategory.value || rawCategory.name;
+  if (!val) return null;
+  const upper = String(val).toUpperCase().trim();
+  const normalized = upper === "CULTURAL" ? "CULTURE_HERITAGE" : upper;
+  const meta = getDestinationCategoryMeta(normalized);
+  if (meta && meta.icon && meta.label) {
+    if (meta.label === normalized && normalized.includes("_")) {
+      return {
+        ...meta,
+        label: normalized.split("_").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" "),
+      };
+    }
+    return meta;
+  }
+  return {
+    value: upper,
+    label: val,
+    icon: "📍",
+  };
 }
 
 function TripOverviewSection({ trip, detailCatalog }) {
@@ -1118,16 +1152,27 @@ function TripOverviewSection({ trip, detailCatalog }) {
                   const meta = OVERVIEW_KIND_META[s?.kind] || OVERVIEW_KIND_META.DESTINATION;
                   const Icon = meta?.Icon || Compass;
                   const title = cleanItemTitle(s?.title || s?.name || "Stop");
+                  const rawCategory = s?.match?.record?.category || s?.category;
+                  const catMeta = getStopCategoryMeta(rawCategory);
+
                   const content = (
-                    <span className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors">
-                      <Icon size={12} className="text-emerald-700 shrink-0" />
-                      <span className="truncate">{title}</span>
+                    <span className="flex items-center justify-between gap-2 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors group py-0.5">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Icon size={12} className="text-emerald-700 shrink-0" />
+                        <span className="truncate group-hover:text-emerald-800">{title}</span>
+                      </span>
+                      {catMeta && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-50 border border-slate-200 text-3xs font-semibold text-slate-600 shrink-0 shadow-2xs">
+                          <span className="text-[11px] leading-none">{catMeta.icon}</span>
+                          <span className="truncate">{catMeta.label}</span>
+                        </span>
+                      )}
                     </span>
                   );
                   return (
                     <li key={s?.id || `${bucket.dayNumber}-${sIdx}`}>
                       {s?.match?.link ? (
-                        <Link to={s.match.link}>{content}</Link>
+                        <Link to={s.match.link} className="block">{content}</Link>
                       ) : (
                         content
                       )}
@@ -1167,6 +1212,109 @@ export default function TripDetailPage() {
   const [regenFeedback, setRegenFeedback] = useState("");
   const [regenerating,  setRegenerating]  = useState(false);
   const [regenError,    setRegenError]    = useState(null);
+
+  // Add Day State
+  const [addDayModalOpen,  setAddDayModalOpen]  = useState(false);
+  const [addDayTargetArea, setAddDayTargetArea] = useState("");
+  const [addDayStyles,     setAddDayStyles]     = useState(["ADVENTURE", "CULTURE_HERITAGE"]);
+  const [addingDay,        setAddingDay]        = useState(false);
+  const isAddingDayRef                          = useRef(false);
+  const [addDayError,      setAddDayError]      = useState(null);
+
+  // Remove Day State
+  const [removeDayModalOpen, setRemoveDayModalOpen] = useState(false);
+  const [dayToRemove,        setDayToRemove]        = useState(null);
+  const [removingDay,        setRemovingDay]        = useState(false);
+  const isRemovingDayRef                            = useRef(false);
+  const [removeDayError,     setRemoveDayError]     = useState(null);
+
+  const allTargetLocations = useMemo(() => {
+    const set = new Set([...POPULAR_DESTINATION_HUBS, ...SRI_LANKA_DISTRICTS]);
+    return Array.from(set).sort();
+  }, []);
+
+  function openAddDayModal() {
+    setAddDayError(null);
+    setAddDayTargetArea(trip?.toLocation || "Ella");
+    setAddDayStyles(trip?.travelStyle ? [trip.travelStyle] : ["ADVENTURE", "CULTURE_HERITAGE"]);
+    setAddDayModalOpen(true);
+  }
+
+  function openRemoveDayModal(day) {
+    setRemoveDayError(null);
+    setDayToRemove(day);
+    setRemoveDayModalOpen(true);
+  }
+
+  async function handleAddDay() {
+    if (isAddingDayRef.current) return;
+    if (!addDayTargetArea.trim()) {
+      setAddDayError("Please select or enter a target destination/district.");
+      return;
+    }
+    if (addDayStyles.length === 0) {
+      setAddDayError("Please select at least one travel category for the new day.");
+      return;
+    }
+    isAddingDayRef.current = true;
+    setAddDayError(null);
+    setAddingDay(true);
+    try {
+      const updatedTrip = await addDayToTrip(trip.id, {
+        targetArea: addDayTargetArea.trim(),
+        travelStyles: addDayStyles,
+      });
+      setTrip(updatedTrip);
+      setAddDayModalOpen(false);
+      setAddDayTargetArea("");
+      if (updatedTrip.days && updatedTrip.days.length > 0) {
+        const last = updatedTrip.days[updatedTrip.days.length - 1];
+        setActiveDay(last.id);
+        requestAnimationFrame(() => {
+          dayRefs.current[last.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+      if (updatedTrip.startDate && updatedTrip.endDate) {
+        loadDetailCatalog(updatedTrip.startDate, updatedTrip.endDate).then(setDetailCatalog);
+      }
+      budgetService.getBudgetByTrip(updatedTrip.id)
+        .then(b => setBudgetTotal(b?.totalBudget ?? null))
+        .catch(() => setBudgetTotal(null));
+    } catch (err) {
+      setAddDayError(err.message || "Failed to add day. Please try again.");
+    } finally {
+      isAddingDayRef.current = false;
+      setAddingDay(false);
+    }
+  }
+
+  async function handleRemoveDay() {
+    if (!dayToRemove || isRemovingDayRef.current) return;
+    isRemovingDayRef.current = true;
+    setRemoveDayError(null);
+    setRemovingDay(true);
+    try {
+      const updatedTrip = await removeDayFromTrip(trip.id, dayToRemove.id);
+      setTrip(updatedTrip);
+      setRemoveDayModalOpen(false);
+      setDayToRemove(null);
+      if (updatedTrip.days && updatedTrip.days.length > 0) {
+        const last = updatedTrip.days[updatedTrip.days.length - 1];
+        setActiveDay(last.id);
+      }
+      if (updatedTrip.startDate && updatedTrip.endDate) {
+        loadDetailCatalog(updatedTrip.startDate, updatedTrip.endDate).then(setDetailCatalog);
+      }
+      budgetService.getBudgetByTrip(updatedTrip.id)
+        .then(b => setBudgetTotal(b?.totalBudget ?? null))
+        .catch(() => setBudgetTotal(null));
+    } catch (err) {
+      setRemoveDayError(err.message || "Failed to remove day.");
+    } finally {
+      isRemovingDayRef.current = false;
+      setRemovingDay(false);
+    }
+  }
 
   async function loadTrip() {
     setLoading(true);
@@ -1415,6 +1563,209 @@ export default function TripDetailPage() {
         </div>
       )}
 
+      {/* ── Add Day Modal (Append Only) ── */}
+      {addDayModalOpen && (
+        <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs"
+            onClick={() => { if (!addingDay) setAddDayModalOpen(false); }}
+          />
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-800 shrink-0">
+                  <Plus size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-slate-900">
+                    Add Day to Itinerary
+                  </h2>
+                  <p className="text-3xs font-bold text-slate-400 uppercase tracking-wider">
+                    {trip?.days?.length ? `Day ${trip.days.length + 1}` : "New Day"} • Append to end of journey
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => { if (!addingDay) setAddDayModalOpen(false); }}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Input 1: Target Area */}
+              <div>
+                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1">
+                  <MapPin size={12} className="text-emerald-700" /> Target Destination or District <span className="text-emerald-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addDayTargetArea}
+                  onChange={e => setAddDayTargetArea(e.target.value)}
+                  placeholder="e.g. Ella, Mirissa, Kandy, Nuwara Eliya..."
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold rounded-2xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
+                />
+                {/* Quick chips */}
+                <div className="flex flex-wrap gap-1.5 mt-2 max-h-20 overflow-y-auto">
+                  {allTargetLocations
+                    .filter(loc => !addDayTargetArea || loc.toLowerCase().includes(addDayTargetArea.toLowerCase()))
+                    .slice(0, 8)
+                    .map(loc => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => setAddDayTargetArea(loc)}
+                        className={`px-2.5 py-0.5 text-3xs font-bold rounded-lg border transition-all ${
+                          addDayTargetArea.toLowerCase() === loc.toLowerCase()
+                            ? "bg-emerald-800 text-white border-emerald-800"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200"
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {/* Input 2: Categories (8 Unified Categories) */}
+              <div>
+                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1">
+                  <Compass size={12} className="text-emerald-700" /> Travel Categories for this Day <span className="text-emerald-600">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {ADD_DAY_TRAVEL_STYLES.map(s => {
+                    const isSelected = addDayStyles.includes(s.value);
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        onClick={() => {
+                          setAddDayStyles(prev => {
+                            if (prev.includes(s.value)) {
+                              if (prev.length === 1) return prev;
+                              return prev.filter(item => item !== s.value);
+                            }
+                            return [...prev, s.value];
+                          });
+                        }}
+                        className={`flex items-center gap-1.5 p-2 rounded-xl border text-3xs font-bold transition-all text-left ${
+                          isSelected
+                            ? "border-emerald-700 bg-emerald-50 text-emerald-950 shadow-2xs ring-1 ring-emerald-700/20"
+                            : "border-slate-200 bg-slate-50/50 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="text-sm">{s.emoji}</span>
+                        <span className="truncate">{s.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {addDayError && (
+              <div className="mt-4 flex items-start gap-2 bg-rose-50 border border-rose-200 rounded-2xl p-3 text-xs font-semibold text-rose-700">
+                <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                <div className="flex-1">{addDayError}</div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                disabled={addingDay}
+                onClick={() => setAddDayModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={addingDay || !addDayTargetArea.trim() || addDayStyles.length === 0}
+                onClick={handleAddDay}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-extrabold transition-all shadow-sm disabled:opacity-50"
+              >
+                {addingDay ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generating Day...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} /> Add Day
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Remove Day Confirmation Modal (Last Day Only) ── */}
+      {removeDayModalOpen && dayToRemove && (
+        <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs"
+            onClick={() => { if (!removingDay) setRemoveDayModalOpen(false); }}
+          />
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-100">
+            <div className="flex items-center gap-2.5 mb-2 text-rose-600">
+              <div className="w-9 h-9 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-rose-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">
+                  Remove Day {dayToRemove.dayNumber}?
+                </h2>
+                <p className="text-3xs font-bold text-slate-400 uppercase tracking-wider">
+                  {formatDateShort(dayToRemove.date)} {dayToRemove.region ? `• ${dayToRemove.region}` : ""}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-4 font-medium leading-relaxed">
+              Are you sure you want to remove Day {dayToRemove.dayNumber}? All planned activities and stops for this day will be removed from your itinerary. This action cannot be undone.
+            </p>
+
+            {removeDayError && (
+              <div className="mb-4 flex items-start gap-2.5 bg-rose-50 border border-rose-200 rounded-2xl p-3.5 text-xs font-semibold text-rose-700">
+                <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                <div className="flex-1">{removeDayError}</div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                type="button"
+                disabled={removingDay}
+                onClick={() => setRemoveDayModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={removingDay}
+                onClick={handleRemoveDay}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition-all shadow-sm disabled:opacity-50"
+              >
+                {removingDay ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} /> Remove Day
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════════ HERO HEADER ══════════════════════════ */}
       <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white py-10 sm:py-14 px-4 sm:px-6 lg:px-8 shadow-xl border-b-4 border-amber-400">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
@@ -1531,6 +1882,13 @@ export default function TripDetailPage() {
                 </button>
               )}
 
+              <button
+                onClick={openAddDayModal}
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 backdrop-blur-xs"
+              >
+                <Plus size={15} /> Add Day
+              </button>
+
               {trip.status !== "CONFIRMED" && trip.status !== "COMPLETED" && trip.status !== "CANCELLED" && (
                 <button
                   onClick={handleConfirm}
@@ -1586,8 +1944,8 @@ export default function TripDetailPage() {
             {[
               { value: `${days} Days`, label: "Trip Duration", Icon: Calendar, color: "text-emerald-700 bg-emerald-50 border-emerald-100" },
               { value: `$${Number(totalCost > 0 ? totalCost : (budgetTotal || 0)).toFixed(0)}`, label: "Estimated Budget", Icon: Wallet, color: "text-amber-700 bg-amber-50 border-amber-100" },
-              { value: `${locations} Regions`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
-              { value: `${totalItems} Activities`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
+              { value: `${locations} Districts`, label: "Destinations Covered", Icon: MapPin, color: "text-sky-700 bg-sky-50 border-sky-100" },
+              { value: `${totalItems} Places`, label: "Itinerary Items", Icon: Compass, color: "text-purple-700 bg-purple-50 border-purple-100" },
             ].map(s => (
               <div key={s.label}
                 className="bg-white rounded-2xl border border-slate-100 p-4
@@ -1608,13 +1966,11 @@ export default function TripDetailPage() {
             <>
               {/* Responsive 2-column layout on desktop (lg), 1-column on mobile & tablet */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-                <EditableTripIntelligencePanel
+                <TripEventsSuggestionWidget
                   trip={trip}
-                  onApplyEdit={(promptText) => {
-                    setRegenFeedback(promptText);
-                    doRegenerateWithPrompt(promptText);
-                  }}
-                  disabled={regenerating}
+                  events={detailCatalog?.events || []}
+                  detailCatalog={detailCatalog}
+                  className="hidden lg:flex"
                 />
                 <TripOverviewSection trip={trip} detailCatalog={detailCatalog} />
               </div>
@@ -1646,28 +2002,48 @@ export default function TripDetailPage() {
 
                 {/*  Left: Day cards  */}
                 <div className={`space-y-4 ${mobileView === "itinerary" ? "" : "hidden"} lg:block`}>
-                  {(trip.days || []).map((day, dayIndex) => (
-                    <div
-                      key={day.id}
-                      ref={el => { dayRefs.current[day.id] = el; }}
-                      className="scroll-mt-[120px]"
-                    >
-                      <DayCard
-                        day={day}
-                        dayIndex={dayIndex}
-                        trip={trip}
-                        tripId={trip.id}
-                        token={token}
-                        isActive={activeDay === day.id}
-                        onClick={() =>
-                          setActiveDay(activeDay === day.id ? null : day.id)
-                        }
-                        onItemAdded={handleItemAdded}
-                        onItemDeleted={handleItemDeleted}
-                        detailCatalog={detailCatalog}
-                      />
+                  {(trip.days || []).map((day, dayIndex) => {
+                    const isLastDay = dayIndex === (trip.days.length - 1);
+                    return (
+                      <div
+                        key={day.id}
+                        ref={el => { dayRefs.current[day.id] = el; }}
+                        className="scroll-mt-[120px]"
+                      >
+                        <DayCard
+                          day={day}
+                          dayIndex={dayIndex}
+                          trip={trip}
+                          tripId={trip.id}
+                          token={token}
+                          isActive={activeDay === day.id}
+                          onClick={() =>
+                            setActiveDay(activeDay === day.id ? null : day.id)
+                          }
+                          onItemAdded={handleItemAdded}
+                          onItemDeleted={handleItemDeleted}
+                          detailCatalog={detailCatalog}
+                          isLastDay={isLastDay}
+                          totalDays={trip.days.length}
+                          onRemoveDayClick={openRemoveDayModal}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* + Add Day Button below last DayCard */}
+                  <button
+                    type="button"
+                    onClick={openAddDayModal}
+                    className="w-full py-4 px-6 border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-3xl bg-emerald-50/40 hover:bg-emerald-50 text-emerald-900 transition-all flex items-center justify-center gap-2 group shadow-2xs cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-emerald-800 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
+                      <Plus size={15} />
                     </div>
-                  ))}
+                    <span className="text-xs sm:text-sm font-extrabold tracking-wide">
+                      Add Another Day to Itinerary
+                    </span>
+                  </button>
                 </div>
 
                 {/*  Right: Leaflet Map (sticky on desktop) + Share  */}
@@ -1688,6 +2064,16 @@ export default function TripDetailPage() {
           {activeTab === "budget" && (
             <BudgetTracker trip={trip} onBudgetChange={setBudgetTotal} />
           )}
+
+          {/* Mobile & tablet view: Events suggestion widget rendered at the very end of the page */}
+          <div className="lg:hidden mt-8">
+            <TripEventsSuggestionWidget
+              trip={trip}
+              events={detailCatalog?.events || []}
+              detailCatalog={detailCatalog}
+              className="flex"
+            />
+          </div>
 
           </TripResultsErrorBoundary>
         </div>

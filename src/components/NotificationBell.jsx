@@ -6,6 +6,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "../services/notificationService";
+import { Bell, X, Clock, ExternalLink } from "lucide-react";
 
 // How often to poll for new notifications while the tab is open.
 const NOTIFICATION_POLL_MS = 30000;
@@ -21,10 +22,25 @@ function timeAgo(iso) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+function formatFullDateTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export default function NotificationBell() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const notifRef = useRef(null);
   const navigate = useNavigate();
 
@@ -36,6 +52,19 @@ export default function NotificationBell() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Close modal on Escape key press
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        setSelectedNotification(null);
+      }
+    }
+    if (selectedNotification) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedNotification]);
 
   // Poll for payment-reminder notifications (e.g. "last payment day" balance
   // due) while logged in, so the bell badge stays live without a refresh.
@@ -78,7 +107,7 @@ export default function NotificationBell() {
         .catch(() => {});
     }
     setNotifOpen(false);
-    navigate("/profile?tab=bookings");
+    setSelectedNotification(n);
   }
 
   function handleMarkAllRead() {
@@ -138,7 +167,7 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n)}
-                  className={`flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left border-b border-gray-50 last:border-0 hover:bg-gray-50 ${!n.read ? "bg-green-50/50" : ""}`}
+                  className={`flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer ${!n.read ? "bg-green-50/50" : ""}`}
                 >
                   <div className="flex w-full items-center gap-2">
                     {!n.read && (
@@ -157,6 +186,100 @@ export default function NotificationBell() {
                 </button>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Full Notification Detail Modal ── */}
+      {selectedNotification && (
+        <div
+          className="fixed inset-0 z-[2500] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notification-modal-title"
+        >
+          {/* Backdrop (closes on click) */}
+          <div
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setSelectedNotification(null)}
+          />
+
+          {/* Modal Container */}
+          <div
+            className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150 text-slate-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button (X) */}
+            <button
+              type="button"
+              onClick={() => setSelectedNotification(null)}
+              aria-label="Close modal"
+              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-start gap-3.5 mb-4 pr-6">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-2xs">
+                <Bell size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="text-3xs font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900">
+                    {selectedNotification.bookingType
+                      ? `${selectedNotification.bookingType} UPDATE`
+                      : "NOTIFICATION"}
+                  </span>
+                  {selectedNotification.createdAt && (
+                    <span className="text-3xs font-semibold text-slate-400 flex items-center gap-1">
+                      <Clock size={11} className="text-slate-400" />
+                      {timeAgo(selectedNotification.createdAt)}
+                      {formatFullDateTime(selectedNotification.createdAt)
+                        ? ` • ${formatFullDateTime(selectedNotification.createdAt)}`
+                        : ""}
+                    </span>
+                  )}
+                </div>
+                <h3
+                  id="notification-modal-title"
+                  className="text-base sm:text-lg font-black text-slate-900 leading-snug"
+                >
+                  {selectedNotification.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Body: Full untruncated message */}
+            <div className="bg-slate-50/90 border border-slate-100 rounded-2xl p-4 sm:p-5 mb-5 text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap select-text">
+              {selectedNotification.message}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedNotification(null)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+              >
+                Close
+              </button>
+              {(selectedNotification.bookingId ||
+                selectedNotification.bookingType ||
+                selectedNotification.type === "BALANCE_REMINDER") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedNotification(null);
+                    navigate("/profile?tab=bookings");
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-extrabold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ExternalLink size={14} />
+                  View in Bookings
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

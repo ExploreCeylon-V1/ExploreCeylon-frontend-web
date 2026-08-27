@@ -70,8 +70,13 @@ export function ChatProvider({ children }) {
         }
       },
     });
+    if (!client) return;
     socketRef.current = client;
-    return () => client.deactivate();
+    return () => {
+      if (client?.deactivate) {
+        client.deactivate();
+      }
+    };
   }, [isAuthenticated, conversation?.id, addMessage]);
 
   const openChat = useCallback(() => {

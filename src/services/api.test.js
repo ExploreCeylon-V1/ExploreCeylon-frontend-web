@@ -55,12 +55,22 @@ describe('apiClient request interceptor', () => {
     vi.clearAllMocks();
   });
 
-  it('adds an Authorization header when a token is present', () => {
+  it('adds an Authorization header when a token is present and no header exists', () => {
     getToken.mockReturnValue('abc123');
 
     const config = requestOnFulfilled({ headers: {} });
 
     expect(config.headers.Authorization).toBe('Bearer abc123');
+  });
+
+  it('does NOT overwrite an existing Authorization header (e.g. from retry logic)', () => {
+    getToken.mockReturnValue('stale-token');
+
+    const config = requestOnFulfilled({
+      headers: { Authorization: 'Bearer fresh-new-token' },
+    });
+
+    expect(config.headers.Authorization).toBe('Bearer fresh-new-token');
   });
 
   it('leaves the config untouched when there is no token', () => {
@@ -95,7 +105,12 @@ describe('apiClient response interceptor', () => {
 
   it('refreshes the token and retries the original request on a 401', async () => {
     getRefreshToken.mockReturnValue('refresh-token-value');
-    mockAxiosPost.mockResolvedValue({ data: { accessToken: 'new-access-token' } });
+    mockAxiosPost.mockResolvedValue({
+      data: {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token-value',
+      },
+    });
     mockInstance.mockResolvedValue({ data: 'retried-ok' });
 
     const originalRequest = { url: '/api/v1/users/me', headers: {} };
@@ -107,9 +122,32 @@ describe('apiClient response interceptor', () => {
       expect.stringContaining('/api/v1/auth/refresh-token'),
       { refreshToken: 'refresh-token-value' }
     );
-    expect(updateAccessToken).toHaveBeenCalledWith('new-access-token');
+    expect(updateAccessToken).toHaveBeenCalledWith('new-access-token', 'new-refresh-token-value');
     expect(originalRequest._retried).toBe(true);
     expect(originalRequest.headers.Authorization).toBe('Bearer new-access-token');
+    expect(mockInstance).toHaveBeenCalledWith(originalRequest);
+    expect(result).toEqual({ data: 'retried-ok' });
+  });
+
+  it('calls headers.set() when originalRequest.headers is an AxiosHeaders instance', async () => {
+    getRefreshToken.mockReturnValue('refresh-token-value');
+    mockAxiosPost.mockResolvedValue({
+      data: {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token-value',
+      },
+    });
+    mockInstance.mockResolvedValue({ data: 'retried-ok' });
+
+    const mockHeaders = {
+      set: vi.fn(),
+    };
+    const originalRequest = { url: '/api/v1/trips/23/days', headers: mockHeaders };
+    const error = { response: { status: 401 }, config: originalRequest };
+
+    const result = await responseOnRejected(error);
+
+    expect(mockHeaders.set).toHaveBeenCalledWith('Authorization', 'Bearer new-access-token');
     expect(mockInstance).toHaveBeenCalledWith(originalRequest);
     expect(result).toEqual({ data: 'retried-ok' });
   });
@@ -137,10 +175,12 @@ describe('apiClient response interceptor', () => {
     const originalRequest = { url: '/api/v1/users/me', headers: {} };
     const error = { response: { status: 401 }, config: originalRequest };
 
-    await expect(responseOnRejected(error)).rejects.toBe(error);
+    responseOnRejected(error);
 
-    expect(clearAuth).toHaveBeenCalled();
-    expect(window.location.href).toBe('/login');
+    await vi.waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(window.location.href).toBe('/login');
+    });
   });
 
   it('does not redirect again when already on /login', async () => {
@@ -162,5 +202,40 @@ describe('apiClient response interceptor', () => {
 
     await expect(responseOnRejected(error)).rejects.toBe(error);
     expect(mockAxiosPost).not.toHaveBeenCalled();
+  });
+
+  it('queues concurrent 401 requests and retries all of them with the same fresh token on a single refresh call', async () => {
+    getRefreshToken.mockReturnValue('refresh-token-value');
+    let resolveRefresh;
+    const refreshPromise = new Promise((resolve) => {
+      resolveRefresh = resolve;
+    });
+    mockAxiosPost.mockReturnValue(refreshPromise);
+    mockInstance.mockResolvedValue({ data: 'ok' });
+
+    const req1 = { url: '/api/v1/trips/23/days', headers: {} };
+    const req2 = { url: '/api/v1/trips/23/days', headers: {} };
+    const err1 = { response: { status: 401 }, config: req1 };
+    const err2 = { response: { status: 401 }, config: req2 };
+
+    const p1 = responseOnRejected(err1);
+    const p2 = responseOnRejected(err2);
+
+    expect(mockAxiosPost).toHaveBeenCalledTimes(1);
+
+    resolveRefresh({
+      data: {
+        accessToken: 'shared-fresh-token',
+        refreshToken: 'shared-fresh-refresh',
+      },
+    });
+
+    const [res1, res2] = await Promise.all([p1, p2]);
+
+    expect(mockAxiosPost).toHaveBeenCalledTimes(1);
+    expect(req1.headers.Authorization).toBe('Bearer shared-fresh-token');
+    expect(req2.headers.Authorization).toBe('Bearer shared-fresh-token');
+    expect(res1).toEqual({ data: 'ok' });
+    expect(res2).toEqual({ data: 'ok' });
   });
 });

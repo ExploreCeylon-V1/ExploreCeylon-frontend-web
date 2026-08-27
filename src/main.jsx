@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Google Client ID eka .env file eken (VITE_GOOGLE_CLIENT_ID) ganna.
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -16,8 +17,10 @@ if (!GOOGLE_CLIENT_ID) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <App />
-    </GoogleOAuthProvider>
+    <ErrorBoundary isGlobal>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <App />
+      </GoogleOAuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 )

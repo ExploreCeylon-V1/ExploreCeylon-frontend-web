@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { searchHotels } from "../services/Hotelservice";
 import HotelDetailsPanel from "../components/HotelDetailsPanel";
-import ShowMoreButton from "../components/ShowMoreButton";
-import { useShowMore } from "../hooks/useShowMore";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Pagination from "../components/Pagination";
+import { usePagination } from "../hooks/usePagination";
 import { buildBookingComUrl } from "../utils/hotelLinks";
 import { useRequireAuth } from "../hooks/useRequireAuth";
 import bannerImage from "../assets/Banner.jpg";
@@ -423,22 +424,13 @@ export default function HotelsPage() {
   ]);
 
   const {
-    visibleItems: visibleHotels,
-    hasMore,
-    remainingCount,
-    showMore,
-  } = useShowMore(sortedHotels, {
-    initialCount: 5,
-    increment: 5,
-    resetDeps: [
-      maxPrice,
-      anyStarSelected,
-      stars,
-      guestRating,
-      localPicksOnly,
-      sortBy,
-      location,
-    ],
+    pageItems: paginatedHotels,
+    page,
+    totalPages,
+    setPage,
+  } = usePagination(sortedHotels, {
+    columns: { base: 1 },
+    rows: 10,
   });
 
   return (
@@ -790,7 +782,7 @@ export default function HotelsPage() {
           </div>
 
           {/* Right Side: Main Hotel List Content Area */}
-          <div ref={listRef} className="w-full space-y-6 lg:col-span-8">
+          <div className="w-full space-y-6 lg:col-span-8">
             {/* Header Control Row */}
             <div className="flex flex-col w-full pt-2 pb-5 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between">
               {/* Left Side: Title, Sub-details */}
@@ -799,7 +791,7 @@ export default function HotelsPage() {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {isLoading
                       ? "Searching hotels..."
-                      : `Showing ${sortedHotels.length} hotels in ${location?.trim() ? location : "Sri Lanka"}`}
+                      : `Showing ${paginatedHotels.length} of ${sortedHotels.length} hotels in ${location?.trim() ? location : "Sri Lanka"}`}
                   </h2>
                   <p className="text-sm font-medium text-gray-500 mt-0.5">
                     {checkIn && checkOut ? (
@@ -930,33 +922,30 @@ export default function HotelsPage() {
 
             {/* DYNAMIC HOTEL CARDS CONTAINER */}
             {!isLoading && sortedHotels.length > 0 && (
-              <>
-                <HotelResultsErrorBoundary>
-                  <div className="flex flex-col w-full gap-4">
-                    {visibleHotels.map((hotelItem) => (
-                      <HotelCard
-                        key={hotelItem.hotelId || hotelItem.name}
-                        hotel={hotelItem}
-                        nightsCount={nightsCount}
-                        searchParams={{
-                          checkIn,
-                          checkOut,
-                          adults: adultsCount,
-                          rooms: roomsCount,
-                        }}
-                        onViewDetails={setSelectedHotel}
-                      />
-                    ))}
-                  </div>
-                </HotelResultsErrorBoundary>
-
-                <ShowMoreButton
-                  onClick={showMore}
-                  hasMore={hasMore}
-                  remainingCount={remainingCount}
-                  buttonText="Show More Hotels"
+              <HotelResultsErrorBoundary>
+                <div className="flex flex-col w-full gap-4">
+                  {paginatedHotels.map((hotelItem) => (
+                    <HotelCard
+                      key={hotelItem.hotelId || hotelItem.name}
+                      hotel={hotelItem}
+                      nightsCount={nightsCount}
+                      searchParams={{
+                        checkIn,
+                        checkOut,
+                        adults: adultsCount,
+                        rooms: roomsCount,
+                      }}
+                      onViewDetails={setSelectedHotel}
+                    />
+                  ))}
+                </div>
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  label="Hotels"
                 />
-              </>
+              </HotelResultsErrorBoundary>
             )}
           </div>
         </div>
